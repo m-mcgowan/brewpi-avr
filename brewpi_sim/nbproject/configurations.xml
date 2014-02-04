@@ -18,6 +18,9 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>../brewpi_cpp</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="1">
@@ -40,6 +43,18 @@
           </linkerLibItems>
           <commandLine>-static-libgcc -static-libstdc++</commandLine>
         </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="../brewpi_lib"
+                        CT="3"
+                        CN="Debug"
+                        AC="true"
+                        BL="true"
+                        WD="../brewpi_lib"
+                        BC="${MAKE}  -f makefile CONF=Debug"
+                        CC="${MAKE}  -f makefile CONF=Debug clean"
+                        OP="${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libbrewpi_lib.a">
+          </makeArtifact>
+        </requiredProjects>
       </compileType>
       <item path="../brewpi_cpp/Main.cpp" ex="false" tool="1" flavor2="0">
       </item>

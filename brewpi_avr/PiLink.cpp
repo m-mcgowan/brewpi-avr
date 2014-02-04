@@ -815,7 +815,7 @@ void PiLink::processJsonPair(const char * key, const char * val, void* pv){
 
 void PiLink::soundAlarm(bool active)
 {
-	alarm.setActive(active);
+	//alarm.setActive(active);
 }
 
 

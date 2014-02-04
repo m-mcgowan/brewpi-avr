@@ -5,7 +5,7 @@
     <ProjectVersion>6.1</ProjectVersion>
     <ToolchainName>com.Atmel.AVRGCC8.CPP</ToolchainName>
     <ProjectGuid>{c0415566-e0bc-45db-8e53-cc52899284fe}</ProjectGuid>
-    <avrdevice>ATmega328P</avrdevice>
+    <avrdevice>ATmega32U4</avrdevice>
     <avrdeviceseries>none</avrdeviceseries>
     <OutputType>Executable</OutputType>
     <Language>CPP</Language>
@@ -165,13 +165,7 @@
     <PostBuildEvent> $(ARDUINO_HOME)\hardware\tools\avr\avr\bin\nm --demangle --size-sort --print-size -r -td "$(OutputDirectory)\$(OutputFileName)$(OutputFileExtension)" &gt; $(OutputDirectory)\avr-size.txt</PostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Actuator.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="Actuator.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="ActuatorArduinoPin.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="ActuatorArduinoPin.h">
@@ -195,13 +189,7 @@
     <Compile Include="Brewpi.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="BrewpiStrings.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="BrewpiStrings.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="Buzzer.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Buzzer.h">
@@ -213,13 +201,7 @@
     <Compile Include="Config.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="DallasTemperature.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="DallasTemperature.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="DeviceManager.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="DeviceManager.h">
@@ -234,13 +216,7 @@
     <Compile Include="DisplayBase.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="DisplayLcd.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="DisplayLcd.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="DS2413.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="DS2413.h">
@@ -250,9 +226,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="EepromFormat.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="EepromManager.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="EepromManager.h">
@@ -267,22 +240,13 @@
     <Compile Include="FastDigitalPin.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="FilterCascaded.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="FilterCascaded.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="FilterFixed.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="FilterFixed.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="JsonKeys.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="Logger.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Logger.h">
@@ -294,25 +258,13 @@
     <Compile Include="Main.cpp">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="Menu.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="Menu.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="NullLcdDriver.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="NullLcdDriver.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="OLEDFourBit.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="OLEDFourBit.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="OneWire.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="OneWire.h">
@@ -324,13 +276,7 @@
     <Compile Include="OneWireDevices.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="OneWireTempSensor.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="OneWireTempSensor.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="PiLink.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="PiLink.h">
@@ -342,13 +288,7 @@
     <Compile Include="Random.cpp">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="RotaryEncoder.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="RotaryEncoder.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="Sensor.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Sensor.h">
@@ -357,37 +297,19 @@
     <Compile Include="SensorArduinoPin.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="SettingsManager.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="SettingsManager.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="Simulator.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Simulator.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="SpiLcd.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="SpiLcd.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="TempControl.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="TempControl.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="TemperatureFormats.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="TemperatureFormats.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="TempSensor.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="TempSensor.h">

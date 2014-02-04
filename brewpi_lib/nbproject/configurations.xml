@@ -144,8 +144,28 @@
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>makefile</itemPath>
     </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+      <logicalFolder name="f2" displayName="gtest" projectFiles="true" kind="TEST">
+      </logicalFolder>
+      <logicalFolder name="f1"
+                     displayName="simpletests"
+                     projectFiles="true"
+                     kind="TEST">
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>makefile</itemPath>
+    </logicalFolder>
   </logicalFolder>
   <sourceRootList>
+    <Elem>../brewpi_avr</Elem>
+    <Elem>../brewpi_cpp</Elem>
     <Elem>../brewpi_avr</Elem>
     <Elem>../brewpi_cpp</Elem>
   </sourceRootList>
@@ -185,8 +205,6 @@
       </item>
       <item path="../brewpi_avr/Brewpi.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../brewpi_avr/BrewpiStrings.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../brewpi_avr/BrewpiStrings.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Build/makedep.mk" ex="false" tool="3" flavor2="0">
@@ -203,8 +221,6 @@
       </item>
       <item path="../brewpi_avr/DallasTemperature.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../brewpi_avr/DeviceManager.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../brewpi_avr/DeviceManager.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Display.cpp" ex="false" tool="1" flavor2="0">
@@ -220,8 +236,6 @@
       <item path="../brewpi_avr/EepromAccess.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/EepromFormat.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/EepromManager.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/EepromManager.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -245,8 +259,6 @@
       </item>
       <item path="../brewpi_avr/Logger.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../brewpi_avr/Menu.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../brewpi_avr/Menu.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/NullLcdDriver.cpp" ex="false" tool="1" flavor2="0">
@@ -263,8 +275,6 @@
       </item>
       <item path="../brewpi_avr/OneWireTempSensor.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../brewpi_avr/PiLink.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../brewpi_avr/PiLink.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Pins.h" ex="false" tool="3" flavor2="0">
@@ -279,17 +289,11 @@
       </item>
       <item path="../brewpi_avr/SensorArduinoPin.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../brewpi_avr/SettingsManager.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../brewpi_avr/SettingsManager.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/Simulator.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/Simulator.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/SpiLcd.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/TempControl.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/TempControl.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -331,6 +335,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../brewpi_avr/value.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_cpp/Arduino.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -494,8 +500,6 @@
       </item>
       <item path="../brewpi_avr/Brewpi.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../brewpi_avr/BrewpiStrings.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../brewpi_avr/BrewpiStrings.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Build/makedep.mk" ex="false" tool="3" flavor2="0">
@@ -512,8 +516,6 @@
       </item>
       <item path="../brewpi_avr/DallasTemperature.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../brewpi_avr/DeviceManager.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../brewpi_avr/DeviceManager.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Display.cpp" ex="false" tool="1" flavor2="0">
@@ -529,8 +531,6 @@
       <item path="../brewpi_avr/EepromAccess.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/EepromFormat.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/EepromManager.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/EepromManager.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -554,8 +554,6 @@
       </item>
       <item path="../brewpi_avr/Logger.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../brewpi_avr/Menu.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../brewpi_avr/Menu.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/NullLcdDriver.cpp" ex="false" tool="1" flavor2="0">
@@ -572,8 +570,6 @@
       </item>
       <item path="../brewpi_avr/OneWireTempSensor.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../brewpi_avr/PiLink.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../brewpi_avr/PiLink.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Pins.h" ex="false" tool="3" flavor2="0">
@@ -588,17 +584,11 @@
       </item>
       <item path="../brewpi_avr/SensorArduinoPin.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../brewpi_avr/SettingsManager.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../brewpi_avr/SettingsManager.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/Simulator.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/Simulator.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/SpiLcd.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/TempControl.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/TempControl.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -640,6 +630,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../brewpi_avr/value.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_cpp/Arduino.h" ex="false" tool="3" flavor2="0">
       </item>
