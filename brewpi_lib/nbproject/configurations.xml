@@ -325,6 +325,8 @@
       </item>
       <item path="../brewpi_avr/TicksArduino.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../brewpi_avr/Value_Test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../brewpi_avr/Version.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/brewpi_avr.cppproj" ex="false" tool="3" flavor2="0">
@@ -619,6 +621,8 @@
       <item path="../brewpi_avr/Ticks.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/TicksArduino.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../brewpi_avr/Value_Test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/Version.h" ex="false" tool="3" flavor2="0">
       </item>

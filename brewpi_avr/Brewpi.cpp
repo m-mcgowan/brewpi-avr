@@ -44,6 +44,12 @@ void loop (void);
  * They are non-virtual to keep code size minimal, so typedefs and preprocessing are used to select the actual compile-time type used. */
 TicksImpl ticks = TicksImpl(TICKS_IMPL_CONFIG);
 
+class RootContainer {
+	
+	
+};
+
+
 void setup()
 {    
 }
@@ -51,6 +57,7 @@ void setup()
 
 void brewpiLoop(void)
 {
+		
 }
 
 void loop() {
