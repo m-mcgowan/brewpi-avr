@@ -27,6 +27,10 @@
  */
 #include "Brewpi.h"
 #include "Ticks.h"
+#include "Comms.h"
+#include "Values.h"
+#include "ValuesEeprom.h"
+#include "ValuesProgmem.h"
 
 #if BREWPI_SIMULATE
 	#include "Simulator.h"
@@ -44,20 +48,16 @@ void loop (void);
  * They are non-virtual to keep code size minimal, so typedefs and preprocessing are used to select the actual compile-time type used. */
 TicksImpl ticks = TicksImpl(TICKS_IMPL_CONFIG);
 
-class RootContainer {
-	
-	
-};
-
 
 void setup()
 {    
+	Comms::init();
 }
 
 
 void brewpiLoop(void)
 {
-		
+	Comms::receive();		
 }
 
 void loop() {

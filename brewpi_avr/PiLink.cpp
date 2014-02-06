@@ -18,6 +18,8 @@
  * along with BrewPi.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if BREWPI_0
+
 #include "Brewpi.h"
 #include <stdarg.h>
 
@@ -815,7 +817,7 @@ void PiLink::processJsonPair(const char * key, const char * val, void* pv){
 
 void PiLink::soundAlarm(bool active)
 {
-	//alarm.setActive(active);
+	alarm.setActive(active);
 }
 
 
@@ -823,4 +825,4 @@ void PiLink::soundAlarm(bool active)
 void PiLink::print(char c) { piStream.print(c); }
 #endif
 
-
+#endif

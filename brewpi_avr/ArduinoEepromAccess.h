@@ -36,4 +36,6 @@ public:
 	static void writeBlock(eptr_t target, const void* source, uint16_t size) {
 		eeprom_update_block(source, (void*)target, size);
 	}	
+	
+	static uint16_t length() { return 1024; }	// todo - change length according to arduino type
 };

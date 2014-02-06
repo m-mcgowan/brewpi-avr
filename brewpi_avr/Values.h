@@ -1,60 +1,82 @@
 #pragma once
 
+#include "DataStream.h"
+
 typedef uint8_t container_id;
+const container_id INVALID_ID = container_id(-1);
+
 typedef uint16_t prepare_t;
 
 enum ObjectType {
-	otObject,
-	otContainer,
-	otValue
+	otObject = 0,
+	otContainer = 1,
+	otValue = 2,
+	
+	otWritable = 16		// flag for writable values
 };
 
-class Object
+typedef uint8_t object_t;
+
+
+struct Object
 {
-	
-	virtual ObjectType objectType() {
+	virtual object_t objectType() {
 		return otObject;
 	}
 	
-	virtual prepare_t prepare() { return 0; }
+	virtual ~Object() {}
 };
 
-class Container : public Object
+struct Container : public Object
 {
-	ObjectType objectType() { return otContainer; }
+	object_t objectType() { return otContainer; }
 	
-	container_id add(void* item) { }
-	void* remove(container_id id) { }
+	/*
+	 * Add the given object to the container at the next available slot.
+	 * Note that slots are essentially arbitrary. The container guarantees
+	 * the object will be available at the slot until removed.
+	 */
+	container_id add(Object* item) { return INVALID_ID; }
+	Object* remove(container_id id) { return NULL; }
 	
-	void* item(container_id id) { }
+	Object* item(container_id id) { return NULL; }
 	
 	/*
 	 * The number of items in this container.
 	 */
-	container_id size();
-	
-	
+	container_id size() { return 0; }
 };
 
+struct StreamReadable {
+	
+	virtual void readTo(DataOut& out)=0;
+};
 
-template<class T> class Readable
-{	
-    public:	
+struct StreamWritable {
+	virtual void writeFrom(DataIn& in)=0;
+};
+
+template<class T> struct Readable : public virtual StreamReadable
+{		
 	virtual T read() { return T(0); }
-	
-	virtual ~Readable() {}
 };
 
-template<class T> class Writable
+template<class T> struct Writable : public virtual StreamWritable
 {
-    public:
-        virtual void write(T t) {}
-                
+    virtual void write(T t) {}
 };
 
+struct AbstractValue : public Object
+{
+	virtual object_t objectType() { return otValue; }
+};
+
+class AbstractStreamValue : public AbstractValue, public StreamReadable, public StreamWritable {
+			
+};
 
 template<class T> class BasicValue : 
-	public Readable, public Writable
+	public AbstractStreamValue, Readable<T>, Writable<T>
 {
     private:
         T value;
@@ -73,8 +95,15 @@ template<class T> class BasicValue :
         {
             return value;
         }
+		
+		virtual void writeFrom(DataIn& in)
+		{
+			in.read((uint8_t*)&value, sizeof(value));
+		}
+		
+		virtual void readTo(DataOut& out) 
+		{
+			out.write((uint8_t*)&value, sizeof(value));
+		}
+		
 };
-
-
-
-

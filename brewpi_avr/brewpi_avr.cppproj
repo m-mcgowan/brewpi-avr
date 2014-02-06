@@ -146,7 +146,7 @@
     </ListValues>
   </avrgcccpp.compiler.directories.IncludePaths>
   <avrgcccpp.compiler.optimization.level>Optimize for size (-Os)</avrgcccpp.compiler.optimization.level>
-  <avrgcccpp.compiler.optimization.OtherFlags>-fno-split-wide-types</avrgcccpp.compiler.optimization.OtherFlags>
+  <avrgcccpp.compiler.optimization.OtherFlags>-fno-split-wide-types -fno-rtti</avrgcccpp.compiler.optimization.OtherFlags>
   <avrgcccpp.compiler.optimization.PackStructureMembers>True</avrgcccpp.compiler.optimization.PackStructureMembers>
   <avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>
   <avrgcccpp.compiler.optimization.DebugLevel>Maximum (-g3)</avrgcccpp.compiler.optimization.DebugLevel>
@@ -195,6 +195,18 @@
     <Compile Include="Buzzer.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="Commands.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Commands.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Comms.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Comms.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="ConfigDefault.h">
       <SubType>compile</SubType>
     </Compile>
@@ -202,6 +214,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="DallasTemperature.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="DataStream.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="DeviceManager.h">
@@ -279,6 +294,9 @@
     <Compile Include="OneWireTempSensor.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="PiLink.cpp">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="PiLink.h">
       <SubType>compile</SubType>
     </Compile>
@@ -337,6 +355,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Values.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ValuesEeprom.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Version.h">
