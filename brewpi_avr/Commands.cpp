@@ -15,6 +15,8 @@ typedef const char* cpchar;
 
 const bool RANGE_CHECK = true;
 
+BlackholeDataOut blackhole;
+
 class BuildInfoValues : public Container {
 	private:
 	BasicValue<cpchar> buildHash;
@@ -120,6 +122,8 @@ public:
 	{		
 	}
 	
+	DataOut& pipeOut() { return out; }
+	
 	virtual uint8_t next() {
 		uint8_t val = in.next();
 		out.write(val);
@@ -142,8 +146,9 @@ enum Commands {
 	CMD_DELETE_OBJECT = 5,		// delete the object at the specified location
 	
 	CMD_MAX = 127,				// max command value for user-visible commands
-	CMD_INVALID = 128,			// special value for invalid command in eeprom. Used as a placeholder for incomplete data
-	CMD_DISPOSED_OBJECT = 3+128	// flag in eeprom for object that is now deleted. Allows space to be reclaimed later.
+	CMD_SPECIAL_FLAG = 128,
+	CMD_INVALID = CMD_SPECIAL_FLAG | CMD_NONE,						// special value for invalid command in eeprom. Used as a placeholder for incomplete data
+	CMD_DISPOSED_OBJECT = CMD_CREATE_OBJECT | CMD_SPECIAL_FLAG	// flag in eeprom for object that is now deleted. Allows space to be reclaimed later.
 };
 
 
@@ -221,7 +226,7 @@ CreateObjectHandler createObjectHandlers[] = {
 	createEepromValue		// todo - this is more for illustration than actual necessity
 };
 
-Object* createObject(DataIn& in)
+Object* createObject(DataIn& in, bool dryRun=false)
 {	
 	uint8_t type = in.next();		// object type
 	return NULL;
@@ -278,13 +283,66 @@ void deleteObjectCommandHandler(DataIn& _in, DataOut& out)
 	out.write(removed ? 1 : 0);	
 }
 
+class ObjectDefinitionWalker {
+	
+	DataIn& _in;
+	
+public:
+	ObjectDefinitionWalker(DataIn& in):
+		_in(in) {}
+							
+	bool writeNext(DataOut& out) {
+		if (!_in.hasNext())
+			return false;
+			
+		int8_t next = _in.peek();
+		bool valid =  (next&0x7F==CMD_CREATE_OBJECT);
+		if (valid) {
+			_in.next();										// consume it
+			PipeDataIn pipe(_in, next>=0 ? blackhole : out);
+			pipe.pipeOut().write(next);			
+			/*Object* target = */lookupObject(pipe);			// find the container where the object will be added
+			// todo - could flag warning if target is NULL
+			createObject(pipe, true);						// dry run for create object			
+		}
+
+		return valid;
+	}
+};
+
+void listEepromInstructionsTo(DataOut& out) {
+	EepromDataIn eepromData(0, eepromAccess.length());
+	ObjectDefinitionWalker walker(eepromData);
+	while (walker.writeNext(out));
+}
+
+/**
+ * Compacts the eeprom instruction store by removing deleted object definitions.
+ *
+ * /return The offset where the next eeprom instruction will be stored. 
+ */
+eptr_t compactObjectDefinitions() {
+	EepromDataOut eepromData(0, eepromAccess.length());
+	listEepromInstructionsTo(eepromData);
+	return eepromData.offset();
+}
+
+/**
+ * Walks the eeprom and writes out the construction definitions.
+ */
+void listObjectsCommandHandler(DataIn& _in, DataOut& out)
+{
+	listEepromInstructionsTo(out);
+}
+
 CommandHandler handlers[] = {
 	noopCommandHandler,
 	fetchValueCommandHandler,
 	setValueCommandHandler,
 	createObjectCommandHandler,
 	placeObjectCommandHandler,
-	deleteObjectCommandHandler
+	deleteObjectCommandHandler,
+	listObjectsCommandHandler
 };
 
 void handleCommand(DataIn& dataIn, DataOut& dataOut)

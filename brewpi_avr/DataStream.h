@@ -27,6 +27,10 @@ struct DataOut
 	virtual void close()=0;
 };
 
+struct BlackholeDataOut : public DataOut {	
+	virtual void write(uint8_t data) { }
+	virtual void close() {}
+};
 
 struct DataIn
 {
@@ -52,6 +56,8 @@ struct DataIn
 		}
 	}
 };
+
+
 
 
 
