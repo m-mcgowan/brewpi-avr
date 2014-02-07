@@ -5,7 +5,7 @@
  *  Author: mat
  */ 
 
-#include "brewpi.h"
+#include "Brewpi.h"
 #include "Comms.h"
 #include "Commands.h"
 
