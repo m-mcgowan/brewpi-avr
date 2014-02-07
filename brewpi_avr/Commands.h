@@ -8,5 +8,8 @@
  */ 
 
 #include "DataStream.h"
+#include "Values.h"
 
 void handleCommand(DataIn& data, DataOut& out);
+
+Container* rootContainer();

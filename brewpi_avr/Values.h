@@ -2,8 +2,9 @@
 
 #include "DataStream.h"
 
-typedef uint8_t container_id;
-const container_id INVALID_ID = container_id(-1);
+typedef int8_t container_id;
+
+const container_id INVALID_ID = (container_id)(-1);
 
 typedef uint16_t prepare_t;
 
@@ -23,6 +24,17 @@ struct Object
 	virtual object_t objectType() {
 		return otObject;
 	}
+
+	/**
+	 * Prepare this object for subsequent updates. 
+	 * The returned value is the number of milliseconds the object needs before updates can be performed.
+	 */
+	virtual prepare_t prepare() { return 0; }
+	
+	/**
+	 * Called after prepare to update this object's state.
+	 */
+	virtual void update() { }
 	
 	virtual ~Object() {}
 };
@@ -71,8 +83,9 @@ struct AbstractValue : public Object
 	virtual object_t objectType() { return otValue; }
 };
 
-class AbstractStreamValue : public AbstractValue, public StreamReadable, public StreamWritable {
-			
+struct AbstractStreamValue : AbstractValue, StreamReadable, StreamWritable {
+	
+	virtual ~AbstractStreamValue() { }
 };
 
 template<class T> class BasicValue : 
@@ -107,3 +120,39 @@ template<class T> class BasicValue :
 		}
 		
 };
+
+
+inline bool isContainer(Object* o)
+{
+	return o!=NULL && o->objectType()==otContainer;
+}
+
+
+inline bool isReadable(Object* o)
+{
+	return o->objectType()==otValue;
+}
+
+inline bool isWritable(Object* o)
+{
+	return o->objectType()==otValue && (o->objectType()&otWritable);
+}
+
+
+/*
+ * Callback function for enumerating objects.
+ * The function can return true to stop enumeration. 
+ */
+typedef bool (*EnumObjectsFn)(Object* obj, void* data, container_id* id);
+
+bool walkContainer(Object* obj, EnumObjectsFn callback, void* data, container_id* id, container_id* end);
+
+inline bool walkRoot(Container* obj, EnumObjectsFn callback, void* data, container_id* id) {
+	return walkContainer(obj, callback, data, id, id);
+}
+
+/**
+ * Recursively walks all objects in a container hierarchy.
+ */
+bool walkContainerObjects(Container* obj, EnumObjectsFn callback, void* data, container_id* id, container_id* end);
+

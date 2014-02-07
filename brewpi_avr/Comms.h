@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DataStream.h"
 
 /*
  * Comms.h
@@ -18,5 +19,6 @@ public:
 	 */
 	static void receive();
 	
+	static DataOut* dataOut();
 };
 

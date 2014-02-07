@@ -122,7 +122,8 @@ $(SRC)Brewpi.cpp \
 $(SRC)Commands.cpp \
 $(SRC)Comms.cpp \
 $(SRC)Main.cpp \
-$(SRC)Ticks.cpp
+$(SRC)Ticks.cpp \
+$(SRC)Values.cpp
 
 BASENAMES += $(notdir $(basename $(C_SRCS)))
  

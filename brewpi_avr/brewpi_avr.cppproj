@@ -146,7 +146,7 @@
     </ListValues>
   </avrgcccpp.compiler.directories.IncludePaths>
   <avrgcccpp.compiler.optimization.level>Optimize for size (-Os)</avrgcccpp.compiler.optimization.level>
-  <avrgcccpp.compiler.optimization.OtherFlags>-fno-split-wide-types -fno-rtti</avrgcccpp.compiler.optimization.OtherFlags>
+  <avrgcccpp.compiler.optimization.OtherFlags>-fno-split-wide-types</avrgcccpp.compiler.optimization.OtherFlags>
   <avrgcccpp.compiler.optimization.PackStructureMembers>True</avrgcccpp.compiler.optimization.PackStructureMembers>
   <avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcccpp.compiler.optimization.AllocateBytesNeededForEnum>
   <avrgcccpp.compiler.optimization.DebugLevel>Maximum (-g3)</avrgcccpp.compiler.optimization.DebugLevel>
@@ -220,9 +220,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="DeviceManager.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="Display.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Display.h">
@@ -352,6 +349,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="TicksArduino.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Values..cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Values.h">

@@ -28,6 +28,7 @@
 #include "Brewpi.h"
 #include "Ticks.h"
 #include "Comms.h"
+#include "Commands.h"
 #include "Values.h"
 #include "ValuesEeprom.h"
 #include "ValuesProgmem.h"
@@ -55,9 +56,52 @@ void setup()
 }
 
 
+
+/*
+ * Lifecycle for components:
+ *
+ * - prepare: general initialization, start of a new control loop
+ * - update: fetch data from the environment, read sensor values
+ * - log
+ */
+bool prepareCallback(Object* o, void* data, container_id* id) {
+	
+	uint32_t& waitUntil = *(uint32_t*)data;
+	prepare_t millisToWait = o->prepare();
+	if (millisToWait)
+		waitUntil = ticks.millis()+millisToWait;
+	return false;	// continue enumerating
+}
+
+/**
+ * Updates each object in the container hierarchy.
+ */
+bool updateCallback(Object* o, void* data, container_id* id) {
+	o->update();
+	return false;
+}
+
+bool logValuesCallback(Object* o, void* data, container_id* id) {
+	DataOut* out = (DataOut*)data;
+	
+	return false;
+}
+
+const uint8_t MAX_CONTAINER_DEPTH = 16;
+
+
 void brewpiLoop(void)
 {
-	Comms::receive();		
+	Comms::receive();
+
+	container_id ids[MAX_CONTAINER_DEPTH];
+	
+	Container* root = rootContainer();
+	uint32_t waitUntil = 0;
+	
+	walkRoot(root, prepareCallback, &waitUntil, ids);
+	walkRoot(root, updateCallback, NULL, ids);
+	walkRoot(root, logValuesCallback, Comms::dataOut(), ids);
 }
 
 void loop() {

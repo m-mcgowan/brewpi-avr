@@ -48,11 +48,6 @@ Container* rootContainer()
 	return &root;		
 }
 
-bool isContainer(Object* o) 
-{
-	return o!=NULL && o->objectType()==otContainer;
-}
-
 Object* fetchContainedObject(Object* o, uint8_t id)
 {
 	Object* result = NULL;
@@ -96,17 +91,6 @@ Object* lookupContainer(DataIn& data, int8_t& lastID)
 	return current;
 }
 
-
-
-bool isReadable(Object* o)
-{
-	return o->objectType()==otValue;
-}
-
-boolean isWritable(Object* o)
-{
-	return o->objectType()==otValue && (o->objectType()&otWritable);
-}
 
 /*
  * Reads data from a DataIn, and writes any fetched bytes to DataOut.
@@ -296,7 +280,7 @@ public:
 			return false;
 			
 		int8_t next = _in.peek();
-		bool valid =  (next&0x7F==CMD_CREATE_OBJECT);
+		bool valid =  ((next&0x7F)==CMD_CREATE_OBJECT);
 		if (valid) {
 			_in.next();										// consume it
 			PipeDataIn pipe(_in, next>=0 ? blackhole : out);

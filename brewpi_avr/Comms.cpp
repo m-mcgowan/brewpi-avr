@@ -70,3 +70,6 @@ void Comms::receive() {
 	
 }
 
+DataOut* Comms::dataOut() {
+	return &commsOut;
+}
