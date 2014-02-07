@@ -173,14 +173,7 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: dump $(OUTPUT_FILE_PATH) $(ADDITIONAL_DEPENDENCIES)
-
-dump:	
-	@echo $(BASENAMES)
-	@echo $(C_SRCS)
-	@echo $(OBJS)
-
-.PHONY : dump all
+all: $(OUTPUT_FILE_PATH) $(ADDITIONAL_DEPENDENCIES)
 
 $(OUTPUT_FILE_PATH): $(OBJS) $(USER_OBJS) $(OUTPUT_FILE_DEP) $(LIB_DEP)
 	@echo Building target: $@

@@ -351,7 +351,7 @@
     <Compile Include="TicksArduino.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="Values..cpp">
+    <Compile Include="Values.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Values.h">
