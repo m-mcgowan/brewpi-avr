@@ -53,7 +53,7 @@ struct EepromDataIn : public DataIn, EepromBaseData
 	}
 };
 	
-class EepromBaseValue : public AbstractStreamValue {
+class EepromBaseValue : public AbstractValue, virtual public StreamWritable {
 
 protected:
 		void _readTo(DataOut& out, eptr_t offset, uint8_t size)
@@ -67,6 +67,8 @@ protected:
 			EepromDataOut out(offset, size);
 			in.push(out, size);
 		}		
+		
+		object_t objectType() { return otValue | otWritable; }
 };
 
 template <uint8_t _size> class EepromStreamValue : public EepromBaseValue

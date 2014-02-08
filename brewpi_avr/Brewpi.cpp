@@ -32,6 +32,8 @@
 #include "Values.h"
 #include "ValuesEeprom.h"
 #include "ValuesProgmem.h"
+#include "GenericContainer.h"
+
 
 #if BREWPI_SIMULATE
 	#include "Simulator.h"
@@ -50,12 +52,38 @@ void loop (void);
 TicksImpl ticks = TicksImpl(TICKS_IMPL_CONFIG);
 
 
-void setup()
-{    
-	Comms::init();
+StaticContainer<8> root;
+
+Container* rootContainer()
+{
+	return &root;
 }
 
 
+class BuildInfoValues : public Container {
+	private:
+	ProgmemStringValue buildHash;
+	
+	public:
+	BuildInfoValues()
+	: buildHash(PSTR(BUILD_NAME))	{}
+	
+	container_id size() { return 1; }
+	void* item(container_id id) { return &buildHash; }
+};
+
+BuildInfoValues buildInfo;
+BasicValue<uint8_t> logInterval(-1);
+BasicValue<uint8_t> logInterval2(-1);
+
+void setup()
+{    
+	root.add(&buildInfo);
+	root.add(&logInterval);
+	root.add(&logInterval2);
+	
+	Comms::init();
+}
 
 /*
  * Lifecycle for components:
@@ -81,6 +109,9 @@ bool updateCallback(Object* o, void* data, container_id* id) {
 	return false;
 }
 
+/**
+ * Writes an ID chain to the stream.
+ */
 void writeID(container_id* id, DataOut& out) {
 	do {
 		out.write(*id);
@@ -99,6 +130,18 @@ bool logValuesCallback(Object* o, void* data, container_id* id) {
 
 const uint8_t MAX_CONTAINER_DEPTH = 16;
 
+/**
+ * Logs all values in the system. 
+ */
+void logValues(container_id* ids)
+{
+	DataOut& out = Comms::dataOut();
+	out.write(CMD_READ_VALUE);						
+	walkRoot(rootContainer(), logValuesCallback, &out, ids);
+	out.close();
+}
+
+bool logValuesFlag = false;
 
 void brewpiLoop(void)
 {
@@ -107,13 +150,21 @@ void brewpiLoop(void)
 	container_id ids[MAX_CONTAINER_DEPTH];
 	
 	Container* root = rootContainer();
-	uint32_t waitUntil = 0;
 	
+	uint32_t waitUntil = 0;	
 	walkRoot(root, prepareCallback, &waitUntil, ids);
+	
+	for (;ticks.millis()<waitUntil;) { }
 	
 	walkRoot(root, updateCallback, NULL, ids);
 	
-	walkRoot(root, logValuesCallback, &Comms::dataOut(), ids);
+	// todo - should brewpi always log, or only log when requested?
+	if (logValuesFlag)
+	{
+		logValuesFlag = false;
+		logValues(ids);
+	}
+	
 }
 
 void loop() {       

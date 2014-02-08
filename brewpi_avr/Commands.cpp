@@ -8,54 +8,27 @@
 #include "Brewpi.h"
 #include "Values.h"
 #include "Commands.h"
+#include "DataStream.h"
 #include "ValuesEeprom.h"
-
-typedef char* pchar;
-typedef const char* cpchar;
+#include "GenericContainer.h"
 
 const bool RANGE_CHECK = true;
 
 BlackholeDataOut blackhole;
 
-class BuildInfoValues : public Container {
-	private:
-	BasicValue<cpchar> buildHash;
-	
-	public:
-	BuildInfoValues()
-	: buildHash(BUILD_NAME)	{}
-	
-	container_id size() { return 1; }
-	void* item(container_id id) { return &buildHash; }
-};
-
-
-class RootContainer : public Container {
-	BuildInfoValues buildInfo;
-		
-	container_id size() { return 1; }
-	
-	void* item(container_id id) { return &buildInfo; }
-	
-};
-
-RootContainer root;
 
 typedef void (*CommandHandler)(DataIn&, DataOut&);
 
-Container* rootContainer()
-{
-	return &root;		
-}
 
 Object* fetchContainedObject(Object* o, uint8_t id)
 {
 	Object* result = NULL;
+	id &= 0x7F;
 	if (isContainer(o))
 	{
 		Container* c = (Container*)o;
-		if (RANGE_CHECK && id<c->size())
-			result = c->item(id & 0x7F);
+		if (id<c->size())
+			result = c->item(id);
 	}
 	else {
 		// special case of 0 is also allowed as a self reference for non-container objects
@@ -90,50 +63,6 @@ Object* lookupContainer(DataIn& data, int8_t& lastID)
 	lastID = id;
 	return current;
 }
-
-
-/*
- * Reads data from a DataIn, and writes any fetched bytes to DataOut.
- */
-class PipeDataIn : public DataIn
-{
-	DataIn& in; 
-	DataOut& out;
-
-public:	
-	PipeDataIn(DataIn& in, DataOut& out) 
-		: in(in), out(out) 
-	{		
-	}
-	
-	DataOut& pipeOut() { return out; }
-	
-	virtual uint8_t next() {
-		uint8_t val = in.next();
-		out.write(val);
-		return val;
-	}
-	
-	virtual bool hasNext() { return in.hasNext(); }
-	virtual uint8_t peek() { return in.peek(); }
-	
-};
-
-
-enum Commands {
-	CMD_NONE = 0,				// no-op
-
-	CMD_READ_VALUE = 1,			// read a value
-	CMD_WRITE_VALUE = 2,			// write a value
-	CMD_CREATE_OBJECT = 3,		// add object in a container
-	CMD_PLACE_OBJECT = 4,		// create object and place a container at a specified offset
-	CMD_DELETE_OBJECT = 5,		// delete the object at the specified location
-	
-	CMD_MAX = 127,				// max command value for user-visible commands
-	CMD_SPECIAL_FLAG = 128,
-	CMD_INVALID = CMD_SPECIAL_FLAG | CMD_NONE,						// special value for invalid command in eeprom. Used as a placeholder for incomplete data
-	CMD_DISPOSED_OBJECT = CMD_CREATE_OBJECT | CMD_SPECIAL_FLAG	// flag in eeprom for object that is now deleted. Allows space to be reclaimed later.
-};
 
 
 void noopCommandHandler(DataIn& _in, DataOut& out)
@@ -259,8 +188,7 @@ void deleteObjectCommandHandler(DataIn& _in, DataOut& out)
 	Object* removed = NULL;
 	if (obj!=NULL && isContainer(obj) && lastID>=0) {
 		Container* c = (Container*)obj;
-		removed = c->remove(lastID);
-		delete removed;
+		c->remove(lastID);		
 	}	
 	
 	// todo - locate object definition in eeprom and flag the object as deleted
@@ -334,3 +262,4 @@ void handleCommand(DataIn& dataIn, DataOut& dataOut)
 	uint8_t next = dataIn.next();
 	handlers[next](dataIn, dataOut);
 }
+

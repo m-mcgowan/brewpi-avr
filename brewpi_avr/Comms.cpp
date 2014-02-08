@@ -201,7 +201,14 @@ public:
 		_out.write(d2h((data&0xF0)>>4));
 		_out.write(d2h((data&0xF)));
 		_out.write(' ');
-	}	
+	}
+	
+	/**
+	 * Rather than closing the global stream, write a newline to signify the end of this command.
+	 */
+	void close() {
+		_out.write('\n');
+	}
 };
 
 BinaryToHexTextOut hexOut(commsOut);

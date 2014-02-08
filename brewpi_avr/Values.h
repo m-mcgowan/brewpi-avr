@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Brewpi.h"
 #include "DataStream.h"
 
 typedef int8_t container_id;
@@ -49,12 +50,17 @@ struct Container : public Object
 	 * the object will be available at the slot until removed.
 	 */
 	container_id add(Object* item) { return INVALID_ID; }
-	Object* remove(container_id id) { return NULL; }
+	void remove(container_id id) { }
 	
+	/**
+	 * Fetches the object with the given id.
+	 * /return the object with that id, which may be null.
+	 */
 	Object* item(container_id id) { return NULL; }
 	
 	/*
-	 * The number of items in this container.
+	 * The maximum number of items in this container. An item may return NULL. This is provided so callers know
+	 * how many values to iterate for this container.
 	 */
 	container_id size() { return 0; }
 };
@@ -78,48 +84,60 @@ template<class T> struct Writable : public virtual StreamWritable
     virtual void write(T t) {}
 };
 
-struct AbstractValue : public Object
+struct AbstractValue : public virtual Object
 {
 	virtual object_t objectType() { return otValue; }
 };
 
-struct AbstractStreamValue : AbstractValue, StreamReadable, StreamWritable {
-	
-	virtual ~AbstractStreamValue() { }
+struct AbstractStreamValue : public AbstractValue, virtual StreamReadable, virtual StreamWritable {
+		
 };
 
-template<class T> class BasicValue : 
-	public AbstractStreamValue, Readable<T>, Writable<T>
+template<class T> class BasicReadOnlyValue : 
+	public AbstractStreamValue, virtual public Readable<T>
 {
-    private:
+    protected:
         T value;
         
     public:
-        BasicValue(T initial) 
+        BasicReadOnlyValue(T initial=0) 
         : value(initial)
         {}
-        
-        virtual void write(T t)
-        {
-            this->value = t;
-        }                
         
         virtual T read() 
         {
             return value;
         }
 		
-		virtual void writeFrom(DataIn& in)
-		{
-			in.read((uint8_t*)&value, sizeof(value));
-		}
-		
 		virtual void readTo(DataOut& out) 
 		{
 			out.write((uint8_t*)&value, sizeof(value));
 		}
+
+		virtual void write(T t)
+		{
+			this->value = t;
+		}
+	
+		virtual void writeFrom(DataIn& in)
+		{
+			in.read((uint8_t*)&this->value, sizeof(this->value));
+		}
 		
 };
+
+
+template<class T> struct BasicValue : public BasicReadOnlyValue<T>, virtual Writable<T>
+{	
+	BasicValue(T initial=0)
+	: BasicReadOnlyValue<T>(initial)
+	{}
+		
+	object_t objectType() {
+		return otValue | otWritable;
+	}
+};
+
 
 
 inline bool isContainer(Object* o)
@@ -135,7 +153,8 @@ inline bool isReadable(Object* o)
 
 inline bool isWritable(Object* o)
 {
-	return o->objectType()==otValue && (o->objectType()&otWritable);
+	uint8_t ot = o->objectType();
+	return ot==otValue && (ot&otWritable);
 }
 
 
@@ -154,3 +173,7 @@ inline bool walkRoot(Container* c, EnumObjectsFn callback, void* data, container
 	return walkContainer(c, callback, data, id, id);
 }
 
+/**
+ * The host app should provide the root container.
+ */
+Container* rootContainer();

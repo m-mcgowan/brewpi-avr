@@ -64,6 +64,32 @@ struct DataIn
 };
 
 
+/*
+ * Reads data from a DataIn, and writes any fetched bytes to DataOut.
+ */
+class PipeDataIn : public DataIn
+{
+	DataIn& in; 
+	DataOut& out;
+
+public:	
+	PipeDataIn(DataIn& in, DataOut& out) 
+		: in(in), out(out) 
+	{		
+	}
+	
+	DataOut& pipeOut() { return out; }
+	
+	virtual uint8_t next() {
+		uint8_t val = in.next();
+		out.write(val);
+		return val;
+	}
+	
+	virtual bool hasNext() { return in.hasNext(); }
+	virtual uint8_t peek() { return in.peek(); }
+	
+};
 
 
 

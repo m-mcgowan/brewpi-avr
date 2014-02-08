@@ -10,6 +10,24 @@
 #include "DataStream.h"
 #include "Values.h"
 
+typedef char* pchar;
+typedef const char* cpchar;
+
+
 void handleCommand(DataIn& data, DataOut& out);
 
-Container* rootContainer();
+enum Commands {
+	CMD_NONE = 0,				// no-op
+
+	CMD_READ_VALUE = 1,			// read a value
+	CMD_WRITE_VALUE = 2,		// write a value
+	CMD_CREATE_OBJECT = 3,		// add object in a container
+	CMD_PLACE_OBJECT = 4,		// create object and place a container at a specified offset
+	CMD_DELETE_OBJECT = 5,		// delete the object at the specified location
+	
+	CMD_MAX = 127,				// max command value for user-visible commands
+	CMD_SPECIAL_FLAG = 128,
+	CMD_INVALID = CMD_SPECIAL_FLAG | CMD_NONE,						// special value for invalid command in eeprom. Used as a placeholder for incomplete data
+	CMD_DISPOSED_OBJECT = CMD_CREATE_OBJECT | CMD_SPECIAL_FLAG	// flag in eeprom for object that is now deleted. Allows space to be reclaimed later.
+};
+

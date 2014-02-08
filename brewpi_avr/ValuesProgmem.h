@@ -20,6 +20,7 @@ class ProgmemStringValue : public Readable<const char*>, public AbstractValue
 		const char* value;
 	
 	public:
+		ProgmemStringValue(const char* v) : value(v)  {}
 
 		const char* read() {
 			return value;
