@@ -121,7 +121,9 @@ $(SRC)ArduinoFunctions.cpp \
 $(SRC)Brewpi.cpp \
 $(SRC)Commands.cpp \
 $(SRC)Comms.cpp \
+$(SRC)GenericContainer.cpp \
 $(SRC)Main.cpp \
+$(SRC)Memops.cpp \
 $(SRC)Ticks.cpp \
 $(SRC)Values.cpp
 
