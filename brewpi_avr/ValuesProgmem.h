@@ -9,6 +9,8 @@
 
 #include "Values.h"
 
+#ifdef ARDUINO
+
 #include "avr/pgmspace.h"
 
 
@@ -35,3 +37,4 @@ class ProgmemStringValue : public Readable<const char*>, public AbstractValue
 };
 
 
+#endif // ARDUINO

@@ -65,8 +65,12 @@ class Stream : public Print
 		void begin(unsigned long);
 
 		int read();
+                int peek();
                 
                 size_t write(uint8_t w);
+                size_t write(const uint8_t* data, uint8_t len) {
+                    write(data, size_t(len));
+                }
 		void flush();
 		operator bool() { return true; }
 

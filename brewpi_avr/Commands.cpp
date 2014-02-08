@@ -212,7 +212,7 @@ CreateObjectHandler createObjectHandlers[] = {
 
 Object* createObject(DataIn& in, bool dryRun=false)
 {	
-	uint8_t type = in.next();		// object type
+	//uint8_t type = in.next();		// object type
 	return NULL;
 }
 

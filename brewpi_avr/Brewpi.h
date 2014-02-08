@@ -55,5 +55,11 @@
 
 #include "Actuator.h"
 
-extern ValueActuator alarm;
 
+class Brewpi
+{
+	public:	
+		void setup();		
+		void loop();
+};
+	

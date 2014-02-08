@@ -81,9 +81,19 @@ bool updateCallback(Object* o, void* data, container_id* id) {
 	return false;
 }
 
+void writeID(container_id* id, DataOut& out) {
+	do {
+		out.write(*id);
+	} while (*id++<0);
+}
+
 bool logValuesCallback(Object* o, void* data, container_id* id) {
-	DataOut* out = (DataOut*)data;
-	
+	DataOut& out = *(DataOut*)data;
+	if (isReadable(o)) {
+		StreamReadable* r = (StreamReadable*)o;
+		writeID(id, out);
+		r->readTo(out);
+	}
 	return false;
 }
 
@@ -104,8 +114,8 @@ void brewpiLoop(void)
 	walkRoot(root, logValuesCallback, Comms::dataOut(), ids);
 }
 
-void loop() {
-	#if BREWPI_SIMULATE
+void loop() {       
+	#if 0 && BREWPI_SIMULATE
 	simulateLoop();
 	#else
 	brewpiLoop();

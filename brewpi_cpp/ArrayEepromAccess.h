@@ -59,6 +59,8 @@ public:
         const uint8_t* eepromData() const { return &data[0]; }
         uint16_t eepromLength() const { return 1024; };
         
+        uint16_t length() { return eepromLength(); }
+        
         /**
          * Determines if the contents have changed since the last call to change.
          * @return 

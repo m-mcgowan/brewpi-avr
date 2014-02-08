@@ -145,14 +145,12 @@ inline bool isWritable(Object* o)
  */
 typedef bool (*EnumObjectsFn)(Object* obj, void* data, container_id* id);
 
-bool walkContainer(Object* obj, EnumObjectsFn callback, void* data, container_id* id, container_id* end);
 
-inline bool walkRoot(Container* obj, EnumObjectsFn callback, void* data, container_id* id) {
-	return walkContainer(obj, callback, data, id, id);
+bool walkContainer(Container* c, EnumObjectsFn callback, void* data, container_id* id, container_id* end);
+
+bool walkObject(Object* obj, EnumObjectsFn callback, void* data, container_id* id, container_id* end);
+
+inline bool walkRoot(Container* c, EnumObjectsFn callback, void* data, container_id* id) {
+	return walkContainer(c, callback, data, id, id);
 }
-
-/**
- * Recursively walks all objects in a container hierarchy.
- */
-bool walkContainerObjects(Container* obj, EnumObjectsFn callback, void* data, container_id* id, container_id* end);
 

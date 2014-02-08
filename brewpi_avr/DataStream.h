@@ -19,22 +19,28 @@ struct DataOut
 	#endif
 	
 	virtual void write(uint8_t data)=0;
-	virtual void write(uint8_t* data, uint8_t len) {
+	virtual void write(const uint8_t* data, uint8_t len) {
 		while (len-->0) {
 			write(*data++);
 		}
 	}
-	virtual void close()=0;
-};
-
-struct BlackholeDataOut : public DataOut {	
-	virtual void write(uint8_t data) { }
 	virtual void close() {}
 };
 
+struct BlackholeDataOut : public DataOut {	
+	virtual void write(uint8_t data) { }	
+};
+
+/**
+ * A data input stream.
+ */
 struct DataIn
 {
-
+	/*
+	 * Determines if there is more data in this stream.
+	 * The result from next/peek is undefined if this returns false.
+	 * Note that this is not dependent upon time, but if the stream is still open.
+	 */
 	virtual bool hasNext() =0;
 	virtual uint8_t next() =0;
 	virtual uint8_t peek() =0;
@@ -45,7 +51,7 @@ struct DataIn
 	 * Unconditional read of {@code length} bytes. 
 	 */
 	void read(uint8_t* target, uint8_t length) {
-		while (length-->0) {
+		while (length-->0 && hasNext()) {
 			*target++ = next();
 		}
 	}

@@ -99,6 +99,13 @@ int StdIO::available() {
     return input_available();
 }
 
+int StdIO::peek() {
+    if (!input_available())
+        return -1;
+    
+    return in.peek();
+}
+
 void StdIO::begin(unsigned long) 
 {
 }
