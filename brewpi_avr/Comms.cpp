@@ -40,10 +40,6 @@ void Comms::init() {
 	comms.begin(57600);
 }
 
-uint8_t readByte()
-{
-	return 0;	
-}
 
 class CommsIn : public DataIn
 {	
@@ -56,10 +52,10 @@ class CommsOut : public DataOut
 {
 	void write(uint8_t data) { comms.write(data); }
 	void write(const uint8_t* data, uint8_t len) { comms.write(data, len); }
-	void close() { }
 };
 
-CommsIn commsIn;
+// low-level binary in/out streams
+CommsIn commsIn;		
 CommsOut commsOut;
 
 /*
@@ -205,9 +201,11 @@ public:
 		_out.write(d2h((data&0xF0)>>4));
 		_out.write(d2h((data&0xF)));
 		_out.write(' ');
-	}
-	
+	}	
 };
+
+BinaryToHexTextOut hexOut(commsOut);
+DataOut& Comms::hexOut = hexOut;
 
 void Comms::receive() {
 		
@@ -216,10 +214,6 @@ void Comms::receive() {
 		HexTextToBinaryIn hexIn(textIn);
 		BinaryToHexTextOut hexOut(commsOut);
 		handleCommand(hexIn, hexOut);
-	}
-	
+	}	
 }
 
-DataOut* Comms::dataOut() {
-	return &commsOut;
-}

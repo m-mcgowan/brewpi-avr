@@ -110,8 +110,10 @@ void brewpiLoop(void)
 	uint32_t waitUntil = 0;
 	
 	walkRoot(root, prepareCallback, &waitUntil, ids);
+	
 	walkRoot(root, updateCallback, NULL, ids);
-	walkRoot(root, logValuesCallback, Comms::dataOut(), ids);
+	
+	walkRoot(root, logValuesCallback, &Comms::dataOut(), ids);
 }
 
 void loop() {       

@@ -11,6 +11,8 @@
 
 class Comms {
 
+	static DataOut& hexOut;
+
 public:
 	static void init();		
 	
@@ -19,6 +21,9 @@ public:
 	 */
 	static void receive();
 	
-	static DataOut* dataOut();
+	/**
+	 * Output stream. Used to write data after command processing.
+	 */
+	static DataOut& dataOut() { return hexOut; }
 };
 
