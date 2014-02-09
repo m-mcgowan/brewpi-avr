@@ -28,14 +28,17 @@ template<int SIZE> class StaticContainer : public Container
 			return _items[id];
 		}
 		
-		container_id add(Object* item) {
-			container_id slot = freeSlot();
-			if (slot>=0) {				
-				delete _items[slot];
-				_items[slot] = item;				
-			}
-			return slot;
-		}		
+		container_id next() {
+			return freeSlot();
+		}
+		
+		bool add(container_id slot, Object* item) {
+			if (slot>=SIZE)
+				return false;				
+			remove(slot);			
+			_items[slot] = item;
+			return true;
+		}
 		
 		void remove(container_id id) {			
 			delete _items[id];
@@ -47,4 +50,10 @@ template<int SIZE> class StaticContainer : public Container
 		 */
 		container_id size() { return SIZE; }
 		
+		~StaticContainer() {
+			for (int i=0; i<SIZE;i++)
+				delete _items[i];			
+		}
+		
 };
+

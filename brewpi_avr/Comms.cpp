@@ -9,9 +9,11 @@
 #include "Comms.h"
 #include "Commands.h"
 
+
+
 // Rename Serial to piStream, to abstract it for later platform independence
 
-#if BREWPI_EMULATE
+#if BREWPI_EMULATE 
 class MockSerial : public Stream
 {
 	public:
@@ -50,8 +52,7 @@ class CommsIn : public DataIn
 
 class CommsOut : public DataOut
 {
-	void write(uint8_t data) { comms.write(data); }
-	void write(const uint8_t* data, uint8_t len) { comms.write(data, len); }
+	void write(uint8_t data) { comms.write(data); }	
 };
 
 // low-level binary in/out streams
@@ -216,11 +217,14 @@ DataOut& Comms::hexOut = hexOut;
 
 void Comms::receive() {
 		
-	while (comms.available()>0) {
+	while (comms.available()>0) {			// there is some data ready to be processed
+											// form this point on, the system will block waiting for a complete command or newline.
 		TextIn textIn(commsIn);
 		HexTextToBinaryIn hexIn(textIn);
 		BinaryToHexTextOut hexOut(commsOut);
-		handleCommand(hexIn, hexOut);
+		if (hexIn.hasNext())				// ignore blank newlines, annotations etc..
+			handleCommand(hexIn, hexOut);
+		hexOut.close();
 	}	
 }
 

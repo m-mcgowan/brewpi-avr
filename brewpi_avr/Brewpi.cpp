@@ -51,8 +51,7 @@ void loop (void);
  * They are non-virtual to keep code size minimal, so typedefs and preprocessing are used to select the actual compile-time type used. */
 TicksImpl ticks = TicksImpl(TICKS_IMPL_CONFIG);
 
-
-StaticContainer<8> root;
+StaticContainer<10> root;
 
 Container* rootContainer()
 {
@@ -69,20 +68,23 @@ class BuildInfoValues : public Container {
 	: buildHash(PSTR(BUILD_NAME))	{}
 	
 	container_id size() { return 1; }
-	void* item(container_id id) { return &buildHash; }
+	virtual Object* item(container_id id) { return &buildHash; }
 };
 
+// just experimenting - will do properly later
 BuildInfoValues buildInfo;
-BasicValue<uint8_t> logInterval(-1);
-BasicValue<uint8_t> logInterval2(-1);
+BasicReadWriteValue<uint8_t> logInterval(-1);
+bool logValuesFlag = false;
 
 void setup()
 {    
-	root.add(&buildInfo);
-	root.add(&logInterval);
-	root.add(&logInterval2);
+	root.add(root.next(), &buildInfo);
+	root.add(root.next(), &logInterval);
 	
 	Comms::init();
+	
+	// todo - safe mode - do not instantiate objects from eeprom
+	
 }
 
 /*
@@ -128,8 +130,6 @@ bool logValuesCallback(Object* o, void* data, container_id* id) {
 	return false;
 }
 
-const uint8_t MAX_CONTAINER_DEPTH = 16;
-
 /**
  * Logs all values in the system. 
  */
@@ -141,8 +141,6 @@ void logValues(container_id* ids)
 	out.close();
 }
 
-bool logValuesFlag = false;
-
 void brewpiLoop(void)
 {
 	Comms::receive();
@@ -150,7 +148,8 @@ void brewpiLoop(void)
 	container_id ids[MAX_CONTAINER_DEPTH];
 	
 	Container* root = rootContainer();
-	
+
+
 	uint32_t waitUntil = 0;	
 	walkRoot(root, prepareCallback, &waitUntil, ids);
 	
@@ -164,7 +163,7 @@ void brewpiLoop(void)
 		logValuesFlag = false;
 		logValues(ids);
 	}
-	
+
 }
 
 void loop() {       

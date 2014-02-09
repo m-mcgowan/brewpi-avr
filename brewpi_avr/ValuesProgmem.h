@@ -10,11 +10,10 @@
 #include "Values.h"
 
 #ifdef ARDUINO
-
 #include "avr/pgmspace.h"
+#endif
 
-
-class ProgmemStringValue : public Readable<const char*>, public AbstractValue 
+class ProgmemStringValue : public Value
 {	
 	private:
 		const char* value;
@@ -22,10 +21,6 @@ class ProgmemStringValue : public Readable<const char*>, public AbstractValue
 	public:
 		ProgmemStringValue(const char* v) : value(v)  {}
 
-		const char* read() {
-			return value;
-		}
-	
 		void readTo(DataOut& out) {
 			const char* v = value;
 			uint8_t b;
@@ -35,7 +30,9 @@ class ProgmemStringValue : public Readable<const char*>, public AbstractValue
 			} while (b);
 		}
 	
+		uint8_t streamSize() {
+			return strlen_P(value);
+		}
 };
 
 
-#endif // ARDUINO

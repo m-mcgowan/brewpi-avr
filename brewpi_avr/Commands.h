@@ -13,17 +13,16 @@
 typedef char* pchar;
 typedef const char* cpchar;
 
-
 void handleCommand(DataIn& data, DataOut& out);
 
 enum Commands {
 	CMD_NONE = 0,				// no-op
 
-	CMD_READ_VALUE = 1,			// read a value
-	CMD_WRITE_VALUE = 2,		// write a value
-	CMD_CREATE_OBJECT = 3,		// add object in a container
-	CMD_PLACE_OBJECT = 4,		// create object and place a container at a specified offset
-	CMD_DELETE_OBJECT = 5,		// delete the object at the specified location
+   	CMD_READ_VALUE = 1,			// read a value
+   	CMD_WRITE_VALUE = 2,		// write a value
+   	CMD_CREATE_OBJECT = 3,		// add object in a container
+   	CMD_DELETE_OBJECT = 4,		// delete the object at the specified location
+   	CMD_LIST_OBJECTS = 5,		// list objects in a container
 	
 	CMD_MAX = 127,				// max command value for user-visible commands
 	CMD_SPECIAL_FLAG = 128,

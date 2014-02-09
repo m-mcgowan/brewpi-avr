@@ -36,8 +36,13 @@
 #include "print.h"
 
 
+inline uint8_t pgm_read_byte(const void* pv) {
+    return *(uint8_t*)pv;
+}
+
 #define strcpy_P strcpy
 #define strlcpy_P strncpy
+#define strlen_P strlen
 #define sprintf_P sprintf
 #define strcmp_P strcmp
 #define memcpy_P memcpy
@@ -45,8 +50,7 @@
 #define ltoa itoa                       // 32-bit platform itoa is good enough
 #define _delay_us(us)       // no cross platform us delay
 
-
-inline char *strchrnul(const char *s, int c)
+inline char *strchrnul(char *s, int c)
 {
        char *ptr = strchr(s, c);
        if (!ptr) {

@@ -9,12 +9,14 @@ const container_id INVALID_ID = (container_id)(-1);
 
 typedef uint16_t prepare_t;
 
-enum ObjectType {
-	otObject = 0,
-	otContainer = 1,
-	otValue = 2,
-	
-	otWritable = 16		// flag for writable values
+enum ObjectType {		
+	otValue = 4,		// 0x000001xx are for value types. Base value type is stream only readable.
+	otValueWrite = 5,	// value is writable (either state and/or stream as indicated.)
+	otValueState = 6,	// value state is readable 
+	otValueWriteState = 7,	// value state is writable (and readable) and streamable
+	otWritableFlag = 1,		// flag for writable values
+	otValueStateFlag = 2,	// flag for values that can get set state
+	otContainer = 8
 };
 
 typedef uint8_t object_t;
@@ -22,9 +24,7 @@ typedef uint8_t object_t;
 
 struct Object
 {
-	virtual object_t objectType() {
-		return otObject;
-	}
+	virtual object_t objectType()=0;
 
 	/**
 	 * Prepare this object for subsequent updates. 
@@ -40,121 +40,149 @@ struct Object
 	virtual ~Object() {}
 };
 
+const uint8_t MAX_CONTAINER_DEPTH = 8;
+
 struct Container : public Object
 {
-	object_t objectType() { return otContainer; }
+	virtual object_t objectType() { return otContainer; }
 	
 	/*
-	 * Add the given object to the container at the next available slot.
-	 * Note that slots are essentially arbitrary. The container guarantees
-	 * the object will be available at the slot until removed.
+	 * Add the given object to the container at the given slot.
+	 * The container guarantees the object will be available at the slot until removed.
+	 * @param index	The index of the slot. >=0.
+	 * @param item	The object to add.
+	 * @return non-zero on success, zero on error. 
 	 */
-	container_id add(Object* item) { return INVALID_ID; }
-	void remove(container_id id) { }
+	virtual bool add(container_id index, Object* item) { return false; }
+		
+	/**
+	 * Determines the next available free slot in this container.
+	 * @return A value greater or equal to zero - the next available free slot. Negative value
+	 *	indicates no more free slots.
+	 */
+	virtual container_id next() { return -1; }
+		
+	/**
+	 * Removes the item at the given index. 
+	 * @param id	The id of the item to remove.
+	 * If there is no item at the given index, or the item has already been removed the method does nothing.
+	 */
+	virtual void remove(container_id id) { }
 	
 	/**
 	 * Fetches the object with the given id.
 	 * /return the object with that id, which may be null.
 	 */
-	Object* item(container_id id) { return NULL; }
+	virtual Object* item(container_id id) { return NULL; }
 	
 	/*
-	 * The maximum number of items in this container. An item may return NULL. This is provided so callers know
+	 * The maximum number of items in this container. Calling {@link #item()} at an index less than this value 
+	 * may return {@code NULL}. This is provided so callers know
 	 * how many values to iterate for this container.
 	 */
-	container_id size() { return 0; }
+	virtual container_id size() { return 0; }
 };
 
-struct StreamReadable {
-	
+/**
+ * Abstract class implemented by objects that can write their state to a stream.
+ */
+struct StreamReadable {	
 	virtual void readTo(DataOut& out)=0;
+	virtual uint8_t streamSize()=0;			// the size this value occupies in the stream.
 };
 
 struct StreamWritable {
 	virtual void writeFrom(DataIn& in)=0;
 };
 
-template<class T> struct Readable : public virtual StreamReadable
+struct Value : public Object, public StreamReadable {
+	
+	virtual object_t objectType() { return otValue; }	// basic value type - read only stream
+	
+};
+
+
+/**
+ * Classes that can provide a representation of their state implement this interface.
+ */
+template<class T> struct Readable
 {		
-	virtual T read() { return T(0); }
+	virtual T read()=0;
 };
 
-template<class T> struct Writable : public virtual StreamWritable
+/**
+ * Classes that can update their internal state from a given value implement this interface.
+ */
+template<class T> struct Writable
 {
-    virtual void write(T t) {}
+    virtual void write(T t)=0;
 };
 
-struct AbstractValue : public virtual Object
-{
-	virtual object_t objectType() { return otValue; }
-};
-
-struct AbstractStreamValue : public AbstractValue, virtual StreamReadable, virtual StreamWritable {
-		
-};
-
-template<class T> class BasicReadOnlyValue : 
-	public AbstractStreamValue, virtual public Readable<T>
+template<class T> class BasicReadValue : 
+	public Value, public Readable<T>
 {
     protected:
         T value;
         
     public:
-        BasicReadOnlyValue(T initial=0) 
+        BasicReadValue(T initial=0) 
         : value(initial)
         {}
         
+		virtual object_t objectType() {
+			return otValue | otValueStateFlag | otWritableFlag;
+		}
+		
         virtual T read() 
         {
             return value;
         }
 		
 		virtual void readTo(DataOut& out) 
-		{
+		{			
 			out.write((uint8_t*)&value, sizeof(value));
 		}
-
-		virtual void write(T t)
-		{
-			this->value = t;
-		}
 	
-		virtual void writeFrom(DataIn& in)
-		{
-			in.read((uint8_t*)&this->value, sizeof(this->value));
-		}
-		
+		virtual uint8_t streamSize() { return sizeof(this->value); }
 };
 
 
-template<class T> struct BasicValue : public BasicReadOnlyValue<T>, virtual Writable<T>
+template<class T> struct BasicReadWriteValue : BasicReadValue<T>, Writable<T>, StreamWritable
 {	
-	BasicValue(T initial=0)
-	: BasicReadOnlyValue<T>(initial)
+	BasicReadWriteValue(T initial=0)
+	: BasicReadValue<T>(initial)
 	{}
 		
-	object_t objectType() {
-		return otValue | otWritable;
+	virtual object_t objectType() {
+		return otValue | otValueStateFlag | otWritableFlag;
 	}
+	
+	virtual void write(T t)
+	{
+		this->value = t;
+	}
+	
+	virtual void writeFrom(DataIn& in)
+	{
+		in.read((uint8_t*)&this->value, sizeof(this->value));
+	}
+		
 };
-
-
 
 inline bool isContainer(Object* o)
 {
-	return o!=NULL && o->objectType()==otContainer;
+	return o!=NULL && (o->objectType() & otContainer);
 }
 
 
 inline bool isReadable(Object* o)
 {
-	return o->objectType()==otValue;
+	return o!=NULL && (o->objectType() & otValue);
 }
 
 inline bool isWritable(Object* o)
 {
-	uint8_t ot = o->objectType();
-	return ot==otValue && (ot&otWritable);
+	return o!=NULL && (o->objectType() & otWritableFlag);	
 }
 
 
