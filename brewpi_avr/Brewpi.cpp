@@ -33,6 +33,7 @@
 #include "ValuesEeprom.h"
 #include "ValuesProgmem.h"
 #include "GenericContainer.h"
+#include "ValueModels.h"
 
 
 #if BREWPI_SIMULATE
@@ -75,6 +76,16 @@ class BuildInfoValues : public Container {
 BuildInfoValues buildInfo;
 BasicReadWriteValue<uint8_t> logInterval(-1);
 bool logValuesFlag = false;
+
+class GlobalSettings {
+	uint8_t settings[10];
+		
+	Object* externalValueHandler(container_id id) {
+		if (id==-1) return (Object*)10;	// size
+		if (id>9) return NULL;
+		return new ExternalValue(settings+id, 1);
+	}
+};
 
 void setup()
 {    

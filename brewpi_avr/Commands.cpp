@@ -175,7 +175,7 @@ Object* createEepromValue(DataIn& in, bool dryRun) {
 	offset.writeFrom(in);	
 	EepromBaseValue* value = NULL;
 	if (!dryRun)
-		value = new EepromDynamicValue(offset.read(), len);
+		value = new EepromDynamicStreamValue(offset.read(), len);
 	return value;
 }
 

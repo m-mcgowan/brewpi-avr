@@ -366,6 +366,9 @@
     <Compile Include="TicksArduino.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="ValueModels.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="Values.cpp">
       <SubType>compile</SubType>
     </Compile>

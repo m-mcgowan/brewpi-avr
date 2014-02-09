@@ -6,9 +6,10 @@
 #include "DataStreamEeprom.h"
 
 /**
- * A read-write value in eeprom
+ * Base class for a read-write value in eeprom. This class is responsible for moving the data
+ * between eeprom and the stream. 
  */
-class EepromBaseValue : public Value, public StreamWritable {
+class EepromBaseValue : public Value  {
 
 protected:
 		void _readTo(DataOut& out, eptr_t offset, uint8_t size)
@@ -27,6 +28,9 @@ protected:
 			
 };
 
+/**
+ * Streams an eeprom value of a given fixed size.
+ */
 template <uint8_t _size> class EepromStreamValue : public EepromBaseValue
 {
 	protected:
@@ -49,6 +53,9 @@ template <uint8_t _size> class EepromStreamValue : public EepromBaseValue
 
 };
 
+/**
+ * Provides state read/write (in addition to stream read/write) for an eeprom value. 
+ */
 template <class T, int _size=sizeof(T)> class EepromValue : public EepromStreamValue<_size>
 {
 	public:
@@ -69,14 +76,18 @@ template <class T, int _size=sizeof(T)> class EepromValue : public EepromStreamV
 		
 };
 
-class EepromDynamicValue : public EepromBaseValue
+/**
+ * Provides a streamable value to eeprom. The size is dynamic, unlike EepromStreamValue, where the size is
+ * known at compile time. 
+ */
+class EepromDynamicStreamValue : public EepromBaseValue
 {
 	private:
 		eptr_t _offset;
 		uint8_t _size;
 		
 	public:	
-		EepromDynamicValue(eptr_t offset, uint8_t size) : _offset(offset), _size(size) {}
+		EepromDynamicStreamValue(eptr_t offset, uint8_t size) : _offset(offset), _size(size) {}
 	
 		void writeFrom(DataIn& in) {
 			_writeFrom(in, _offset, _size);
@@ -88,5 +99,4 @@ class EepromDynamicValue : public EepromBaseValue
 		
 		uint8_t streamSize() { return _size; }
 };
-
 	
