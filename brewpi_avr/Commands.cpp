@@ -195,7 +195,7 @@ Object* createObject(DataIn& in, bool dryRun=false)
 	if (type>=sizeof(createObjectHandlers)/sizeof(createObjectHandlers[0]))
 		return NULL;
 		
-	createObjectHandlers[type](in, dryRun);
+	return createObjectHandlers[type](in, dryRun);
 }
 
 // todo - initialize eeprom 

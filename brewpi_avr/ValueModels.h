@@ -6,7 +6,7 @@
  *  Author: mat
  */ 
 
-#include "brewpi.h"
+#include "Brewpi.h"
 
 /**
  * A streamable value whose data resizes externally.
