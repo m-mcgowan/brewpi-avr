@@ -221,8 +221,8 @@ void createObjectCommandHandler(DataIn& _in, DataOut& out)
 	Object* newObject = createObject(in);		// read the type and create args
 	
 	int8_t index = -1;
-	if (lastID>=0 && target && newObject) {		// if the lastID >=0 then it was fetched from a container
-		Container* c = (Container*)target;
+	if (lastID>=0 && target && newObject && isOpenContainer(target)) {		// if the lastID >=0 then it was fetched from a container
+		OpenContainer* c = (OpenContainer*)target;
 		bool success = c->add(lastID, newObject);
 		// TODO - what is stored in eeprom needs to be absolute, i.e. turned from createObject to placeObject.
 		// so we can identify it by the ID. Maybe just drop this command and have a command to fetch the next
@@ -332,8 +332,8 @@ void deleteObjectCommandHandler(DataIn& _in, DataOut& out)
 	PipeDataIn id(in, idCapture);		// capture read id
 	Object* obj = lookupContainer(id, lastID);	// find the container and the ID in the chain to remove	
 	uint8_t success = 0;
-	if (obj!=NULL && isContainer(obj) && lastID>=0) {
-		Container* c = (Container*)obj;
+	if (obj!=NULL && isOpenContainer(obj) && lastID>=0) {
+		OpenContainer* c = (OpenContainer*)obj;
 		c->remove(lastID);
 		success = 1;
 	}	

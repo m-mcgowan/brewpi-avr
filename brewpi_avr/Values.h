@@ -16,7 +16,8 @@ enum ObjectType {
 	otValueWriteState = 7,	// value state is writable (and readable) and streamable
 	otWritableFlag = 1,		// flag for writable values
 	otValueStateFlag = 2,	// flag for values that can get set state
-	otContainer = 8
+	otContainer = 8,
+	otOpenContainerFlag =1,	// value to flag that a container supports the OpenContainer interface
 };
 
 typedef uint8_t object_t;
@@ -42,9 +43,40 @@ struct Object
 
 const uint8_t MAX_CONTAINER_DEPTH = 8;
 
+/**
+ * A container that exposes a indexed set of contained items.
+ */
 struct Container : public Object
 {
 	virtual object_t objectType() { return otContainer; }
+
+	/**
+	 * Fetches the object with the given id.
+	 * /return the object with that id, which may be null.
+	 *
+	 * After retrieving the item, callers must call returnItem()
+	 */
+	virtual Object* item(container_id id) { return NULL; }
+		
+	/**
+	 * Returns a previously fetched item back the container.
+	 */
+	virtual void returnItem(Object* item) { }
+	
+	/*
+	 * The maximum number of items in this container. Calling {@link #item()} at an index less than this value 
+	 * may return {@code NULL}. This is provided so callers know
+	 * the upper limit for indexes to iterate over for this container.
+	 */
+	virtual container_id size() { return 0; }
+		
+};
+
+/**
+ * A container of objects that may support being added to. 
+ */
+struct OpenContainer : public Container
+{
 	
 	/*
 	 * Add the given object to the container at the given slot.
@@ -69,18 +101,6 @@ struct Container : public Object
 	 */
 	virtual void remove(container_id id) { }
 	
-	/**
-	 * Fetches the object with the given id.
-	 * /return the object with that id, which may be null.
-	 */
-	virtual Object* item(container_id id) { return NULL; }
-	
-	/*
-	 * The maximum number of items in this container. Calling {@link #item()} at an index less than this value 
-	 * may return {@code NULL}. This is provided so callers know
-	 * how many values to iterate for this container.
-	 */
-	virtual container_id size() { return 0; }
 };
 
 /**
@@ -174,6 +194,10 @@ inline bool isContainer(Object* o)
 	return o!=NULL && (o->objectType() & otContainer);
 }
 
+inline bool isOpenContainer(Object* o)
+{
+	return o!=NULL && (o->objectType() & (otContainer|otOpenContainerFlag));
+}
 
 inline bool isReadable(Object* o)
 {
