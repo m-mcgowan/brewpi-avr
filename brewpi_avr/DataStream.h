@@ -44,8 +44,10 @@ struct DataIn
 	virtual bool hasNext() =0;
 	virtual uint8_t next() =0;
 	virtual uint8_t peek() =0;
-		
+	
+	#if OBJECT_VIRTUAL_DESTRUCTOR	
 	virtual ~DataIn() {}
+	#endif
 		
 	/*
 	 * Unconditional read of {@code length} bytes. 

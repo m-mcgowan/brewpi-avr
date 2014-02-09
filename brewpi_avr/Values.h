@@ -22,6 +22,10 @@ enum ObjectType {
 
 typedef uint8_t object_t;
 
+// if no objects require cleanup, then we can do away with the virtual destructor, saving quite a bit of space (several hundred bytes.)
+#ifndef OBJECT_VIRTUAL_DESTRUCTOR
+#define OBJECT_VIRTUAL_DESTRUCTOR 0
+#endif
 
 struct Object
 {
@@ -37,8 +41,11 @@ struct Object
 	 * Called after prepare to update this object's state.
 	 */
 	virtual void update() { }
+		
 	
+#if OBJECT_VIRTUAL_DESTRUCTOR	
 	virtual ~Object() {}
+#endif		
 };
 
 const uint8_t MAX_CONTAINER_DEPTH = 8;

@@ -49,11 +49,15 @@ template<int SIZE> class StaticContainer : public Container
 		 * The number of items in this container.
 		 */
 		container_id size() { return SIZE; }
-		
+
+#if OBJECT_VIRTUAL_DESTRUCTOR		
+		// the contract says that before a container is deleted, the caller should ensure all contained objects
+		// are also deleted. (if they were added.)
 		~StaticContainer() {
 			for (int i=0; i<SIZE;i++)
 				delete _items[i];			
 		}
+#endif		
 		
 };
 
