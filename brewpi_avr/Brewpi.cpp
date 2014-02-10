@@ -34,11 +34,13 @@
 #include "ValuesProgmem.h"
 #include "GenericContainer.h"
 #include "ValueModels.h"
-#include "BrewpiObjects.h"
-#include "OneWire.h"
-#include "OneWireTempSensor.h"
 
-#if BREWPI_SIMULATE
+#ifdef ARDUINO
+#include "BrewpiOnewire.h"
+#include "OneWireTempSensor.h"
+#endif
+
+#if BREWPI_SIMULATE && 0                // disable simulator for time being
 	#include "Simulator.h"
 #endif
 
@@ -208,11 +210,20 @@ void loop() {
 	#endif
 }
 
-	
+/**
+ * ARDUINO_OBJECT - used to declare object factories that are only suitable on 
+ * an arduino-compatible device
+ */
+#ifdef ARDUINO
+#define ARDUINO_OBJECT(x) x
+#else
+#define ARDUINO_OBJECT(x) nullFactory
+#endif	
+
 ObjectFactory createObjectHandlers[] = {
-	nullFactory,				// type 0
-	OneWireBus::create,			// type 1
-	OneWireTempSensor::create	// type 2
+	nullFactory,                                            // type 0
+	ARDUINO_OBJECT(OneWireBus::create),			// type 1
+	ARDUINO_OBJECT(OneWireTempSensor::create)       	// type 2
 };
 
 /**

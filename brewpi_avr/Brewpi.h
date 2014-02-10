@@ -56,5 +56,9 @@
 /**
  * The scalar type that is the same size as a pointer.
  */
+#ifdef ARDUINO
 typedef uint16_t pointer_scalar;
+#else
+typedef uint32_t pointer_scalar;
+#endif
 

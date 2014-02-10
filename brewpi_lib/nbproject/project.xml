@@ -14,6 +14,10 @@
                 <sourceRootElem>../brewpi_cpp</sourceRootElem>
                 <sourceRootElem>../brewpi_avr</sourceRootElem>
                 <sourceRootElem>../brewpi_cpp</sourceRootElem>
+                <sourceRootElem>../brewpi_avr</sourceRootElem>
+                <sourceRootElem>../brewpi_cpp</sourceRootElem>
+                <sourceRootElem>../brewpi_avr</sourceRootElem>
+                <sourceRootElem>../brewpi_cpp</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

@@ -40,6 +40,7 @@ inline uint8_t pgm_read_byte(const void* pv) {
     return *(uint8_t*)pv;
 }
 
+
 #define strcpy_P strcpy
 #define strlcpy_P strncpy
 #define strlen_P strlen
@@ -78,9 +79,12 @@ inline uint32_t millis() { return (uint32_t)millisSinceStartup(); }
 #define PSTR(x) x
 
 
-#define DEVICE_DISCONNECTED SHRT_MIN
 typedef uint8_t DeviceAddress[8];
 
+inline boolean isHexadecimalDigit(int c)
+{
+  return ( isxdigit (c) == 0 ? false : true);
+}
 
 
 typedef unsigned char byte;

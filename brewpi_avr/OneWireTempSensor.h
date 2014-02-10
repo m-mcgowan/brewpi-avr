@@ -25,7 +25,7 @@
 #include "FastDigitalPin.h"
 #include "DallasTemperature.h"
 #include "Ticks.h"
-#include "BrewpiObjects.h"
+#include "BrewpiOnewire.h"
 
 
 class DallasTemperature;

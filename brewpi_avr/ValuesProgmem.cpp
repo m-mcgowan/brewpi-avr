@@ -5,12 +5,12 @@
  *  Author: mat
  */ 
 
+#include "Brewpi.h"
 #include "ValuesProgmem.h"
 
 #ifdef ARDUINO
 #include "avr/pgmspace.h"
 #endif
-
 
 void ProgmemStringValue::readTo(DataOut& out) {
 	const char* v = value;
