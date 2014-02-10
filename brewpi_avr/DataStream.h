@@ -11,6 +11,7 @@
 #define DATASTREAM_ANNOTATIONS DEBUG
 #endif
 
+typedef uint8_t stream_size_t;
 
 struct DataOut
 {
@@ -19,9 +20,10 @@ struct DataOut
 	#endif
 	
 	virtual void write(uint8_t data)=0;
-	virtual void write(const uint8_t* data, uint8_t len) {
+	virtual void write(const void* data, stream_size_t len) {
+		const uint8_t* d = (const uint8_t*)data;
 		while (len-->0) {
-			write(*data++);
+			write(*d++);
 		}
 	}
 	virtual void close() {}

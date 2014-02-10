@@ -230,7 +230,7 @@ class MixinReadValue
 		}
 		
 		void readTo(DataOut& out) {			
-			out.write((uint8_t*)&value, sizeof(value));
+			out.write(&value, sizeof(value));
 		}
 	
 		uint8_t streamSize() { return sizeof(this->value); }

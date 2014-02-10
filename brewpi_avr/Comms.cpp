@@ -192,7 +192,7 @@ public:
 	 */
 	void writeAnnotation(const char* data) {
 		_out.write('[');
-		_out.write((const uint8_t*)data, strlen(data));
+		_out.write(data, strlen(data));
 		_out.write(']');
 	}
 

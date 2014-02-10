@@ -25,7 +25,7 @@ public:
 	}
 	
 	void readTo(DataOut& out) {
-		out.write((uint8_t*)_pValue, _size);
+		out.write(_pValue, _size);
 	}
 	
 	void writeFrom(DataIn& in) {
