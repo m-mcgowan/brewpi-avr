@@ -124,8 +124,11 @@ $(SRC)Comms.cpp \
 $(SRC)GenericContainer.cpp \
 $(SRC)Main.cpp \
 $(SRC)Memops.cpp \
+$(SRC)OneWire.cpp \
 $(SRC)Ticks.cpp \
-$(SRC)Values.cpp
+$(SRC)Values.cpp \
+$(SRC)ValuesProgmem.cpp 
+
 
 BASENAMES += $(notdir $(basename $(C_SRCS)))
  

@@ -41,7 +41,7 @@ template<int SIZE> class StaticContainer : public Container
 		}
 		
 		void remove(container_id id) {			
-			delete _items[id];
+			delete_object(_items[id]);
 			_items[id] = NULL;
 		}
 		
@@ -55,7 +55,7 @@ template<int SIZE> class StaticContainer : public Container
 		// are also deleted. (if they were added.)
 		~StaticContainer() {
 			for (int i=0; i<SIZE;i++)
-				delete _items[i];			
+				delete_object(_items[i]);			
 		}
 #endif		
 		

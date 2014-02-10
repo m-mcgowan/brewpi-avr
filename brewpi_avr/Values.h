@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Brewpi.h"
+#include "stddef.h"
+#include "stdint.h"
 #include "DataStream.h"
 
 typedef int8_t container_id;
@@ -10,9 +11,10 @@ const container_id INVALID_ID = (container_id)(-1);
 typedef uint16_t prepare_t;
 
 enum ObjectType {		
-	otValue = 4,		// 0x000001xx are for value types. Base value type is stream only readable.
-	otValueWrite = 5,	// value is writable (either state and/or stream as indicated.)
-	otValueState = 6,	// value state is readable 
+	otObject = 0,		
+	otValue = 4,			// 0x000001xx are for value types. Base value type is stream only readable.
+	otValueWrite = 5,		// value is writable (either state and/or stream as indicated.)
+	otValueState = 6,		// value state is readable 
 	otValueWriteState = 7,	// value state is writable (and readable) and streamable
 	otWritableFlag = 1,		// flag for writable values
 	otValueStateFlag = 2,	// flag for values that can get set state
@@ -27,9 +29,18 @@ typedef uint8_t object_t;
 #define OBJECT_VIRTUAL_DESTRUCTOR 0
 #endif
 
+#if OBJECT_VIRTUAL_DESTRUCTOR
+#define delete_object(x) delete (x)
+#else
+// cast to a byte array and delete that. Net effect is that just the memory is freed without running any destructors.
+#define delete_object(x) delete ((uint8_t*)x)
+#endif
+
+#define new_object(x) new x
+
 struct Object
 {
-	virtual object_t objectType()=0;
+	virtual object_t objectType() { return otObject; }
 
 	/**
 	 * Prepare this object for subsequent updates. 
@@ -51,7 +62,7 @@ struct Object
 const uint8_t MAX_CONTAINER_DEPTH = 8;
 
 /**
- * A container that exposes a indexed set of contained items.
+ * A container that you cannot open. You can see the objects inside the container, but not add new ones.
  */
 struct Container : public Object
 {
@@ -79,12 +90,28 @@ struct Container : public Object
 		
 };
 
+
 /**
- * A container of objects that may support being added to. 
+ * A container that creates it's contained items on demand.
  */
-struct OpenContainer : public Container
-{
+class FactoryContainer : public Container {
+public:	
 	
+	/**
+	 * Deletes the item. This assumes item was created on-demand by the item() method.
+	 */
+	virtual void returnItem(Object* item) {
+		delete_object(item);
+	}
+};
+
+
+/**
+ * A container of objects that is open - i.e. you can put things in it.
+ */
+class OpenContainer : public Container
+{
+public:	
 	/*
 	 * Add the given object to the container at the given slot.
 	 * The container guarantees the object will be available at the slot until removed.
@@ -110,90 +137,169 @@ struct OpenContainer : public Container
 	
 };
 
+
 /**
  * Abstract class implemented by objects that can write their state to a stream.
  */
-struct StreamReadable {	
+class StreamReadable {	
+public:	
 	virtual void readTo(DataOut& out)=0;
 	virtual uint8_t streamSize()=0;			// the size this value occupies in the stream.
 };
 
-struct StreamWritable {
+class StreamWritable {
+public:	
 	virtual void writeFrom(DataIn& in)=0;
 };
 
-struct Value : public Object, public StreamReadable {
-	
+/**
+ * A basic value type. All values are as a minimum stream readable, meaning they can push their value to a stream 
+ * (a streamed read operation.)
+ */
+class Value : public Object, public StreamReadable {
+public:	
 	virtual object_t objectType() { return otValue; }	// basic value type - read only stream
 	
 };
 
-
 /**
  * Classes that can provide a representation of their state implement this interface.
  */
-template<class T> struct Readable
-{		
+template<typename T> 
+class Readable
+{	
+public:	
+	/**
+	 * Retrieve the state representing the value of this instance.
+	 * @return The value.
+	 */
 	virtual T read()=0;
 };
 
 /**
  * Classes that can update their internal state from a given value implement this interface.
  */
-template<class T> struct Writable
+template<class T> class Writable
 {
+public:	
+	/**
+	 * Writes to this value.
+     * @param t	The new value this Value should have.
+	 */
     virtual void write(T t)=0;
 };
 
-template<class T> class BasicReadValue : 
-	public Value, public Readable<T>
+/**
+ * A basic state- and stream- readable value. 
+ * This class is intended as a base class for Value implementations.
+ */
+template<typename T> 
+class MixinReadValue
 {
     protected:
         T value;
         
-    public:
-        BasicReadValue(T initial=0) 
-        : value(initial)
-        {}
-        
-		virtual object_t objectType() {
-			return otValue | otValueStateFlag | otWritableFlag;
+		void writeFrom(DataIn& in) {
+			in.read((uint8_t*)&this->value, sizeof(this->value));
 		}
 		
-        virtual T read() 
-        {
+    public:
+        MixinReadValue(T t) 
+        : value(t)
+        {}
+        
+		object_t objectType() {
+			return otValue | otValueStateFlag;
+		}
+		
+        T read() {
             return value;
         }
 		
-		virtual void readTo(DataOut& out) 
-		{			
+		/**
+		 * This is not part of the writable interface, but provided for classes that are using this as a cache
+		 * for some other value. Externally, this value is not writable, but the immediate client needs to be able to set the value.
+		 */
+		void assign(T t) {
+			value = t;
+		}
+		
+		void readTo(DataOut& out) {			
 			out.write((uint8_t*)&value, sizeof(value));
 		}
 	
-		virtual uint8_t streamSize() { return sizeof(this->value); }
+		uint8_t streamSize() { return sizeof(this->value); }
 };
 
-
-template<class T> struct BasicReadWriteValue : BasicReadValue<T>, Writable<T>, StreamWritable
+/**
+ * A state and stream writable value. 
+ */
+template<typename T> 
+class MixinReadWriteValue : public MixinReadValue<T>
 {	
-	BasicReadWriteValue(T initial=0)
-	: BasicReadValue<T>(initial)
+public:	
+	MixinReadWriteValue(T initial=0)
+	: MixinReadValue<T>(initial)
 	{}
 		
-	virtual object_t objectType() {
+	object_t objectType() {
 		return otValue | otValueStateFlag | otWritableFlag;
 	}
 	
-	virtual void write(T t)
-	{
-		this->value = t;
+};
+
+
+/**
+ * A Readable value.
+ */
+template<typename T> class BasicReadValue : public MixinReadValue<T>
+{	
+public:
+	BasicReadValue(T t=T()) : MixinReadValue<T>(t) {}
+};
+
+/**
+ * A readable and writable value.
+ */
+template <typename T> 
+class BasicReadWriteValue : public MixinReadWriteValue<T>, public Value, public Readable<T>, public Writable<T>, public StreamWritable
+{
+public:
+	BasicReadWriteValue(T t=T()) : MixinReadWriteValue<T>(t) {}
+		
+	typedef MixinReadWriteValue<T> inherited;
+		
+	virtual void write(T t) {
+		inherited::assign(t);
 	}
 	
-	virtual void writeFrom(DataIn& in)
-	{
-		in.read((uint8_t*)&this->value, sizeof(this->value));
+	virtual void writeFrom(DataIn& in) {
+		inherited::writeFrom(in);
 	}
-		
+
+	T read() {
+		return inherited::read();
+	}	
+	
+	void readTo(DataOut& out) {
+		inherited::readTo(out);
+	}
+	
+	uint8_t streamSize() {
+		return inherited::streamSize();
+	}
+};
+
+/**
+ * Definition parameters for creating a new object.
+ */
+struct ObjectDefinition {
+	DataIn& in;			// stream providing definition data for this object
+	uint8_t len;		// number of bytes in the stream for this object definition
+	uint8_t type;
+	
+	ObjectDefinition(DataIn& _in, uint8_t _len, uint8_t _type)
+	: in(_in), len(_len), type(_type) {}
 };
 
 inline bool isContainer(Object* o)
@@ -233,6 +339,17 @@ inline bool walkRoot(Container* c, EnumObjectsFn callback, void* data, container
 }
 
 /**
- * The host app should provide the root container.
+ * The host app should provide the root container, configured with any defaults for the app.
  */
 Container* rootContainer();
+
+
+/**
+ * Read the id chain from the stream and resolve the corresponding object.
+ */
+Object* lookupObject(DataIn& data);
+
+/**
+ * Read the id chain from the stream and resolve the container and the final index.
+ */
+Object* lookupContainer(DataIn& data, int8_t& lastID);

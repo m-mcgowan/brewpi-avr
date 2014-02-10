@@ -53,17 +53,8 @@
 
 #include <Arduino.h>
 
-#include "Actuator.h"
-
 /**
  * The scalar type that is the same size as a pointer.
  */
 typedef uint16_t pointer_scalar;
 
-class Brewpi
-{
-	public:	
-		void setup();		
-		void loop();
-};
-	

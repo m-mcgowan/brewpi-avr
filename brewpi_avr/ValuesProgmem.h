@@ -9,9 +9,6 @@
 
 #include "Values.h"
 
-#ifdef ARDUINO
-#include "avr/pgmspace.h"
-#endif
 
 class ProgmemStringValue : public Value
 {	
@@ -21,18 +18,8 @@ class ProgmemStringValue : public Value
 	public:
 		ProgmemStringValue(const char* v) : value(v)  {}
 
-		void readTo(DataOut& out) {
-			const char* v = value;
-			uint8_t b;
-			do {
-				b = pgm_read_byte(v++);
-				out.write(b);
-			} while (b);
-		}
-	
-		uint8_t streamSize() {
-			return strlen_P(value);
-		}
+		virtual void readTo(DataOut& out);
+		virtual uint8_t streamSize();
 };
 
 

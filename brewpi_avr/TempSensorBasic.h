@@ -25,13 +25,40 @@
 
 #define TEMP_SENSOR_DISCONNECTED INVALID_TEMP
 
-
-class BasicTempSensor
+/**
+ * A temperature sensor. The value for the temperature is exposed at index 0.
+ * The connected status is exposed at index 1. 
+ */
+// todo - rename this TemperatureSensor
+// rename the old TempSensor as FilteredTemperatureSensor
+class BasicTempSensor : public Container
 {
+	BasicReadValue<temperature> tempValue;
+	BasicReadValue<bool> connected;
+	
 public:
 	virtual ~BasicTempSensor() { }
 	
-	virtual bool isConnected(void) = 0;
+	/**
+	 * Fetches the values from the temp sensor and assigns them to local values.
+	 */
+	void update() {
+		connected.assign(isConnected());
+		tempValue.assign(read());
+	}
+	
+	Object* item(container_id id) {
+		switch (id) {
+			case 0:
+				return &tempValue;
+			case 1:
+				return &connected;			
+		}
+		return NULL;
+	}
+	
+	
+	virtual bool isConnected(void) = 0;		
 	
 	/*
 	 * Attempt to (re-)initialize the sensor. 	 

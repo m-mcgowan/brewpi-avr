@@ -15,6 +15,19 @@ typedef const char* cpchar;
 
 void handleCommand(DataIn& data, DataOut& out);
 
+
+/**
+ * Prototype for object factories. 
+ */
+typedef Object* (*ObjectFactory)(ObjectDefinition& def);
+
+/**
+ * Factory that consumes the object definition stream and returns {@code NULL}.
+ */	
+Object* nullFactory(ObjectDefinition& def);
+
+
+
 enum Commands {
 	CMD_NONE = 0,				// no-op
 

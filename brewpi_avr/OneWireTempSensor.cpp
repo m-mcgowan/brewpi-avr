@@ -45,7 +45,7 @@ bool OneWireTempSensor::init(){
 	uint8_t pinNr = oneWire->pinNr();
 
 	bool success = false;
-
+		
 	if (sensor==NULL) {
 		sensor = new DallasTemperature(oneWire);
 		if (sensor==NULL) {
@@ -59,10 +59,13 @@ bool OneWireTempSensor::init(){
 	// scanning each sensor since this brings things to a halt.
 	if (sensor && sensor->initConnection(sensorAddress) && requestConversion()) {
 		logDebug("init onewire sensor - wait for conversion");
-		waitForConversion();
-		temperature temp = readAndConstrainTemp();
-		DEBUG_ONLY(logInfoIntStringTemp(INFO_TEMP_SENSOR_INITIALIZED, pinNr, addressString, temp));
-		success = temp!=DEVICE_DISCONNECTED && requestConversion();
+		// todo - should this be here? with the new async prepare/update lifecycle requests
+		// the init method doesn't have to wait.
+		// however, waiting ensures that the sensor has power to do a full conversion. 
+		//waitForConversion();
+		//temperature temp = readAndConstrainTemp();
+		//DEBUG_ONLY(logInfoIntStringTemp(INFO_TEMP_SENSOR_INITIALIZED, pinNr, addressString, temp));
+		success = true; //temp!=DEVICE_DISCONNECTED && requestConversion();
 	}	
 	setConnected(success);
 	logDebug("init onewire sensor complete %d", success);

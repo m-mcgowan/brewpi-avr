@@ -25,89 +25,29 @@ BlackholeDataOut blackhole;
 typedef void (*CommandHandler)(DataIn& in, DataOut& out);
 
 /**
- * Fetches the object at a given index in a container.
- * @param o	The object containing the object to fetch. This may be NULL and may or may not be a container.
- * @param id	The id to fetch. May include the 0x80 flag for on the wire encoding that this is not the last
- *   id in the chain.
- * @return The fetched object, or {@code NULL} if the object could not be fetched. 
+ * The no-op command simply echoes the response until the end of stream.
  */
-Object* fetchContainedObject(Object* o, uint8_t id)
-{
-	Object* result = NULL;
-	id &= 0x7F;
-	if (isContainer(o))
-	{
-		Container* c = (Container*)o;
-		if (id<c->size())
-			result = c->item(id);
-	}
-	else {
-		// special case of 0 is also allowed as a self reference for non-container objects
-		// this allows ids to be padded with 0 bytes without affecting the lookup		
-		if (!id)		
-			result = o;
-	}
-	return result;
-}
-
-/**
- * Lookup the object fetching the id chain from a stream.
- * @param data	The data stream to read the id chain.
- * @return The fetched object, or {@code NULL} if the id in the stream doesn't correspond to 
- */
-Object* lookupObject(DataIn& data) {	
-	Object* current = rootContainer();
-	int8_t id = -1;
-	while (data.hasNext() && id<0)
-	{
-		id = int8_t(data.next());							// msb set if there is more bytes in the id.
-		current = fetchContainedObject(current, uint8_t(id));		
-	}
-	return current;	
-}
-
-// todo - factor lookupObject/lookupContainer
-
-/**
- * Fetches the container and last id that corresponds to the id chain read from the data stream.
- * @param data	The stream providing the id chain of the object to lokup
- * @param lastID	[outval] Receives the last part of the id chain.
- *
- * For example, given a stream encoding the id chain "2.3.5", the container returned would correspond with
- * object "2.3" and lastID would be set to 5.
- */
-Object* lookupContainer(DataIn& data, int8_t& lastID) 
-{
-	Object* current = rootContainer();
-	int8_t id = int8_t(data.next());
-	while (id<0 && data.hasNext())
-	{
-		current = fetchContainedObject(current, uint8_t(id));
-		id = int8_t(data.next());
-	}
-	lastID = id;
-	return current;
-}
-
-
 void noopCommandHandler(DataIn& _in, DataOut& out)
 {	
+	while (_in.hasNext());
 }
 
 /**
  * Implements the read value command. Accepts multiple ID chains and outputs each chain plus the
  * data for that object, or a 0-byte block if the object is not known or is not readable.
  */
-void readValueCommandHandler(DataIn& in, DataOut& out) {
-	PipeDataIn pipe(in,out);
+void readValueCommandHandler(DataIn& in, DataOut& out) {	
 	while (in.hasNext()) {					// allow multiple read commands
-		Object* o = lookupObject(pipe);		// read the object and pipe read data to output
-		if (isReadable(o)) {
-			StreamReadable* r = (StreamReadable*)o;
-			out.write(r->streamSize());
+		Object* o = lookupObject(in);		// read the object and pipe read data to output
+		uint8_t available = in.next();		// number of bytes available
+		StreamReadable* r = (StreamReadable*)o;
+		if (isReadable(o) && available==r->streamSize()) {		
 			r->readTo(out);
 		}
 		else {								// not a readable object, flag as 0 length
+			while (available-->0) {			// consume data in stream
+				in.next();
+			}
 			out.write(0);
 		}
 	}
@@ -118,23 +58,23 @@ void readValueCommandHandler(DataIn& in, DataOut& out) {
 /**
  * Implements the set value command. 
  */
-void setValueCommandHandler(DataIn& in, DataOut& out) {
-	PipeDataIn pipe(in,out);
+void setValueCommandHandler(DataIn& in, DataOut& out) {	
 	while (in.hasNext()) {					// allow multiple ids
-		Object* o = lookupObject(pipe);		// fetch the id and pipe the id to output
-		if (isWritable(o)) {				
-			StreamWritable* w = (StreamWritable*)o;
-			uint8_t available = in.next();
-			w->writeFrom(in);
-			out.write(available);
-
-			StreamReadable* r = (StreamReadable*)o;
+		Object* o = lookupObject(in);		// fetch the id
+		
+		StreamWritable* w = (StreamWritable*)o;	
+		StreamReadable* r = (StreamReadable*)o;				
+		uint8_t available = in.next();
+		if (isWritable(o) && r->streamSize()==available) {		// if it's writable and the correct number of bytes were parsed.						
+			w->writeFrom(in);									// assign from stream			
 			out.write(r->streamSize());
-			r->readTo(out);
-			// todo - pass length of datablock to writeFrom so it can be validated
+			r->readTo(out);			
 		}
-		else {
-			out.write(0);		// not writable or not known
+		else {													// either not writable or invalid size
+			while (available-->0) {								// consume rest of stream for this command
+				in.next();
+			}
+			out.write(0);										// write 0 bytes (indicates failure)
 		}
 	}
 }
@@ -169,34 +109,31 @@ Object* createBasicValue(DataIn& in)
 }
 */
 
-Object* createEepromValue(DataIn& in, bool dryRun) {
-	uint8_t len = in.next();
+Object* createEepromValue(ObjectDefinition& def) {	
 	BasicReadWriteValue<eptr_t> offset(0);
-	offset.writeFrom(in);	
-	EepromBaseValue* value = NULL;
-	if (!dryRun)
-		value = new EepromDynamicStreamValue(offset.read(), len);
+	offset.writeFrom(def.in);	
+	EepromBaseValue* value = NULL;	
+	value = new EepromDynamicStreamValue(offset.read(), def.len);
 	return value;
 }
 
 
-typedef Object* (*CreateObjectHandler)(DataIn& in, bool dryRun);
 
-// todo - this should not be here, but part of the host application that defines the type of objects available
-
-CreateObjectHandler createObjectHandlers[] = {
-	NULL, //createBasicValue,
-	createEepromValue		// todo - this is more for illustration than actual necessity
-};
-
-Object* createObject(DataIn& in, bool dryRun=false)
-{	
-	uint8_t type = in.next();		// object type
-	if (type>=sizeof(createObjectHandlers)/sizeof(createObjectHandlers[0]))
-		return NULL;
-		
-	return createObjectHandlers[type](in, dryRun);
+/**
+ * Consumes the definition data from the stream and returns a {@code NULL} pointer.
+ */
+Object* nullFactory(ObjectDefinition& def) {
+	for (int i=def.len; i-->0; ) {
+		def.in.next();
+	}
+	return NULL;
 }
+
+/**
+ * Application-provided function to create the object of the given type.
+ */
+extern Object* createObject(DataIn& in, bool dryRun=false);
+
 
 // todo - initialize eeprom 
 /**
@@ -210,36 +147,32 @@ EepromDataOut eepromWriter(0, eepromAccess.length());
  */
 void createObjectCommandHandler(DataIn& _in, DataOut& out)
 {
-	PipeDataIn result(_in, out);			// pipe what is read back as result status
-	PipeDataIn in(result, eepromWriter);	// pipe also to eeprom
+	PipeDataIn in(_in, eepromWriter);		// pipe object creation command eeprom
 	
 	eptr_t offset = eepromWriter.offset();	// save current eeprom pointer
 	eepromWriter.write(CMD_INVALID);		// value for partial write, will go a back when successfully completed and write this again
 	
 	container_id lastID;
 	Object* target = lookupContainer(in, lastID);			// find the container where the object will be added
-	Object* newObject = createObject(in);		// read the type and create args
+	Object* newObject = createObject(in, false);			// read the type and create args
 	
 	int8_t index = -1;
 	if (lastID>=0 && target && newObject && isOpenContainer(target)) {		// if the lastID >=0 then it was fetched from a container
 		OpenContainer* c = (OpenContainer*)target;
 		bool success = c->add(lastID, newObject);
-		// TODO - what is stored in eeprom needs to be absolute, i.e. turned from createObject to placeObject.
-		// so we can identify it by the ID. Maybe just drop this command and have a command to fetch the next
-		// empty slot in a container.
 		if (success)
 			eepromAccess.writeByte(offset, CMD_CREATE_OBJECT);	// finalize creation in eeprom
 	}
 	else {
-		delete newObject;
+		delete_object(newObject);
 	}
-	out.write(index);						// status is index it was created at
-	
+	out.write(index);						// status is index it was created at	
 }
 
 
 /**
- * 
+ * Parses a stream of object definitions, piping the valid definitions to an output stream.
+ * Stops when the input stream doesn't contain a recognized object definition. 
  */
 class ObjectDefinitionWalker {
 	
@@ -296,6 +229,9 @@ public:
 	}
 };
 
+/*
+ * Capture one command byte plus a streamed ID.
+ */
 typedef BufferDataOut<MAX_CONTAINER_DEPTH+1> IDCapture;
 
 /**
@@ -324,12 +260,11 @@ void removeEepromCreateCommand(IDCapture& id) {
  * Handles the delete object command.
  *
  */
-void deleteObjectCommandHandler(DataIn& _in, DataOut& out)
+void deleteObjectCommandHandler(DataIn& in, DataOut& out)
 {
+	IDCapture idCapture;						// buffer to capture id
+	PipeDataIn id(in, idCapture);				// capture read id
 	int8_t lastID;
-	PipeDataIn in(_in, out);			// pipe read input to output
-	IDCapture idCapture;				// capture id
-	PipeDataIn id(in, idCapture);		// capture read id
 	Object* obj = lookupContainer(id, lastID);	// find the container and the ID in the chain to remove	
 	uint8_t success = 0;
 	if (obj!=NULL && isOpenContainer(obj) && lastID>=0) {
@@ -389,8 +324,8 @@ CommandHandler handlers[] = {
  */
 void handleCommand(DataIn& dataIn, DataOut& dataOut)
 {
-	uint8_t next = dataIn.next();
-	dataOut.write(next);
-	handlers[next](dataIn, dataOut);	
+	PipeDataIn pipeIn = PipeDataIn(dataIn, dataOut);	
+	uint8_t next = pipeIn.next();
+	handlers[next](pipeIn, dataOut);	
 }
 

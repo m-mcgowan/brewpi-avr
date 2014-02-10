@@ -25,6 +25,8 @@
 #include "FastDigitalPin.h"
 #include "DallasTemperature.h"
 #include "Ticks.h"
+#include "Values.h"
+
 
 class DallasTemperature;
 class OneWire;
@@ -33,6 +35,21 @@ class OneWire;
 
 class OneWireTempSensor : public BasicTempSensor {
 public:	
+
+	static Object* create(DataIn& in) {
+		OneWireBus* bus = l
+		
+		float4_4 calibration;
+		return new OneWireTempSensor(bus, address, calibration);
+	}
+
+	prepare_t prepare() {
+		if (!isConnected())
+			init();
+		else			
+		return 750;			// conversion time
+	}
+
 	/**
 	 * Constructs a new onewire temp sensor.
 	 * /param bus	The onewire bus this sensor is on.

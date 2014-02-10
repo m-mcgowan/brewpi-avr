@@ -34,7 +34,7 @@
 #include "ValuesProgmem.h"
 #include "GenericContainer.h"
 #include "ValueModels.h"
-
+#include "ValueController.h"
 
 #if BREWPI_SIMULATE
 	#include "Simulator.h"
@@ -59,22 +59,40 @@ Container* rootContainer()
 	return &root;
 }
 
+struct Foo  {
+	
+	virtual void f()=0;
+	virtual void g()=0;	
+};
 
-class BuildInfoValues : public Container {
-	private:
-	ProgmemStringValue buildHash;
+struct Bar {	
+	virtual void h()=0;;
+};
+
+class Baz : public Foo, public Bar {	
+	
+};
+	
+class Quux : public Baz {
+	virtual void g() {}
+	virtual void h() {}		
+	virtual void f() {}
+	};
+
+Quux q;
+
+class BuildInfoValues : public FactoryContainer {
+	private:	
 	
 	public:
-	BuildInfoValues()
-	: buildHash(PSTR(BUILD_NAME))	{}
-	
+	BuildInfoValues() {}
+			
 	container_id size() { return 1; }
-	virtual Object* item(container_id id) { return &buildHash; }
+	virtual Object* item(container_id id) { return new_object(ProgmemStringValue((PSTR(BUILD_NAME)))); }
 };
 
 // just experimenting - will do properly later
-BuildInfoValues buildInfo;
-BasicReadWriteValue<uint8_t> logInterval(-1);
+//BuildInfoValues buildInfo;
 bool logValuesFlag = false;
 
 class GlobalSettings {
@@ -89,8 +107,8 @@ class GlobalSettings {
 
 void setup()
 {    
-	root.add(root.next(), &buildInfo);
-	root.add(root.next(), &logInterval);
+	//root.add(root.next(), &buildInfo);
+	//root.add(root.next(), &logInterval);
 	
 	Comms::init();
 	
@@ -162,8 +180,11 @@ void brewpiLoop(void)
 
 
 	uint32_t waitUntil = 0;	
-	walkRoot(root, prepareCallback, &waitUntil, ids);
 	
+	// todo - lifecycle methods should be delegated only to the container. The container itself then chooses if
+	// it wants to delegate
+	walkRoot(root, prepareCallback, &waitUntil, ids);
+		
 	for (;ticks.millis()<waitUntil;) { }
 	
 	walkRoot(root, updateCallback, NULL, ids);
@@ -183,5 +204,27 @@ void loop() {
 	#else
 	brewpiLoop();
 	#endif
+}
+
+	
+ObjectFactory createObjectHandlers[] = {
+	nullFactory,
+	OneWireBus::create,				
+};
+
+/**
+ * The application supplied object factory.
+ * Fetches the object type from the stream and looks this up against 
+ */
+Object* createObject(DataIn& in, bool dryRun=false)
+{
+	uint8_t type = in.next();		// object type
+	if (dryRun || type>=sizeof(createObjectHandlers)/sizeof(createObjectHandlers[0]))
+		type = 0;		// null object creator. Ensures stream is properly consumed even for invalid type values.
+	
+	uint8_t len = in.next();
+	ObjectDefinition def(in, len, type);
+	Object* result = createObjectHandlers[type](def);	
+	return result;
 }
 

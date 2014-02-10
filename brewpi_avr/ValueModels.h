@@ -68,7 +68,11 @@ public:
 	}
 	
 	void returnItem(Object* item) {
+#if OBJECT_VIRTUAL_DESTRUCTOR
 		delete item;
+#else		
+		delete (uint8_t*)item;	// just clear the memory
+#endif		
 	}
 	
 	container_id size() {
