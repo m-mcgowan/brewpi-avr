@@ -12,7 +12,7 @@
  * A streamable value whose data resizes externally.
  */
 // TODO - factor ExternalValue, eeprom value and progmem value - all have address and size.
-class ExternalValue : public Value, public StreamWritable
+class ExternalValue : public WritableValue
 {
 	void* _pValue;
 	uint8_t _size;

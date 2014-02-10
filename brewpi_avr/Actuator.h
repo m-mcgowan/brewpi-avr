@@ -28,7 +28,7 @@
  * An actuator simply turns something on or off.                        
  */
 // todo - actuators can be remodeled as a bool state-assignable value. See BasicReadWriteValue
-class Actuator : public Value, StreamWritable
+class Actuator : public WritableValue
 {
 	public:	
 	// todo - replace this with read()/write()

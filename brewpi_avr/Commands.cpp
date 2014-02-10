@@ -40,9 +40,9 @@ void readValueCommandHandler(DataIn& in, DataOut& out) {
 	while (in.hasNext()) {					// allow multiple read commands
 		Object* o = lookupObject(in);		// read the object and pipe read data to output
 		uint8_t available = in.next();		// number of bytes available
-		StreamReadable* r = (StreamReadable*)o;
-		if (isReadable(o) && available==r->streamSize()) {		
-			r->readTo(out);
+		Value* v = (Value*)o;
+		if (isValue(o) && available==v->streamSize()) {		
+			v->readTo(out);
 		}
 		else {								// not a readable object, flag as 0 length
 			while (available-->0) {			// consume data in stream
@@ -62,13 +62,12 @@ void setValueCommandHandler(DataIn& in, DataOut& out) {
 	while (in.hasNext()) {					// allow multiple ids
 		Object* o = lookupObject(in);		// fetch the id
 		
-		StreamWritable* w = (StreamWritable*)o;	
-		StreamReadable* r = (StreamReadable*)o;				
+		Value* v = (Value*)o;			
 		uint8_t available = in.next();
-		if (isWritable(o) && r->streamSize()==available) {		// if it's writable and the correct number of bytes were parsed.						
-			w->writeFrom(in);									// assign from stream			
-			out.write(r->streamSize());
-			r->readTo(out);			
+		if (isWritable(o) && v->streamSize()==available) {		// if it's writable and the correct number of bytes were parsed.
+			v->writeFrom(in);									// assign from stream			
+			out.write(v->streamSize());
+			v->readTo(out);			
 		}
 		else {													// either not writable or invalid size
 			while (available-->0) {								// consume rest of stream for this command

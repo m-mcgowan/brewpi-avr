@@ -148,35 +148,23 @@ public:
 	
 };
 
-
-/**
- * Abstract class implemented by objects that can write their state to a stream.
- */
-class StreamReadable {	
-public:	
-	virtual void readTo(DataOut& out)=0;
-	virtual uint8_t streamSize()=0;			// the size this value occupies in the stream.
-};
-
-/**
- * Interface provided by objects that can assign their state from a stream.
- * Note tha all StreamWritable objects must implement StreamReadable.
- * The interface here doesnt subclass StreamReadable to avoid multiple inheritance of the same interface multipe
- * times (requiring virtual base classes.)
- */
-class StreamWritable {
-public:	
-	virtual void writeFrom(DataIn& in)=0;
-};
-
 /**
  * A basic value type. All values are as a minimum stream readable, meaning they can push their value to a stream 
  * (a streamed read operation.)
  */
-class Value : public Object, public StreamReadable {
+class Value : public Object {
 public:	
 	virtual object_t objectType() { return otValue; }	// basic value type - read only stream
+	virtual void readTo(DataOut& out)=0;
+	virtual uint8_t streamSize()=0;			// the size this value occupies in the stream.
 	
+	virtual void writeFrom(DataIn& in){};	// default is a no-op. Caller always checks if item is writable first.
+	
+};
+
+class WritableValue : public Value {
+	virtual object_t objectType() { return otValueWrite; }	
+	virtual void writeFrom(DataIn& in)=0;	
 };
 
 /**
@@ -295,7 +283,7 @@ public:
  * A readable and writable value.
  */
 template <typename T> 
-class BasicReadWriteValue : public MixinReadWriteValue<T>, public Value, public Readable<T>, public Writable<T>, public StreamWritable
+class BasicReadWriteValue : public MixinReadWriteValue<T>, public Value, public Readable<T>, public Writable<T>
 {
 public:
 	BasicReadWriteValue(T t=T()) : MixinReadWriteValue<T>(t) {}
@@ -346,7 +334,7 @@ inline bool isOpenContainer(Object* o)
 	return o!=NULL && (o->objectType() & (otContainer|otOpenContainerFlag));
 }
 
-inline bool isReadable(Object* o)
+inline bool isValue(Object* o)
 {
 	return o!=NULL && (o->objectType() & otValue);
 }

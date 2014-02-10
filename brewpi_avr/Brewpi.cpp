@@ -153,8 +153,8 @@ void writeID(container_id* id, DataOut& out) {
 
 bool logValuesCallback(Object* o, void* data, container_id* id) {
 	DataOut& out = *(DataOut*)data;
-	if (isReadable(o)) {
-		StreamReadable* r = (StreamReadable*)o;
+	if (isValue(o)) {
+		Value* r = (Value*)o;
 		writeID(id, out);
 		r->readTo(out);
 	}
