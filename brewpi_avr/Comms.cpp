@@ -64,7 +64,7 @@ CommsOut commsOut;
  * The stream automatically closes on newline. 
  */
 class TextIn : public DataIn {
-	DataIn& _in;
+	DataIn*	_in;
 	uint8_t data;
 	bool hasData;
 	int8_t commentLevel;	// -1 indicates end of stream
@@ -73,7 +73,7 @@ class TextIn : public DataIn {
 	
 public:
 	TextIn(DataIn& in) 
-	: _in(in), data(0), hasData(0), commentLevel(0) {}
+	: _in(&in), data(0), hasData(0), commentLevel(0) {}
 		
 	bool hasNext() 
 	{ 
@@ -100,8 +100,8 @@ public:
  * Sets hasData and data. 
  */
 void TextIn::fetchNextData() {
-	while (commentLevel>=0 && !hasData && _in.hasNext()) {
-		uint8_t d = _in.next();
+	while (commentLevel>=0 && !hasData && _in->hasNext()) {
+		uint8_t d = _in->next();
 		if (d=='[') commentLevel++;			
 		else if (d==']') commentLevel--;
 		else if (d=='\n') { commentLevel = -1; data = 0; }
@@ -181,35 +181,35 @@ void HexTextToBinaryIn::fetchNextByte()
 
 class BinaryToHexTextOut : public DataOut {
 
-	DataOut& _out;
+	DataOut* _out;		
 
 public:
 
-	BinaryToHexTextOut(DataOut& out) : _out(out) {}
+	BinaryToHexTextOut(DataOut& out) : _out(&out) {}
 
 	/**
 	 * Annotations are written as is to the stream, surrouned by annotation marks.
 	 */
 	void writeAnnotation(const char* data) {
-		_out.write('[');
-		_out.write(data, strlen(data));
-		_out.write(']');
+		_out->write('[');
+		_out->write(data, strlen(data));
+		_out->write(']');
 	}
 
 	/**
 	 * Data is written as hex-encoded
 	 */
 	void write(uint8_t data) {
-		_out.write(d2h((data&0xF0)>>4));
-		_out.write(d2h((data&0xF)));
-		_out.write(' ');
+		_out->write(d2h((data&0xF0)>>4));
+		_out->write(d2h((data&0xF)));
+		_out->write(' ');
 	}
 	
 	/**
 	 * Rather than closing the global stream, write a newline to signify the end of this command.
 	 */
 	void close() {
-		_out.write('\n');
+		_out->write('\n');
 	}
 };
 
