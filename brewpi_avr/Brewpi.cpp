@@ -34,6 +34,7 @@
 #include "ValuesProgmem.h"
 #include "GenericContainer.h"
 #include "ValueModels.h"
+#include "ValueTicks.h"
 
 #ifdef ARDUINO
 #include "BrewpiOnewire.h"
@@ -222,8 +223,9 @@ void loop() {
 
 ObjectFactory createObjectHandlers[] = {
 	nullFactory,                                            // type 0
-	ARDUINO_OBJECT(OneWireBus::create),			// type 1
-	ARDUINO_OBJECT(OneWireTempSensor::create)       	// type 2
+	ARDUINO_OBJECT(OneWireBus::create),						// type 1
+	ARDUINO_OBJECT(OneWireTempSensor::create),       		// type 2
+	CurrentTicksValue::create								// type 3
 };
 
 /**
