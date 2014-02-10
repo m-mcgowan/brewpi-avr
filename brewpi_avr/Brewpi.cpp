@@ -34,7 +34,9 @@
 #include "ValuesProgmem.h"
 #include "GenericContainer.h"
 #include "ValueModels.h"
-#include "ValueController.h"
+#include "BrewpiObjects.h"
+#include "OneWire.h"
+#include "OneWireTempSensor.h"
 
 #if BREWPI_SIMULATE
 	#include "Simulator.h"
@@ -208,8 +210,9 @@ void loop() {
 
 	
 ObjectFactory createObjectHandlers[] = {
-	nullFactory,
-	OneWireBus::create,				
+	nullFactory,				// type 0
+	OneWireBus::create,			// type 1
+	OneWireTempSensor::create	// type 2
 };
 
 /**
@@ -223,7 +226,7 @@ Object* createObject(DataIn& in, bool dryRun=false)
 		type = 0;		// null object creator. Ensures stream is properly consumed even for invalid type values.
 	
 	uint8_t len = in.next();
-	ObjectDefinition def(in, len, type);
+	ObjectDefinition def = { &in, len, type };
 	Object* result = createObjectHandlers[type](def);	
 	return result;
 }

@@ -31,7 +31,7 @@ class Logger{
 	Logger(){};
 	~Logger(){};
 	
-	static void logMessageVaArg(const char type, LOG_ID_TYPE errorID, const char * varTypes, ...);
+	static void logMessageVaArg(const char type, LOG_ID_TYPE errorID, const char * varTypes, ...) {}
 };
 extern Logger logger;
 
@@ -54,6 +54,8 @@ extern Logger logger;
 	}
 	inline void logErrorIntIntInt(uint8_t debugId, int val1, int val2, int val3){
 		logger.logMessageVaArg('E', debugId, "ddd", val1, val2, val3);
+	}
+	inline void logErrorData(uint8_t debugId, uint8_t* val, uint8_t len){ 
 	}
 #else
 	#define logError(debugId) {}
@@ -120,12 +122,10 @@ extern Logger logger;
 	#define logInfoTemp(debugId, temp) {}
 	#define logInfoStringString(debugId, val1, val2) {}
 	#define logInfoIntString(debugId, val1, val2) {}
-	#define logInfoIntStringTemp(debugId, val1, val2, val3) {}
-	
-	
+	#define logInfoIntStringTemp(debugId, val1, val2, val3) {}		
 #endif
 
-#if BREWPI_LOG_DEBUG
+#if BREWPI_LOG_DEBUG && 0
 	#include "PiLink.h"
 	#define logDebug(string, ...) piLink.debugMessage(PSTR(string), ##__VA_ARGS__)
 #else

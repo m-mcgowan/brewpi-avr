@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "TemperatureFormats.h"
-
+#include "Temperature.h"
+#include "Values.h"
 
 #define TEMP_SENSOR_DISCONNECTED INVALID_TEMP
 

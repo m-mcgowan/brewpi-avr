@@ -71,25 +71,25 @@ struct DataIn
  */
 class PipeDataIn : public DataIn
 {
-	DataIn& in; 
-	DataOut& out;
+	DataIn* _in; 
+	DataOut* _out;
 
 public:	
 	PipeDataIn(DataIn& in, DataOut& out) 
-		: in(in), out(out) 
+		: _in(&in), _out(&out) 
 	{		
 	}
 	
-	DataOut& pipeOut() { return out; }
+	DataOut& pipeOut() { return *_out; }
 	
 	virtual uint8_t next() {
-		uint8_t val = in.next();
-		out.write(val);
+		uint8_t val = _in->next();
+		_out->write(val);
 		return val;
 	}
 	
-	virtual bool hasNext() { return in.hasNext(); }
-	virtual uint8_t peek() { return in.peek(); }
+	virtual bool hasNext() { return _in->hasNext(); }
+	virtual uint8_t peek() { return _in->peek(); }
 	
 };
 

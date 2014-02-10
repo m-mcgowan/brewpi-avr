@@ -10,6 +10,14 @@ const container_id INVALID_ID = (container_id)(-1);
 
 typedef uint16_t prepare_t;
 
+#define DISABLE_PACK_WARNING_PUSH() \
+	_Pragma("GCC diagnostic push"); \
+	_Pragma("GCC diagnostic ignored \"-Wall\"");
+
+#define DISABLE_PACK_WARNING_POP() \
+	_Pragma("GCC diagnostic pop");
+
+
 enum ObjectType {		
 	otObject = 0,		
 	otValue = 4,			// 0x000001xx are for value types. Base value type is stream only readable.
@@ -36,7 +44,10 @@ typedef uint8_t object_t;
 #define delete_object(x) delete ((uint8_t*)x)
 #endif
 
+// have a hook for all object creations.
 #define new_object(x) new x
+
+#define cast_object_ptr(t, x) ((t*)x)
 
 struct Object
 {
@@ -147,6 +158,12 @@ public:
 	virtual uint8_t streamSize()=0;			// the size this value occupies in the stream.
 };
 
+/**
+ * Interface provided by objects that can assign their state from a stream.
+ * Note tha all StreamWritable objects must implement StreamReadable.
+ * The interface here doesnt subclass StreamReadable to avoid multiple inheritance of the same interface multipe
+ * times (requiring virtual base classes.)
+ */
 class StreamWritable {
 public:	
 	virtual void writeFrom(DataIn& in)=0;
@@ -252,10 +269,26 @@ public:
 /**
  * A Readable value.
  */
-template<typename T> class BasicReadValue : public MixinReadValue<T>
+template<typename T> class BasicReadValue : public MixinReadValue<T>, public Value, public Readable<T>
 {	
 public:
 	BasicReadValue(T t=T()) : MixinReadValue<T>(t) {}
+
+	typedef MixinReadValue<T> inherited;
+
+
+	T read() {
+		return inherited::read();
+	}
+	
+	void readTo(DataOut& out) {
+		inherited::readTo(out);
+	}
+	
+	uint8_t streamSize() {
+		return inherited::streamSize();
+	}
+
 };
 
 /**
@@ -293,14 +326,15 @@ public:
 /**
  * Definition parameters for creating a new object.
  */
+
+
 struct ObjectDefinition {
-	DataIn& in;			// stream providing definition data for this object
+	DataIn* in;			// stream providing definition data for this object
 	uint8_t len;		// number of bytes in the stream for this object definition
 	uint8_t type;
-	
-	ObjectDefinition(DataIn& _in, uint8_t _len, uint8_t _type)
-	: in(_in), len(_len), type(_type) {}
 };
+
+DISABLE_PACK_WARNING_POP();
 
 inline bool isContainer(Object* o)
 {

@@ -21,11 +21,11 @@
 #pragma once
 
 #include "Brewpi.h"
-#include "TempSensor.h"
+#include "TempSensorBasic.h"
 #include "FastDigitalPin.h"
 #include "DallasTemperature.h"
 #include "Ticks.h"
-#include "Values.h"
+#include "BrewpiObjects.h"
 
 
 class DallasTemperature;
@@ -36,17 +36,27 @@ class OneWire;
 class OneWireTempSensor : public BasicTempSensor {
 public:	
 
-	static Object* create(DataIn& in) {
-		OneWireBus* bus = l
-		
-		float4_4 calibration;
-		return new OneWireTempSensor(bus, address, calibration);
+	/**
+	 * Creates a one-wire 
+	 */
+	static Object* create(ObjectDefinition& def) {
+		// todo - move length requirements externally?
+		Object* result = NULL;
+		if (def.len>=10) {		// 8 address + 1 calibration + 1+ for id
+			DeviceAddress address;			
+			def.in->read(address, 8);
+			fixed4_4 calibration = def.in->next();
+			OneWireBus* bus = cast_object_ptr(OneWireBus, lookupObject(*def.in));
+			if (bus)
+				result = new OneWireTempSensor(bus, address, calibration);
+		}
+		return result;
 	}
 
 	prepare_t prepare() {
 		if (!isConnected())
 			init();
-		else			
+		
 		return 750;			// conversion time
 	}
 
@@ -58,14 +68,12 @@ public:
 	 * /param calibration	A temperature value that is added to all readings. This can be used to calibrate the sensor.	 
 	 */
 	OneWireTempSensor(OneWire* bus, DeviceAddress address, fixed4_4 calibrationOffset)
-	: oneWire(bus), sensor(NULL) {		
+	: sensor(bus) {		
 		connected = true;  // assume connected. Transition from connected to disconnected prints a message.
 		memcpy(sensorAddress, address, sizeof(DeviceAddress));
 		this->calibrationOffset = calibrationOffset;
 	};
-	
-	~OneWireTempSensor();
-	
+		
 	bool isConnected(void){
 		return connected;
 	}		
@@ -89,8 +97,7 @@ public:
 	 */
 	temperature readAndConstrainTemp();
 	
-	OneWire * oneWire;
-	DallasTemperature * sensor;
+	DallasTemperature sensor;
 	DeviceAddress sensorAddress;
 
 	fixed4_4 calibrationOffset;		

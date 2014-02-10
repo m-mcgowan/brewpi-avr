@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Brewpi.h"
-#include "TemperatureFormats.h"
+#include "Temperature.h"
 #include <limits.h>
 
 
@@ -127,6 +127,10 @@ class DallasTemperature
   public:
 
   DallasTemperature(OneWire*);
+  
+  OneWire* oneWire() const {
+	  return _wire;
+  }
 
   /*
    * Initializes the connection with the device. This is done at power up and after detectedReset() returns true.

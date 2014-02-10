@@ -19,17 +19,13 @@
  */
 
 #include "Brewpi.h"
+#include "Logger.h"
 #include "OneWireTempSensor.h"
 #include "DallasTemperature.h"
 #include "OneWire.h"
 #include "OneWireDevices.h"
 #include "PiLink.h"
 #include "Ticks.h"
-#include "TemperatureFormats.h"
-
-OneWireTempSensor::~OneWireTempSensor(){
-	delete sensor;
-};
 
 /**
  * Initializes the temperature sensor.
@@ -39,25 +35,13 @@ OneWireTempSensor::~OneWireTempSensor(){
  */
 bool OneWireTempSensor::init(){
 
-	// save address and pinNr for log messages
-	char addressString[17];
-	printBytes(sensorAddress, 8, addressString);
-	uint8_t pinNr = oneWire->pinNr();
-
 	bool success = false;
 		
-	if (sensor==NULL) {
-		sensor = new DallasTemperature(oneWire);
-		if (sensor==NULL) {
-			logErrorString(ERROR_SRAM_SENSOR, addressString);
-		}
-	}
-	
 	logDebug("init onewire sensor");
 	// This quickly tests if the sensor is connected and initializes the reset detection.
 	// During the main TempControl loop, we don't want to spend many seconds
 	// scanning each sensor since this brings things to a halt.
-	if (sensor && sensor->initConnection(sensorAddress) && requestConversion()) {
+	if (sensor.initConnection(sensorAddress) && requestConversion()) {
 		logDebug("init onewire sensor - wait for conversion");
 		// todo - should this be here? with the new async prepare/update lifecycle requests
 		// the init method doesn't have to wait.
@@ -74,7 +58,7 @@ bool OneWireTempSensor::init(){
 
 bool OneWireTempSensor::requestConversion()
 {	
-	bool ok = sensor->requestTemperaturesByAddress(sensorAddress);
+	bool ok = sensor.requestTemperaturesByAddress(sensorAddress);
 	setConnected(ok);
 	return ok;
 }
@@ -83,15 +67,17 @@ void OneWireTempSensor::setConnected(bool connected) {
 	if (this->connected==connected)
 		return; // state is stays the same
 		
-	char addressString[17];
-	printBytes(sensorAddress, 8, addressString);
 	this->connected = connected;
+	// todo - fix up events for connected/disconnected. No need to convert address to string, it will be done
+	// externally 
+	#if 0
 	if(connected){
-		logInfoIntString(INFO_TEMP_SENSOR_CONNECTED, this->oneWire->pinNr(), addressString);
+		logInfoIntString(INFO_TEMP_SENSOR_CONNECTED, sensor._wire->pinNr(), addressString);
 	}
 	else{
-		logWarningIntString(WARNING_TEMP_SENSOR_DISCONNECTED, this->oneWire->pinNr(), addressString);
+		logWarningIntString(WARNING_TEMP_SENSOR_DISCONNECTED, sensor._wire->pinNr(), addressString);
 	}
+	#endif
 }
 
 temperature OneWireTempSensor::read(){
@@ -106,7 +92,7 @@ temperature OneWireTempSensor::read(){
 
 temperature OneWireTempSensor::readAndConstrainTemp()
 {
-	temperature temp = sensor->getTempRaw(sensorAddress);
+	temperature temp = sensor.getTempRaw(sensorAddress);
 	if(temp == DEVICE_DISCONNECTED){
 		setConnected(false);
 		return TEMP_SENSOR_DISCONNECTED;

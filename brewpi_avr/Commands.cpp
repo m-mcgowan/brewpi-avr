@@ -111,7 +111,7 @@ Object* createBasicValue(DataIn& in)
 
 Object* createEepromValue(ObjectDefinition& def) {	
 	BasicReadWriteValue<eptr_t> offset(0);
-	offset.writeFrom(def.in);	
+	offset.writeFrom(*def.in);	
 	EepromBaseValue* value = NULL;	
 	value = new EepromDynamicStreamValue(offset.read(), def.len);
 	return value;
@@ -124,18 +124,23 @@ Object* createEepromValue(ObjectDefinition& def) {
  */
 Object* nullFactory(ObjectDefinition& def) {
 	for (int i=def.len; i-->0; ) {
-		def.in.next();
+		def.in->next();
 	}
 	return NULL;
 }
 
 /**
  * Application-provided function to create the object of the given type.
+ * @param in	The data input stream that provides the object details. The format is:
+ * <pre>
+ *	uint8_t			object type
+ *  uint8_t			data length
+ *  uint8_t[len]	data 
+ * </pre>
  */
 extern Object* createObject(DataIn& in, bool dryRun=false);
 
 
-// todo - initialize eeprom 
 /**
  * The eeprom stream. 
  */
@@ -176,11 +181,11 @@ void createObjectCommandHandler(DataIn& _in, DataOut& out)
  */
 class ObjectDefinitionWalker {
 	
-	DataIn& _in;
+	DataIn* _in;		// using pointer to avoid non-POD warnings
 	
 public:
 	ObjectDefinitionWalker(DataIn& in):
-		_in(in) {}
+		_in(&in) {}
 						
 	/**
 	 * Writes the next object definition from the data input to the given output.
@@ -188,13 +193,13 @@ public:
 	 * the method returns false and the stream location is unchanged. 
 	 */							
 	bool writeNext(DataOut& out) {
-		if (!_in.hasNext())
+		if (!_in->hasNext())
 			return false;
 			
-		int8_t next = _in.peek();
+		int8_t next = _in->peek();
 		bool valid =  ((next&0x7E)==CMD_CREATE_OBJECT);	// remove MSB and LSB so accepts CMD_CREATE_TL_OBJECT too
 		if (valid) {			
-			PipeDataIn pipe(_in, next>=0 ? blackhole : out);	// next<0 if command not fully completed, so output is discarded
+			PipeDataIn pipe(*_in, next>=0 ? blackhole : out);	// next<0 if command not fully completed, so output is discarded
 			pipe.next();										// fetch the next value already peek'ed at so this is written to the output stream
 			/*Object* target = */lookupObject(pipe);			// find the container where the object will be added
 			// todo - could flag warning if target is NULL

@@ -1,10 +1,9 @@
 #pragma once
-/*
- * ValueController.h
- *
- * Created: 10/02/2014 00:23:46
- *  Author: mat
- */ 
+
+/**
+ * Normally objects go in their own header file if they are created as part of this project.
+ * This file is for brewpi objects that are based on external code, so we don't want to modify the base object definition.
+ */
 
 #include "Values.h"
 
@@ -22,7 +21,7 @@ public:
 	OneWireBus(uint8_t pin) : OneWire(pin) { }
 	
 	static Object* create(ObjectDefinition& def) {		
-		uint8_t pin = def.in.next();
+		uint8_t pin = def.in->next();
 		return new_object(OneWireBus(pin));
 	}
 };

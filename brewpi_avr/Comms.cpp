@@ -132,14 +132,14 @@ unsigned char d2h(uint8_t bin)
  */
 class HexTextToBinaryIn : public DataIn
 {
-	DataIn& _text;
+	DataIn* _text;	// store as pointer to avoid non-POD warnings
 	uint8_t char1;	// Text character for upper nibble
 	uint8_t char2;	// Text character for lower nibble
 
 	void fetchNextByte();
 	
 public:
-	HexTextToBinaryIn(DataIn& text) : _text(text), char1(0), char2(0) {}
+	HexTextToBinaryIn(DataIn& text) : _text(&text), char1(0), char2(0) {}
 	
 	bool hasNext() {
 		fetchNextByte();
@@ -163,6 +163,7 @@ public:
  */
 void HexTextToBinaryIn::fetchNextByte() 
 {
+	DataIn& _text = *this->_text;
 	if (!_text.hasNext())
 		return;
 		

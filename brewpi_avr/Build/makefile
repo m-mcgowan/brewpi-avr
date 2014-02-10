@@ -121,10 +121,13 @@ $(SRC)ArduinoFunctions.cpp \
 $(SRC)Brewpi.cpp \
 $(SRC)Commands.cpp \
 $(SRC)Comms.cpp \
+$(SRC)DallasTemperature.cpp \
 $(SRC)GenericContainer.cpp \
 $(SRC)Main.cpp \
 $(SRC)Memops.cpp \
 $(SRC)OneWire.cpp \
+$(SRC)OneWireTempSensor.cpp \
+$(SRC)Temperatore.cpp \
 $(SRC)Ticks.cpp \
 $(SRC)Values.cpp \
 $(SRC)ValuesProgmem.cpp 
