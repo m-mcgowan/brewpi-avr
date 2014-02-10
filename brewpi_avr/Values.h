@@ -3,6 +3,7 @@
 #include "stddef.h"
 #include "stdint.h"
 #include "DataStream.h"
+#include "EepromAccess.h"
 
 typedef int8_t container_id;
 
@@ -52,6 +53,13 @@ typedef uint8_t object_t;
 struct Object
 {
 	virtual object_t objectType() { return otObject; }
+
+	/**
+	 * Notifies this object that it has been created and is operational in the system.
+	 * The eeprom address that contains the object's definition is provided for instances
+	 * that want to retrieve or amend their definition details.
+	 */
+	virtual void rehydrated(eptr_t eeprom_address) {}
 
 	/**
 	 * Prepare this object for subsequent updates. 

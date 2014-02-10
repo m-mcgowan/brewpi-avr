@@ -146,31 +146,53 @@ extern Object* createObject(DataIn& in, bool dryRun=false);
 EepromDataOut eepromWriter(0, eepromAccess.length());
 
 
+enum RehydrateErrors {
+	rehydrateNoError = 0,
+	rehydrateFail = 1			// descriptive :)
+};
+
+/**
+ * Rehydrate an object from a definition. 
+ * @param in	The stream containing the object definition. First the id, then the object type, definition block length and
+ * the definition block.
+ * @return 0 on success, an error code on failure.
+ */
+uint8_t rehydrateObject(eptr_t offset, DataIn& in) 
+{	
+	container_id lastID;
+	Object* target = lookupContainer(in, lastID);			// find the container where the object will be added
+	Object* newObject = createObject(in, false);			// read the type and create args
+	
+	uint8_t error = rehydrateFail;
+	if (lastID>=0 && target && newObject && isOpenContainer(target)) {		// if the lastID >=0 then it was fetched from a container
+		OpenContainer* c = (OpenContainer*)target;
+		if (c->add(lastID, newObject)) {			
+			newObject->rehydrated(offset);
+			error = rehydrateNoError;
+		}
+	}
+	
+	if (error) {
+		delete_object(newObject);
+	}
+	return error;
+}
+
+
 /**
  * Creates a new object at a specific location. 
  */
 void createObjectCommandHandler(DataIn& _in, DataOut& out)
 {
-	PipeDataIn in(_in, eepromWriter);		// pipe object creation command eeprom
+	PipeDataIn in(_in, eepromWriter);		// pipe object creation command to eeprom
 	
-	eptr_t offset = eepromWriter.offset();	// save current eeprom pointer
-	eepromWriter.write(CMD_INVALID);		// value for partial write, will go a back when successfully completed and write this again
-	
-	container_id lastID;
-	Object* target = lookupContainer(in, lastID);			// find the container where the object will be added
-	Object* newObject = createObject(in, false);			// read the type and create args
-	
-	int8_t index = -1;
-	if (lastID>=0 && target && newObject && isOpenContainer(target)) {		// if the lastID >=0 then it was fetched from a container
-		OpenContainer* c = (OpenContainer*)target;
-		bool success = c->add(lastID, newObject);
-		if (success)
-			eepromAccess.writeByte(offset, CMD_CREATE_OBJECT);	// finalize creation in eeprom
+	eptr_t offset = eepromWriter.offset();		// save current eeprom pointer - this is where the object definition is written.
+	eepromWriter.write(CMD_INVALID);			// value for partial write, will go a back when successfully completed and write this again
+	uint8_t error_code = rehydrateObject(offset, in);
+	if (!error_code) {
+		eepromAccess.writeByte(offset, CMD_CREATE_OBJECT);	// finalize creation in eeprom
 	}
-	else {
-		delete_object(newObject);
-	}
-	out.write(index);						// status is index it was created at	
+	out.write(error_code);							// status is index it was created at	
 }
 
 
