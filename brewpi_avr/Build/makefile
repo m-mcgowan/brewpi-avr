@@ -127,7 +127,7 @@ $(SRC)Main.cpp \
 $(SRC)Memops.cpp \
 $(SRC)OneWire.cpp \
 $(SRC)OneWireTempSensor.cpp \
-$(SRC)Temperatore.cpp \
+$(SRC)Temperature.cpp \
 $(SRC)Ticks.cpp \
 $(SRC)Values.cpp \
 $(SRC)ValuesProgmem.cpp 
