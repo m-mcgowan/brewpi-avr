@@ -27,3 +27,6 @@ doxygen/
 
 # eclipse project
 */.metadata
+brewpi_avr/Build/final/
+brewpi_avr/Build/tmp/
+nbproject/private/private.xml
