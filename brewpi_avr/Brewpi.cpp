@@ -38,7 +38,7 @@
 #include "SystemProfile.h"
 
 #ifdef ARDUINO
-#include "BrewpiOnewire.h"
+#include "BrewpiOneWire.h"
 #include "OneWireTempSensor.h"
 #endif
 
