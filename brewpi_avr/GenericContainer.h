@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Brewpi.h"             // for max())
 #include "Values.h"
 #include "Memops.h"
 
@@ -7,7 +8,7 @@
 /**
  * A container with space statically allocated.
  */
-template<int SIZE> class StaticContainer : public Container
+template<int SIZE> class StaticContainer : public OpenContainer
 {
 	private:
 		Object* _items[SIZE];	// the items in this container.
@@ -19,7 +20,28 @@ template<int SIZE> class StaticContainer : public Container
 			return -1;
 		}
 		
+		void prepare(Object* item, prepare_t& time) {
+			if (item)
+			time = max(time, item->prepare());
+		}
+
 	public:
+		prepare_t prepare() {
+			prepare_t time = 0;
+			for (int i=0; i<size(); i++ ) {
+				prepare(item(i), time);
+			}
+			return time;
+		}
+	
+		virtual void update() {
+			for (int i=0; i<size(); i++ ) {
+				Object* o = item(i);
+				if (o)
+				o->update();
+			}
+		}
+		
 		StaticContainer() {
 			clear((uint8_t*)_items, SIZE*sizeof(Object*));
 		}

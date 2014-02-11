@@ -85,22 +85,35 @@ public:
 	void microseconds(uint32_t micros) { }
 };
 
+/*
+ * The Ticks class provides the time period since the device was powered up.
+ */
+class DesktopTicks {
+public:
+	ticks_millis_t millis() { return ::millis(); }
+	ticks_micros_t micros() { return millis()*1000; }	
+	ticks_seconds_t seconds() { return millis()/1000; }
+	ticks_seconds_t timeSince(ticks_seconds_t timeStamp);
+};
+
+
 #include "TicksArduino.h"
 
 // Determine the type of Ticks needed
 // TICKS_IMPL_CONFIG is the code string passed to the constructor of the Ticks implementation
 
 #if BREWPI_SIMULATE				
-/** For simulation, by the simulator - each step in the simulator advances the time by one second. */    
+/** For simulation - each step in the simulator advances the time by one second. Time can be set externally. */    
 	typedef ExternalTicks TicksImpl;
 	#define TICKS_IMPL_CONFIG		// no configuration of ExternalTicks necessary
-
 #elif BREWPI_EMULATE
 /** When debugging in AVR studio (and running normal brewpi - not the simulator), use a simple MockTicks that increments 100
 	millis each time it's called. */	
 	typedef MockTicks TicksImpl;
 	#define TICKS_IMPL_CONFIG 100	
-	
+#elif BREWPI_VIRTUAL
+        typedef DesktopTicks TicksImpl;
+        #define TICKS_IMPL_CONFIG
 #else // use regular hardware timer/delay
 	typedef HardwareTicks TicksImpl;
 	#define TICKS_IMPL_CONFIG
@@ -112,7 +125,7 @@ extern TicksImpl ticks;
 // For emulation, don't delay, since time in the emulator is not real time, so the delay is meaningless.
 // For regular code, use the arduino delay function.
 
-#if BREWPI_EMULATE || !defined(ARDUINO)
+#if BREWPI_VIRTUAL || BREWPI_EMULATE || !defined(ARDUINO)
 typedef NoOpDelay DelayImpl;		// for emulation (avr debugger), don't bother delaying, it takes ages.
 #define DELAY_IMPL_CONFIG
 #else

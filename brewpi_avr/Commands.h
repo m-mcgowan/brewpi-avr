@@ -9,12 +9,14 @@
 
 #include "DataStream.h"
 #include "Values.h"
+#include "ValuesEeprom.h"
 
 typedef char* pchar;
 typedef const char* cpchar;
 
 void handleCommand(DataIn& data, DataOut& out);
 
+void rehydrateObjects();
 
 /**
  * Prototype for object factories. 
@@ -43,3 +45,34 @@ enum Commands {
 	CMD_DISPOSED_OBJECT = CMD_CREATE_OBJECT | CMD_SPECIAL_FLAG	// flag in eeprom for object that is now deleted. Allows space to be reclaimed later.
 };
 
+
+
+
+class EepromStore {
+public:	
+	/**
+	 * The eeprom stream. 
+	 */
+	static EepromDataOut writer;
+	
+	/**
+	 * Initializes the eeprom. This formats the eeprom if not already done.
+	 */
+	static void initializeEeprom() {
+            resetStream(writer);
+	}
+	
+	static void formatEeeprom() {		
+		for (int i=eepromAccess.length(); i-->0; ) {
+			eepromAccess.writeByte(i, 0xFF);
+		}
+		
+		writer.reset(0, eepromAccess.length());
+		writer.write(0x96);		// marker
+		writer.write(0x00);	
+	}
+	
+	static void resetStream(EepromStreamRegion& region) {
+		region.reset(0, eepromAccess.length());
+	}
+};

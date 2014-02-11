@@ -39,13 +39,13 @@ void noopCommandHandler(DataIn& _in, DataOut& out)
 void readValueCommandHandler(DataIn& in, DataOut& out) {	
 	while (in.hasNext()) {					// allow multiple read commands
 		Object* o = lookupObject(in);		// read the object and pipe read data to output
-		uint8_t available = in.next();		// number of bytes available
+		uint8_t available = in.next();		// number of bytes expected
 		Value* v = (Value*)o;
 		if (isValue(o) && available==v->streamSize()) {		
 			v->readTo(out);
 		}
-		else {								// not a readable object, flag as 0 length
-			while (available-->0) {			// consume data in stream
+		else {								// not a readable object, flag as 0 length						
+			while (available-->0) {			// consume data in stream				
 				in.next();
 			}
 			out.write(0);
@@ -122,7 +122,7 @@ Object* createEepromValue(ObjectDefinition& def) {
  * Consumes the definition data from the stream and returns a {@code NULL} pointer.
  */
 Object* nullFactory(ObjectDefinition& def) {
-	for (int i=def.len; i-->0; ) {
+	for (int i=0; i<def.len; i++) {	
 		def.in->next();
 	}
 	return NULL;
@@ -140,11 +140,7 @@ Object* nullFactory(ObjectDefinition& def) {
 extern Object* createObject(DataIn& in, bool dryRun=false);
 
 
-/**
- * The eeprom stream. 
- */
-EepromDataOut eepromWriter(0, eepromAccess.length());
-
+EepromDataOut EepromStore::writer;
 
 enum RehydrateErrors {
 	rehydrateNoError = 0,
@@ -184,10 +180,10 @@ uint8_t rehydrateObject(eptr_t offset, DataIn& in)
  */
 void createObjectCommandHandler(DataIn& _in, DataOut& out)
 {
-	PipeDataIn in(_in, eepromWriter);		// pipe object creation command to eeprom
+	PipeDataIn in(_in, EepromStore::writer);		// pipe object creation command to eeprom
 	
-	eptr_t offset = eepromWriter.offset();		// save current eeprom pointer - this is where the object definition is written.
-	eepromWriter.write(CMD_INVALID);			// value for partial write, will go a back when successfully completed and write this again
+	eptr_t offset = EepromStore::writer.offset();	// save current eeprom pointer - this is where the object definition is written.
+	EepromStore::writer.write(CMD_INVALID);			// value for partial write, will go a back when successfully completed and write this again
 	uint8_t error_code = rehydrateObject(offset, in);
 	if (!error_code) {
 		eepromAccess.writeByte(offset, CMD_CREATE_OBJECT);	// finalize creation in eeprom
@@ -218,9 +214,9 @@ public:
 			return false;
 			
 		int8_t next = _in->peek();
-		bool valid =  ((next&0x7E)==CMD_CREATE_OBJECT);	// remove MSB and LSB so accepts CMD_CREATE_TL_OBJECT too
+		bool valid =  ((next&0x7F)==CMD_CREATE_OBJECT);
 		if (valid) {			
-			PipeDataIn pipe(*_in, next>=0 ? blackhole : out);	// next<0 if command not fully completed, so output is discarded
+			PipeDataIn pipe(*_in, next<0 ? blackhole : out);	// next<0 if command not fully completed, so output is discarded
 			pipe.next();										// fetch the next value already peek'ed at so this is written to the output stream
 			/*Object* target = */lookupObject(pipe);			// find the container where the object will be added
 			// todo - could flag warning if target is NULL
@@ -233,7 +229,7 @@ public:
 template <int SIZE> class BufferDataOut : public DataOut {
 	uint8_t buffer[SIZE];
 	uint8_t pos;
-public:
+	public:
 	BufferDataOut<SIZE>() { reset(); }
 	
 	void write(uint8_t data) {
@@ -265,7 +261,8 @@ typedef BufferDataOut<MAX_CONTAINER_DEPTH+1> IDCapture;
  * and will be removed from eeprom next time eeprom is compacted. 
  */
 void removeEepromCreateCommand(IDCapture& id) {
-	EepromDataIn eepromData(0, eepromAccess.length());
+	EepromDataIn eepromData;
+	EepromStore::resetStream(eepromData);	
 	ObjectDefinitionWalker walker(eepromData);
 	IDCapture capture;							// save the contents of the eeprom
 	
@@ -304,13 +301,12 @@ void deleteObjectCommandHandler(DataIn& in, DataOut& out)
 }
 
 
-
-
 /**
  * Enumerates all the create object instructions in eeprom to an output stream.
  */ 
 void listEepromInstructionsTo(DataOut& out) {
-	EepromDataIn eepromData(0, eepromAccess.length());
+	EepromDataIn eepromData;
+	EepromStore::resetStream(eepromData);
 	ObjectDefinitionWalker walker(eepromData);
 	while (walker.writeNext(out));
 }
@@ -321,7 +317,8 @@ void listEepromInstructionsTo(DataOut& out) {
  * @return The offset where the next eeprom instruction will be stored. 
  */
 eptr_t compactObjectDefinitions() {
-	EepromDataOut eepromData(0, eepromAccess.length());
+	EepromDataOut eepromData;
+	EepromStore::resetStream(eepromData);
 	listEepromInstructionsTo(eepromData);
 	return eepromData.offset();
 }
@@ -351,7 +348,7 @@ CommandHandler handlers[] = {
 void handleCommand(DataIn& dataIn, DataOut& dataOut)
 {
 	PipeDataIn pipeIn = PipeDataIn(dataIn, dataOut);	
-	uint8_t next = pipeIn.next();
-	handlers[next](pipeIn, dataOut);	
+	uint8_t cmd_id = pipeIn.next();
+	handlers[cmd_id](pipeIn, dataOut);	
 }
 

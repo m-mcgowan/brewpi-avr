@@ -71,7 +71,7 @@ void StdIO::println() {
 
 int input_available()
 {
-  DWORD nchars;
+  DWORD nchars = 0;
   /* When using Standard C input functions, also check if there
    is anything in the buffer. After a call to such functions,
    the input waiting in the pipe will be copied to the buffer,

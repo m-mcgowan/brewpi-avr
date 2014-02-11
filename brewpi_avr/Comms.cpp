@@ -42,7 +42,6 @@ void Comms::init() {
 	comms.begin(57600);
 }
 
-
 class CommsIn : public DataIn
 {	
 	bool hasNext() { return comms; }			// hasNext true if stream is still open.
@@ -100,7 +99,9 @@ public:
  * Sets hasData and data. 
  */
 void TextIn::fetchNextData() {
+	
 	while (commentLevel>=0 && !hasData && _in->hasNext()) {
+		data = 0xFF;
 		uint8_t d = _in->next();
 		if (d=='[') commentLevel++;			
 		else if (d==']') commentLevel--;
@@ -218,8 +219,7 @@ DataOut& Comms::hexOut = hexOut;
 
 void Comms::receive() {
 		
-	while (comms.available()>0) {			// there is some data ready to be processed
-											// form this point on, the system will block waiting for a complete command or newline.
+	while (comms.available()>0) {			// there is some data ready to be processed											// form this point on, the system will block waiting for a complete command or newline.
 		TextIn textIn(commsIn);
 		HexTextToBinaryIn hexIn(textIn);
 		BinaryToHexTextOut hexOut(commsOut);

@@ -14,13 +14,15 @@ class EepromBaseValue : public Value  {
 protected:
 		void _readTo(DataOut& out, eptr_t offset, uint8_t size)
 		{
-			EepromDataIn in(offset, size);
+			EepromDataIn in;
+			in.reset(offset, size);
 			in.push(out, size);
 		}
 		
 		void _writeFrom(DataIn& in, eptr_t offset, uint8_t size)
 		{
-			EepromDataOut out(offset, size);
+			EepromDataOut out;
+			out.reset(offset, size);
 			in.push(out, size);
 		}		
 		

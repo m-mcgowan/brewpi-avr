@@ -20,10 +20,10 @@
 
 #pragma once
 
-
+#define BREWPI_VIRTUAL 1
 #define BREWPI_BUZZER 0
 #define BREWPI_RANDOM 0
-#define BREWPI_SIMULATE 1
+#define BREWPI_SIMULATE 0
 #define BREWPI_ROTARY_ENCODER 0
 #define BREWPI_LCD 0
 

@@ -11,13 +11,6 @@ const container_id INVALID_ID = (container_id)(-1);
 
 typedef uint16_t prepare_t;
 
-#define DISABLE_PACK_WARNING_PUSH() \
-	_Pragma("GCC diagnostic push"); \
-	_Pragma("GCC diagnostic ignored \"-Wall\"");
-
-#define DISABLE_PACK_WARNING_POP() \
-	_Pragma("GCC diagnostic pop");
-
 
 enum ObjectType {		
 	otObject = 0,		
@@ -131,6 +124,8 @@ public:
 class OpenContainer : public Container
 {
 public:	
+	object_t objectType() { return otContainer | otOpenContainerFlag; }
+
 	/*
 	 * Add the given object to the container at the given slot.
 	 * The container guarantees the object will be available at the slot until removed.
@@ -330,26 +325,28 @@ struct ObjectDefinition {
 	uint8_t type;
 };
 
-DISABLE_PACK_WARNING_POP();
+inline bool hasFlags(uint8_t value, uint8_t flags) {
+    return ((value&flags)==flags);
+}
 
 inline bool isContainer(Object* o)
 {
-	return o!=NULL && (o->objectType() & otContainer);
+	return o!=NULL && (hasFlags(o->objectType(), otContainer));
 }
 
 inline bool isOpenContainer(Object* o)
 {
-	return o!=NULL && (o->objectType() & (otContainer|otOpenContainerFlag));
+	return o!=NULL && (hasFlags(o->objectType(), (otContainer|otOpenContainerFlag)));
 }
 
 inline bool isValue(Object* o)
 {
-	return o!=NULL && (o->objectType() & otValue);
+	return o!=NULL && (hasFlags(o->objectType(), otValue));
 }
 
 inline bool isWritable(Object* o)
 {
-	return o!=NULL && (o->objectType() & otWritableFlag);	
+	return o!=NULL && (hasFlags(o->objectType(), otWritableFlag));	
 }
 
 

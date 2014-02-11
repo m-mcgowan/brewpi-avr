@@ -53,31 +53,31 @@ class Stream : public Print
 };
 
 
-        class StdIO : public Stream {
-        public:
-            StdIO();
-            
-		void print(char c);
-		void print(const char* c);
-		void printNewLine();
-                void println();
-		int available();
-		void begin(unsigned long);
+class StdIO : public Stream {
+public:
+    StdIO();
 
-		int read();
-                int peek();
-                
-                size_t write(uint8_t w);
-                size_t write(const uint8_t* data, uint8_t len) {
-                    write(data, size_t(len));
-                }
-		void flush();
-		operator bool() { return true; }
+    void print(char c);
+    void print(const char* c);
+    void printNewLine();
+    void println();
+    int available();
+    void begin(unsigned long);
 
-        private:
-            std::istream& in;
-            FILE* out;
-        };
+    int read();
+    int peek();
+
+    size_t write(uint8_t w);
+    size_t write(const uint8_t* data, uint8_t len) {
+        write(data, size_t(len));
+    }
+    void flush();
+    operator bool() { return true; }
+
+private:
+    std::istream& in;
+    FILE* out;
+};
 
 
 #endif	/* PRINT_H */

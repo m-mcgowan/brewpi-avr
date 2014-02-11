@@ -91,6 +91,7 @@ typedef unsigned char byte;
 
 
 using std::min;
+using std::max;
 
 #define TWO_PI 6.283185307179586476925286766559
 

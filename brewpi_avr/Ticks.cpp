@@ -38,6 +38,13 @@ ticks_seconds_t ExternalTicks::timeSince(ticks_seconds_t previousTime){
 	return ::timeSince(currentTime, previousTime);
 }
 
+// return time that has passed since timeStamp, take overflow into account
+ticks_seconds_t DesktopTicks::timeSince(ticks_seconds_t previousTime){
+	ticks_seconds_t currentTime = ticks.seconds();
+	return ::timeSince(currentTime, previousTime);
+}
+
+
 
 #ifdef ARDUINO
 

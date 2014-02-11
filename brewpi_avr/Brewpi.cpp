@@ -35,6 +35,7 @@
 #include "GenericContainer.h"
 #include "ValueModels.h"
 #include "ValueTicks.h"
+#include "SystemProfile.h"
 
 #ifdef ARDUINO
 #include "BrewpiOnewire.h"
@@ -56,35 +57,18 @@ void loop (void);
 /* Configure the counter and delay timer. The actual type of these will vary depending upon the environment.
  * They are non-virtual to keep code size minimal, so typedefs and preprocessing are used to select the actual compile-time type used. */
 TicksImpl ticks = TicksImpl(TICKS_IMPL_CONFIG);
+DelayImpl wait = DelayImpl(DELAY_IMPL_CONFIG);
 
-StaticContainer<10> root;
+SystemProfile profiles;
+
+StaticContainer<5> root;
 
 Container* rootContainer()
 {
+	//return profiles.rootContainer();
 	return &root;
 }
 
-struct Foo  {
-	
-	virtual void f()=0;
-	virtual void g()=0;	
-};
-
-struct Bar {	
-	virtual void h()=0;;
-};
-
-class Baz : public Foo, public Bar {	
-	
-};
-	
-class Quux : public Baz {
-	virtual void g() {}
-	virtual void h() {}		
-	virtual void f() {}
-	};
-
-Quux q;
 
 class BuildInfoValues : public FactoryContainer {
 	private:	
@@ -100,6 +84,8 @@ class BuildInfoValues : public FactoryContainer {
 //BuildInfoValues buildInfo;
 bool logValuesFlag = false;
 
+const uint8_t loadProfileDelay = 10;	// seconds
+
 class GlobalSettings {
 	uint8_t settings[10];
 		
@@ -114,20 +100,23 @@ void setup()
 {    
 	//root.add(root.next(), &buildInfo);
 	//root.add(root.next(), &logInterval);
+
+	EepromStore::initializeEeprom();
 	
-	Comms::init();
-	
-	// todo - safe mode - do not instantiate objects from eeprom
-	
+	Comms::init();		
+		
+#if 0
+	uint8_t start = ticks.seconds();	
+	while (ticks.timeSince(start)<loadProfileDelay) {
+		Comms::receive();
+	}
+		
+	// profile not changed by external code
+	if (profiles.currentProfile()==SYSTEM_PROFILE_DEFAULT)
+		profiles.activateDefaultProfile();
+#endif        
 }
 
-/*
- * Lifecycle for components:
- *
- * - prepare: general initialization, start of a new control loop
- * - update: fetch data from the environment, read sensor values
- * - log
- */
 bool prepareCallback(Object* o, void* data, container_id* id) {
 	
 	uint32_t& waitUntil = *(uint32_t*)data;
@@ -175,24 +164,25 @@ void logValues(container_id* ids)
 	out.close();
 }
 
+/*
+ * Lifecycle for components:
+ *
+ * - prepare: start of a new control loop and determine how long any asynchronous operations will take. 
+ * - update: fetch data from the environment, read sensor values 
+ */
 void brewpiLoop(void)
-{
+{		
 	Comms::receive();
 
 	container_id ids[MAX_CONTAINER_DEPTH];
 	
 	Container* root = rootContainer();
 
-
-	uint32_t waitUntil = 0;	
+	prepare_t d = root->prepare();
+	if (d<1000) d = 1000;
+	wait.millis(d);
 	
-	// todo - lifecycle methods should be delegated only to the container. The container itself then chooses if
-	// it wants to delegate
-	walkRoot(root, prepareCallback, &waitUntil, ids);
-		
-	for (;ticks.millis()<waitUntil;) { }
-	
-	walkRoot(root, updateCallback, NULL, ids);
+	root->update();	
 	
 	// todo - should brewpi always log, or only log when requested?
 	if (logValuesFlag)

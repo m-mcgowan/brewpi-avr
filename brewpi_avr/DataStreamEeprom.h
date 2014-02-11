@@ -18,16 +18,17 @@ template <class Offset, class Length> class StreamRegion
 		Length _length;
 
 	public:		
-		StreamRegion<Offset,Length>(Offset offset, Length length)
-		: _offset(offset), _length(length) {}
-	
 		Offset offset() { return _offset; }
 		Length length() { return _length; }
+			
+		void reset(Offset o, Length l) {
+			_offset = o;
+			_length = l;
+		}
 };
 
-struct EepromStreamRegion : public StreamRegion<eptr_t, uint8_t> {
-	EepromStreamRegion(eptr_t offset, uint8_t length)
-	: StreamRegion<eptr_t, uint8_t>(offset, length) {}
+struct EepromStreamRegion : public StreamRegion<eptr_t, uint16_t> 
+{
 };
 
 /**
@@ -37,11 +38,8 @@ struct EepromStreamRegion : public StreamRegion<eptr_t, uint8_t> {
  * writes are silently failed.
  * @see EepromAccess
  */
-struct EepromDataOut : public EepromStreamRegion, DataOut
+struct EepromDataOut : public DataOut, EepromStreamRegion
 {
-	EepromDataOut(eptr_t offset, uint8_t length)
-	: EepromStreamRegion(offset, length) {}
-
 	void write(uint8_t value) {
 		if (_length) {
 			eepromAccess.writeByte(_offset++, value);
@@ -51,6 +49,7 @@ struct EepromDataOut : public EepromStreamRegion, DataOut
 	void close() {
 		_length = 0;
 	}
+	
 };
 
 
@@ -60,9 +59,6 @@ struct EepromDataOut : public EepromStreamRegion, DataOut
  */
 struct EepromDataIn : public DataIn, EepromStreamRegion
 {
-	EepromDataIn(eptr_t offset, uint8_t length)
-		: EepromStreamRegion(offset, length) {}
-			
 	bool hasNext() { return _length; }
 	uint8_t peek() { return eepromAccess.readByte(_offset); }
 		

@@ -20,7 +20,7 @@
 
 #pragma once
 
-#ifdef ARDUINO
+#if defined(ARDUINO)
 
 #include "Brewpi.h"
 
