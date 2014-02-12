@@ -12,7 +12,7 @@ public:
 	void readTo(DataOut& out)
 	{
 		ticks_millis_t millis = ticks.millis();
-		out.write(&millis, sizeof(millis));
+		out.writeBuffer(&millis, sizeof(millis));
 	}
 	
 	uint8_t streamSize()
@@ -39,7 +39,7 @@ public:
 	}
 
 	void readTo(DataOut& out) {
-		out.write(&cycle_ticks, sizeof(cycle_ticks));
+		out.writeBuffer(&cycle_ticks, sizeof(cycle_ticks));
 	}
 };
 	

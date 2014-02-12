@@ -33,7 +33,7 @@ public:
 		uint8_t address[8];
 		while (search(address)) {
 			// hardware device type from OneWire family ID
-			out.write(address, 8);
+			out.writeBuffer(address, 8);
 		}
 		out.write(0);
 	}

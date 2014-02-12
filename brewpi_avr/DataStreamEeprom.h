@@ -38,8 +38,9 @@ struct EepromStreamRegion : public StreamRegion<eptr_t, uint16_t>
  * writes are silently failed.
  * @see EepromAccess
  */
-struct EepromDataOut : public DataOut, public EepromStreamRegion
+class EepromDataOut : public DataOut, public EepromStreamRegion
 {
+public:	
 	bool write(uint8_t value) {
 		if (_length) {
 			eepromAccess.writeByte(_offset++, value);

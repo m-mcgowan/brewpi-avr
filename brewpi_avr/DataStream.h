@@ -19,8 +19,19 @@ struct DataOut
 	virtual void writeAnnotation(PCSTR data) {}
 	#endif
 	
+	/**
+	 * Writes a byte to the stream.
+	 * @return {@code true} if the byte was successfully written, false otherwise.
+	 */
 	virtual bool write(uint8_t data)=0;
-	virtual bool write(const void* data, stream_size_t len) {
+
+	/**
+	 * Writes a number of bytes to the stream.
+	 * @param data	The address of the data to write.
+	 * @param len	The number of bytes to write.
+	 * @return {@code true} if the byte was successfully written, false otherwise.
+	 */
+	virtual bool writeBuffer(const void* data, stream_size_t len) {
 		const uint8_t* d = (const uint8_t*)data;
 		while (len-->0) {
 			if (!write(*d++))
@@ -56,7 +67,8 @@ struct DataIn
 	/*
 	 * Unconditional read of {@code length} bytes. 
 	 */
-	void read(uint8_t* target, uint8_t length) {
+	void read(void* t, uint8_t length) {
+		uint8_t* target = (uint8_t*)t;
 		while (length-->0 && hasNext()) {
 			*target++ = next();
 		}
@@ -77,10 +89,11 @@ class PipeDataIn : public DataIn
 {
 	DataIn* _in; 
 	DataOut* _out;
-
+	bool success;
+	
 public:	
 	PipeDataIn(DataIn& in, DataOut& out) 
-		: _in(&in), _out(&out) 
+		: _in(&in), _out(&out), success(true)
 	{		
 	}
 	
@@ -88,7 +101,8 @@ public:
 	
 	virtual uint8_t next() {
 		uint8_t val = _in->next();
-		_out->write(val);
+		bool result = _out->write(val);
+		success = success && result;
 		return val;
 	}
 	

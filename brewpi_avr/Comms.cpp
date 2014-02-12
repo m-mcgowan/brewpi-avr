@@ -193,7 +193,7 @@ public:
 	 */
 	void writeAnnotation(const char* data) {
 		_out->write('[');
-		_out->write(data, strlen(data));
+		_out->writeBuffer(data, strlen(data));
 		_out->write(']');
 	}
 
