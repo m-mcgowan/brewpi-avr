@@ -331,13 +331,25 @@ void listObjectsCommandHandler(DataIn& _in, DataOut& out)
 	listEepromInstructionsTo(out);
 }
 
+void freeSlotCommandHandler(DataIn& in, DataOut& out)
+{
+	Object* obj = lookupObject(in);
+	container_id id = -1;
+	if (isOpenContainer(obj)) {
+		OpenContainer* container = (OpenContainer*)obj;
+		id = container->next();
+	}
+	out.write(id);
+}
+
 CommandHandler handlers[] = {
-	noopCommandHandler,
-	readValueCommandHandler,
-	setValueCommandHandler,	
-	createObjectCommandHandler,	
-	deleteObjectCommandHandler,
-	listObjectsCommandHandler
+	noopCommandHandler,				// 0x00
+	readValueCommandHandler,		// 0x01
+	setValueCommandHandler,			// 0x02
+	createObjectCommandHandler,		// 0x03
+	deleteObjectCommandHandler,		// 0x04
+	listObjectsCommandHandler,		// 0x05
+	freeSlotCommandHandler,			// 0x06
 };
 
 /*
