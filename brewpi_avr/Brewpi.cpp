@@ -145,7 +145,7 @@ void writeID(container_id* id, DataOut& out) {
 
 bool logValuesCallback(Object* o, void* data, container_id* id) {
 	DataOut& out = *(DataOut*)data;
-	if (isValue(o)) {
+	if (isLoggedValue(o)) {
 		Value* r = (Value*)o;
 		writeID(id, out);
 		r->readTo(out);

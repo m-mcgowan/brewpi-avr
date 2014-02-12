@@ -21,6 +21,7 @@ enum ObjectType {
 	otWritableFlag = 1,		// flag for writable values
 	otValueStateFlag = 2,	// flag for values that can get set state
 	otContainer = 8,
+	otNotLogged = 16,		// flag to indicate that a value is not logged normally
 	otOpenContainerFlag =1,	// value to flag that a container supports the OpenContainer interface
 };
 
@@ -343,6 +344,12 @@ inline bool isValue(Object* o)
 {
 	return o!=NULL && (hasFlags(o->objectType(), otValue));
 }
+
+inline bool isLoggedValue(Object* o)
+{
+	return o!=NULL && (o->objectType() & (otValue|otNotLogged))==otValue;
+}
+
 
 inline bool isWritable(Object* o)
 {
