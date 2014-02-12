@@ -152,14 +152,14 @@ enum RehydrateErrors {
  * the definition block.
  * @return 0 on success, an error code on failure.
  */
-uint8_t rehydrateObject(eptr_t offset, DataIn& in) 
+uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in) 
 {	
 	container_id lastID;
 	Object* target = lookupContainer(in, lastID);			// find the container where the object will be added
 	Object* newObject = createObject(in, false);			// read the type and create args
 	
 	uint8_t error = rehydrateFail;
-	if (lastID>=0 && target && newObject && isOpenContainer(target)) {		// if the lastID >=0 then it was fetched from a container
+	if (in.pipeOk() && lastID>=0 && target && newObject && isOpenContainer(target)) {		// if the lastID >=0 then it was fetched from a container
 		OpenContainer* c = (OpenContainer*)target;
 		if (c->add(lastID, newObject)) {			
 			newObject->rehydrated(offset);

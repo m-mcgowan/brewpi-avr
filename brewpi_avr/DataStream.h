@@ -97,6 +97,8 @@ public:
 	{		
 	}
 	
+	bool pipeOk() { return success; }
+	
 	DataOut& pipeOut() { return *_out; }
 	
 	virtual uint8_t next() {
