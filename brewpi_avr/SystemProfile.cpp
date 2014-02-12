@@ -38,7 +38,7 @@ void SystemProfile::initialize() {
 	if (eepromAccess.readByte(0)==SYSTEM_PROFILE_MAGIC
 		&& eepromAccess.readByte(1)==SYSTEM_PROFILE_VERSION) {
 			// eeprom already initialized.
-			
+			current = SYSTEM_PROFILE_DEFAULT;
 	}
 	else {
 		writer.reset(0, eepromAccess.length());
@@ -57,35 +57,64 @@ void SystemProfile::initialize() {
 			eepromAccess.writeByte(i, 0xFF);
 		}
 				
-		setProfilePointer(-1, SYSTEM_PROFILE_DATA_OFFSET);
+		setProfileOffset(-1, SYSTEM_PROFILE_DATA_OFFSET);
 		
 		// create first profile by default.
 		createProfile();
 	}	
 }
 
+eptr_t readPointer(eptr_t address) {
+	eptr_t result;
+	EepromDataIn in;
+	in.reset(address, 2);
+	in.read(&result, 2);
+	return result;
+}
 
+void writePointer(eptr_t address, eptr_t v) {
+	EepromDataOut out;
+	out.reset(address, 2);
+	out.writeBuffer((const void*)&v, stream_size_t(2));
+}
 
+/**
+ * Creates a new profile. 
+ */
 profile_id_t SystemProfile::createProfile() {
-	deactivateCurrentProfile();	
-	
+	deactivateCurrentProfile();
+		
 	eptr_t end = readPointer(SYSTEM_PROFILE_OPEN_END);
-	
+	// look for a free slot
+	profile_id_t idx = -1;
+	for (int i=SYSTEM_PROFILE_FAT; i<SYSTEM_PROFILE_DATA_OFFSET; i+=2) {
+		if (!readPointer(i)) {
+			idx = i; break;
+		}
+	}
+	if (idx!=-1) {
+		setProfileOffset(idx, end);
+	}
+	return idx;
 }
 
 profile_id_t SystemProfile::deleteProfile(profile_id_t profile) {
 	if (profile==currentProfile()) {
 		deactivateCurrentProfile();
 	}
-	return setProfilePointer(profile, 0);	
+	// todo - need to fix up the end pointer if this is the profile that is at the end.
+	// todo - need to compress eeprom storage space - block copy data above. 
+	
+	setProfileOffset(profile, 0);	
+	return profile;
 }
 
-profile_id_t SystemProfile::setProfileOffset(profile_id_t profile, eptr_t addr) {
-	
+eptr_t profileFAT(profile_id_t id) {
+	return SYSTEM_PROFILE_FAT+(id*2);
 }
 
-eptr_t SystemProfile::setProfilePointer(profile_id_t profile) {
-	
+void SystemProfile::setProfileOffset(profile_id_t profile, eptr_t addr) {
+	writePointer(profileFAT(profile), addr);
 }
 
 
@@ -130,3 +159,4 @@ void SystemProfile::activateDefaultProfile() {
 }
 
 EepromDataOut SystemProfile::writer;
+profile_id_t SystemProfile::current;

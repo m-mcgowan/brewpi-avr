@@ -30,6 +30,8 @@ class SystemProfile {
 	 */
 	static profile_id_t current;
 	
+	static void setProfileOffset(profile_id_t id, eptr_t offset);
+	
 public:
 	
 	/**
