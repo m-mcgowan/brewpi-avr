@@ -19,18 +19,20 @@ struct DataOut
 	virtual void writeAnnotation(PCSTR data) {}
 	#endif
 	
-	virtual void write(uint8_t data)=0;
-	virtual void write(const void* data, stream_size_t len) {
+	virtual bool write(uint8_t data)=0;
+	virtual bool write(const void* data, stream_size_t len) {
 		const uint8_t* d = (const uint8_t*)data;
 		while (len-->0) {
-			write(*d++);
+			if (!write(*d++))
+				return false;
 		}
+		return true;
 	}
 	virtual void close() {}
 };
 
 struct BlackholeDataOut : public DataOut {	
-	virtual void write(uint8_t data) { }	
+	virtual bool write(uint8_t data) { return true; }	
 };
 
 /**

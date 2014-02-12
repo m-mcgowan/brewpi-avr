@@ -11,6 +11,7 @@
 #include "DataStream.h"
 #include "ValuesEeprom.h"
 #include "GenericContainer.h"
+#include "SystemProfile.h"
 
 /**
  * equivalent to /dev/null. Used for discarding output.
@@ -140,8 +141,6 @@ Object* nullFactory(ObjectDefinition& def) {
 extern Object* createObject(DataIn& in, bool dryRun=false);
 
 
-EepromDataOut EepromStore::writer;
-
 enum RehydrateErrors {
 	rehydrateNoError = 0,
 	rehydrateFail = 1			// descriptive :)
@@ -178,12 +177,13 @@ uint8_t rehydrateObject(eptr_t offset, DataIn& in)
 /**
  * Creates a new object at a specific location. 
  */
+// todo - when writing to eeprom check result
 void createObjectCommandHandler(DataIn& _in, DataOut& out)
 {
-	PipeDataIn in(_in, EepromStore::writer);		// pipe object creation command to eeprom
+	PipeDataIn in(_in, systemProfile.writer);		// pipe object creation command to eeprom
 	
-	eptr_t offset = EepromStore::writer.offset();	// save current eeprom pointer - this is where the object definition is written.
-	EepromStore::writer.write(CMD_INVALID);			// value for partial write, will go a back when successfully completed and write this again
+	eptr_t offset = systemProfile.writer.offset();	// save current eeprom pointer - this is where the object definition is written.
+	systemProfile.writer.write(CMD_INVALID);			// value for partial write, will go a back when successfully completed and write this again
 	uint8_t error_code = rehydrateObject(offset, in);
 	if (!error_code) {
 		eepromAccess.writeByte(offset, CMD_CREATE_OBJECT);	// finalize creation in eeprom
@@ -232,10 +232,12 @@ template <int SIZE> class BufferDataOut : public DataOut {
 	public:
 	BufferDataOut<SIZE>() { reset(); }
 	
-	void write(uint8_t data) {
+	bool write(uint8_t data) {
 		if (pos<SIZE) {
 			buffer[pos++] = data;
+			return true;
 		}
+		return false;
 	}
 	
 	void reset() {
@@ -262,7 +264,7 @@ typedef BufferDataOut<MAX_CONTAINER_DEPTH+1> IDCapture;
  */
 void removeEepromCreateCommand(IDCapture& id) {
 	EepromDataIn eepromData;
-	EepromStore::resetStream(eepromData);	
+	systemProfile.resetStream(eepromData);	
 	ObjectDefinitionWalker walker(eepromData);
 	IDCapture capture;							// save the contents of the eeprom
 	
@@ -279,6 +281,18 @@ void removeEepromCreateCommand(IDCapture& id) {
 	}
 }
 
+uint8_t deleteObject(DataIn& id) {
+	int8_t lastID;
+	Object* obj = lookupContainer(id, lastID);	// find the container and the ID in the chain to remove
+	uint8_t error = -1;
+	if (obj!=NULL && isOpenContainer(obj) && lastID>=0) {
+		OpenContainer* c = (OpenContainer*)obj;
+		c->remove(lastID);
+		error = 0;
+	}
+	return error;
+}
+
 /**
  * Handles the delete object command.
  *
@@ -287,17 +301,10 @@ void deleteObjectCommandHandler(DataIn& in, DataOut& out)
 {
 	IDCapture idCapture;						// buffer to capture id
 	PipeDataIn id(in, idCapture);				// capture read id
-	int8_t lastID;
-	Object* obj = lookupContainer(id, lastID);	// find the container and the ID in the chain to remove	
-	uint8_t success = 0;
-	if (obj!=NULL && isOpenContainer(obj) && lastID>=0) {
-		OpenContainer* c = (OpenContainer*)obj;
-		c->remove(lastID);
-		success = 1;
-	}	
-
-	removeEepromCreateCommand(idCapture);	
-	out.write(success);	
+	uint8_t error = deleteObject(in);
+	if (!error)
+		removeEepromCreateCommand(idCapture);
+	out.write(error);	
 }
 
 
@@ -306,7 +313,7 @@ void deleteObjectCommandHandler(DataIn& in, DataOut& out)
  */ 
 void listEepromInstructionsTo(DataOut& out) {
 	EepromDataIn eepromData;
-	EepromStore::resetStream(eepromData);
+	systemProfile.resetStream(eepromData);
 	ObjectDefinitionWalker walker(eepromData);
 	while (walker.writeNext(out));
 }
@@ -318,7 +325,7 @@ void listEepromInstructionsTo(DataOut& out) {
  */
 eptr_t compactObjectDefinitions() {
 	EepromDataOut eepromData;
-	EepromStore::resetStream(eepromData);
+	systemProfile.resetStream(eepromData);
 	listEepromInstructionsTo(eepromData);
 	return eepromData.offset();
 }
@@ -342,6 +349,20 @@ void freeSlotCommandHandler(DataIn& in, DataOut& out)
 	out.write(id);
 }
 
+void deleteProfileCommandHandler(DataIn& in, DataOut& out) {
+	uint8_t profile_id = in.next();
+	uint8_t result = systemProfile.deleteProfile(profile_id);
+	out.write(result);
+}
+
+void createProfileCommandHandler(DataIn& in, DataOut& out) {	
+	uint8_t result = systemProfile.createProfile();
+	out.write(result);
+}
+
+// object 0 in root container is current profile id.
+// writing that changes the profile
+
 CommandHandler handlers[] = {
 	noopCommandHandler,				// 0x00
 	readValueCommandHandler,		// 0x01
@@ -350,6 +371,8 @@ CommandHandler handlers[] = {
 	deleteObjectCommandHandler,		// 0x04
 	listObjectsCommandHandler,		// 0x05
 	freeSlotCommandHandler,			// 0x06
+	createProfileCommandHandler,	// 0x07
+	deleteProfileCommandHandler,	// 0x08
 };
 
 /*

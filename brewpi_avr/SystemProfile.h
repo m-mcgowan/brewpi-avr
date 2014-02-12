@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "Values.h"
+#include "DataStreamEeprom.h"
 
 typedef container_id profile_id_t;
 
@@ -15,72 +16,85 @@ static const profile_id_t SYSTEM_PROFILE_DEFAULT = -2;
  */
 static const profile_id_t SYSTEM_PROFILE_NONE = -1;
 
+const uint8_t SYSTEM_PROFILE_MAGIC = 0x69;
+const uint8_t SYSTEM_PROFILE_VERSION = 0x01;
+
 /**
  * SystemProfile - a special container used to provide access to system profiles.
  * A system profile is a set of object definitions.
  */
-class SystemProfile : public OpenContainer {
-	profile_id_t current;
+class SystemProfile {
+	
+	/**
+	 * the selected profile.
+	 */
+	static profile_id_t current;
 	
 public:
-
-	SystemProfile() {
-		// assign the special default profile marker
-		// this gives external code chance to set this to a profile or to SYSTEM_PROFILE_NONE
-		current = SYSTEM_PROFILE_DEFAULT;
-	}
-
+	
 	/**
-	 * Retrieves
+	 * The eeprom stream that maintains the current write position in eeprom for the current profile.
 	 */
-	container_id size() {
-		return 0;
-	}
+	static EepromDataOut writer;
 
-
-	uint8_t	profileCount();				// return the number of profiles.
+	SystemProfile() {}
+	
+	/**
+	 * Initialize this system profile handler.
+	 */
+	static void initialize();
 	
 	/**
 	 * Fetches the root container for the currently active profile.
+	 * Even if no profile is active, still returns a valid root container with just the current profile
+	 * value. 
 	 */
-	Container* rootContainer();
+	static Container* rootContainer();
+		
+	/**
+	 * Create a new profile.
+	 * @return the ID of the profile, or negative on error.
+	 */
+	static profile_id_t createProfile();
 		
 	/**
 	 * deletes a profile. All profiles with indices larger than this are moved down to one index lower.
 	 * All settings for the profile stored in persistent storage are removed and the space is freed up.
 	 * If the current profile is the one being deleted, the profile is deactivated first. 
 	 */
-	void deleteProfile(uint8_t profile) {
-		if (profile==currentProfile()) {
-			deactivateCurrentProfile();
-		}		
-	}		
+	static profile_id_t deleteProfile(profile_id_t profile);
 	
 	/**
 	 * Activate the default (previous) profile.
 	 */
-	void activateDefaultProfile() {}
+	static void activateDefaultProfile();
 	
 	/**
 	 * Activate the selected profile.
 	 */
-	bool activateProfile(int8_t index);
+	static bool activateProfile(profile_id_t index);
 	
 	/**
 	 * Deactivate the current profile by deleting all objects. (TODO: ideally this should be in reverse order, but I'm counting on objects not being
 	 active during this time and that they have no resources to clean up.)
 	 */
-	void deactivateCurrentProfile();
+	static void deactivateCurrentProfile();
 	
 	/**
 	 * Returns the id of the current profile, or -1 if no profile is active.
 	 * @return The currently active profile index, or -1 if no profile is active.
 	 */
-	uint8_t currentProfile() { return current; }
+	static profile_id_t currentProfile();
 
-	bool isCurrentProfileOpen() {
-		return currentProfile()>=0 && (currentProfile()==profileCount()-1);
-	}
+	static bool isCurrentProfileOpen();
+
+	/**
+	 * Resets the stream to the region in eeprom for the currently active profile. 
+	 * If there is no profile, it is set to the end of eeprom, length 0.
+	 */
+	static void resetStream(EepromStreamRegion& region);
 
 };
 
+
+extern SystemProfile systemProfile;

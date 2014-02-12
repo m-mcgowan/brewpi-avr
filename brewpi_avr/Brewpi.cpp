@@ -101,36 +101,37 @@ void setup()
 	//root.add(root.next(), &buildInfo);
 	//root.add(root.next(), &logInterval);
 
-	EepromStore::initializeEeprom();
+	systemProfile.initialize();
 	
 	Comms::init();		
 		
-#if 0
-	uint8_t start = ticks.seconds();	
+
+	uint8_t start = ticks.seconds();
 	while (ticks.timeSince(start)<loadProfileDelay) {
 		Comms::receive();
 	}
 		
 	// profile not changed by external code
-	if (profiles.currentProfile()==SYSTEM_PROFILE_DEFAULT)
-		profiles.activateDefaultProfile();
-#endif        
+	if (systemProfile.currentProfile()==SYSTEM_PROFILE_DEFAULT)
+		systemProfile.activateDefaultProfile();
 }
 
-bool prepareCallback(Object* o, void* data, container_id* id) {
-	
-	uint32_t& waitUntil = *(uint32_t*)data;
-	prepare_t millisToWait = o->prepare();
-	if (millisToWait)
-		waitUntil = ticks.millis()+millisToWait;
+bool prepareCallback(Object* o, void* data, container_id* id, boolean enter) {
+	if (enter) {				
+		uint32_t& waitUntil = *(uint32_t*)data;
+		prepare_t millisToWait = o->prepare();
+		if (millisToWait)
+			waitUntil = ticks.millis()+millisToWait;
+	}
 	return false;	// continue enumerating
 }
 
 /**
  * Updates each object in the container hierarchy.
  */
-bool updateCallback(Object* o, void* data, container_id* id) {
-	o->update();
+bool updateCallback(Object* o, void* data, container_id* id, bool enter) {
+	if (enter)
+		o->update();
 	return false;
 }
 
@@ -143,11 +144,12 @@ void writeID(container_id* id, DataOut& out) {
 	} while (*id++<0);
 }
 
-bool logValuesCallback(Object* o, void* data, container_id* id) {
+bool logValuesCallback(Object* o, void* data, container_id* id, bool enter) {
 	DataOut& out = *(DataOut*)data;
-	if (isLoggedValue(o)) {
+	if (enter && isLoggedValue(o)) {
 		Value* r = (Value*)o;
 		writeID(id, out);
+		out.write(r->streamSize());
 		r->readTo(out);
 	}
 	return false;
@@ -160,7 +162,7 @@ void logValues(container_id* ids)
 {
 	DataOut& out = Comms::dataOut();
 	out.write(CMD_READ_VALUE);						
-	walkRoot(rootContainer(), logValuesCallback, &out, ids);
+	walkRoot(logValuesCallback, &out, ids);
 	out.close();
 }
 
@@ -168,7 +170,7 @@ void logValues(container_id* ids)
  * Lifecycle for components:
  *
  * - prepare: start of a new control loop and determine how long any asynchronous operations will take. 
- * - update: fetch data from the environment, read sensor values 
+ * - update: fetch data from the environment, read sensor values, compute settings etc..
  */
 void brewpiLoop(void)
 {		
@@ -179,10 +181,10 @@ void brewpiLoop(void)
 	Container* root = rootContainer();
 
 	prepare_t d = root->prepare();
-	if (d<1000) d = 1000;
+	if (d<1000) d = 1000;	// todo - just for testing to stop 
 	wait.millis(d);
 	
-	root->update();	
+	root->update();
 	
 	// todo - should brewpi always log, or only log when requested?
 	if (logValuesFlag)

@@ -21,7 +21,7 @@ bool walkContainer(Container* c, EnumObjectsFn callback, void* data, container_i
  * Recursively walks all objects in a container hierarchy.
  */
 bool walkObject(Object* obj, EnumObjectsFn callback, void* data, container_id* id, container_id* end) {	
-	if (callback(obj, data, id))
+	if (callback(obj, data, id, true))
 		return true;
 	
 	if (isContainer(obj)) {		
@@ -29,6 +29,12 @@ bool walkObject(Object* obj, EnumObjectsFn callback, void* data, container_id* i
 		walkContainer((Container*)obj, callback, data, id, end);
 		*--end &= 0x7F;		// remove last bit
 	}
+
+	if (callback(obj, data, id, false))
+		return true;
+		
+	return true;
+
 	return false;
 }
 

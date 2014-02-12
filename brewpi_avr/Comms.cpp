@@ -51,7 +51,7 @@ class CommsIn : public DataIn
 
 class CommsOut : public DataOut
 {
-	void write(uint8_t data) { comms.write(data); }	
+	bool write(uint8_t data) { comms.write(data); return true; }	
 };
 
 // low-level binary in/out streams
@@ -200,10 +200,11 @@ public:
 	/**
 	 * Data is written as hex-encoded
 	 */
-	void write(uint8_t data) {
+	bool write(uint8_t data) {
 		_out->write(d2h((data&0xF0)>>4));
 		_out->write(d2h((data&0xF)));
 		_out->write(' ');
+		return true;
 	}
 	
 	/**

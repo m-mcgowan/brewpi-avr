@@ -21,8 +21,9 @@ enum ObjectType {
 	otWritableFlag = 1,		// flag for writable values
 	otValueStateFlag = 2,	// flag for values that can get set state
 	otContainer = 8,
-	otNotLogged = 16,		// flag to indicate that a value is not logged normally
-	otOpenContainerFlag =1,	// value to flag that a container supports the OpenContainer interface
+	otOpenContainerFlag = 1,// value to flag that a container supports the OpenContainer interface (that the container is writable.)
+	otNotLogged = 16,		// flag to indicate that a value is not logged normally	
+	otStaticlyAllocated = 32
 };
 
 typedef uint8_t object_t;
@@ -350,6 +351,10 @@ inline bool isLoggedValue(Object* o)
 	return o!=NULL && (o->objectType() & (otValue|otNotLogged))==otValue;
 }
 
+inline bool isDynamicallyAllocated(Object* o)
+{
+	return o!=NULL && (o->objectType() & otStaticlyAllocated)==0;
+}
 
 inline bool isWritable(Object* o)
 {
@@ -357,26 +362,33 @@ inline bool isWritable(Object* o)
 }
 
 
+/**
+ * The host app should provide the root container, configured with any defaults for the app.
+ */
+Container* rootContainer();
+
 /*
  * Callback function for enumerating objects.
  * The function can return true to stop enumeration. 
+ *
+ * @param enter	When {@code true} this call is entering this portion of the hierarchy. This is called before any
+ *   child objects have been enumerated. 		
+ *		When {@code false} this call is exiting this portion of the hierarchy. This is called after all
+ *   child objects have been enumerated.
  */
-typedef bool (*EnumObjectsFn)(Object* obj, void* data, container_id* id);
+typedef bool (*EnumObjectsFn)(Object* obj, void* data, container_id* id, bool enter);
 
 
 bool walkContainer(Container* c, EnumObjectsFn callback, void* data, container_id* id, container_id* end);
 
 bool walkObject(Object* obj, EnumObjectsFn callback, void* data, container_id* id, container_id* end);
 
-inline bool walkRoot(Container* c, EnumObjectsFn callback, void* data, container_id* id) {
-	return walkContainer(c, callback, data, id, id);
-}
-
 /**
- * The host app should provide the root container, configured with any defaults for the app.
+ * Enumerate all objects the root container and child containers. 
  */
-Container* rootContainer();
-
+inline bool walkRoot(EnumObjectsFn callback, void* data, container_id* id) {
+	return walkContainer(rootContainer(), callback, data, id, id);
+}
 
 /**
  * Read the id chain from the stream and resolve the corresponding object.
