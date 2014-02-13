@@ -152,11 +152,11 @@ enum RehydrateErrors {
  * the definition block.
  * @return 0 on success, an error code on failure.
  */
-uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in) 
+uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in, bool dryRun) 
 {	
 	container_id lastID;
 	Object* target = lookupContainer(in, lastID);			// find the container where the object will be added
-	Object* newObject = createObject(in, false);			// read the type and create args
+	Object* newObject = createObject(in, dryRun);			// read the type and create args
 	
 	uint8_t error = rehydrateFail;
 	if (in.pipeOk() && lastID>=0 && target && newObject && isOpenContainer(target)) {		// if the lastID >=0 then it was fetched from a container
@@ -184,7 +184,7 @@ void createObjectCommandHandler(DataIn& _in, DataOut& out)
 	
 	eptr_t offset = systemProfile.writer.offset();	// save current eeprom pointer - this is where the object definition is written.
 	systemProfile.writer.write(CMD_INVALID);			// value for partial write, will go a back when successfully completed and write this again
-	uint8_t error_code = rehydrateObject(offset, in);
+	uint8_t error_code = rehydrateObject(offset, in, false);
 	if (!error_code) {
 		eepromAccess.writeByte(offset, CMD_CREATE_OBJECT);	// finalize creation in eeprom
 	}
@@ -349,6 +349,12 @@ void freeSlotCommandHandler(DataIn& in, DataOut& out)
 	out.write(id);
 }
 
+void activateProfileCommandHandler(DataIn& in, DataOut& out) {
+	uint8_t profile_id = in.next();
+	uint8_t result = systemProfile.activateProfile(profile_id);
+	out.write(result);
+}
+
 void deleteProfileCommandHandler(DataIn& in, DataOut& out) {
 	uint8_t profile_id = in.next();
 	uint8_t result = systemProfile.deleteProfile(profile_id);
@@ -358,6 +364,15 @@ void deleteProfileCommandHandler(DataIn& in, DataOut& out) {
 void createProfileCommandHandler(DataIn& in, DataOut& out) {	
 	uint8_t result = systemProfile.createProfile();
 	out.write(result);
+}
+
+/**
+ * Compact the object definitions store. 
+ */
+void compactStorageCommandHandler(DataIn& in, DataOut& out) {
+	/*eptr_t last = */compactObjectDefinitions();
+	// todo - update system profile with this info
+	out.write(0);
 }
 
 // object 0 in root container is current profile id.
@@ -373,6 +388,8 @@ CommandHandler handlers[] = {
 	freeSlotCommandHandler,			// 0x06
 	createProfileCommandHandler,	// 0x07
 	deleteProfileCommandHandler,	// 0x08
+	activateProfileCommandHandler,	// 0x09
+	compactStorageCommandHandler,	// 0x0A
 };
 
 /*

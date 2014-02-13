@@ -59,8 +59,6 @@ void loop (void);
 TicksImpl ticks = TicksImpl(TICKS_IMPL_CONFIG);
 DelayImpl wait = DelayImpl(DELAY_IMPL_CONFIG);
 
-SystemProfile profiles;
-
 StaticContainer<5> root;
 
 Container* rootContainer()
@@ -101,7 +99,7 @@ void setup()
 	//root.add(root.next(), &buildInfo);
 	//root.add(root.next(), &logInterval);
 
-	systemProfile.initialize();
+	SystemProfile::initialize();
 	
 	Comms::init();		
 		
@@ -110,10 +108,8 @@ void setup()
 	while (ticks.timeSince(start)<loadProfileDelay) {
 		Comms::receive();
 	}
-		
-	// profile not changed by external code
-	if (systemProfile.currentProfile()==SYSTEM_PROFILE_DEFAULT)
-		systemProfile.activateDefaultProfile();
+			
+	SystemProfile::activateDefaultProfile();
 }
 
 bool prepareCallback(Object* o, void* data, container_id* id, boolean enter) {

@@ -33,12 +33,26 @@ typedef int8_t system_profile_t;
  *	  end	
  */
 
+inline eptr_t readPointer(eptr_t address) {
+	eptr_t result;
+	EepromDataIn in;
+	in.reset(address, 2);
+	in.read(&result, 2);
+	return result;
+}
+
+inline void writePointer(eptr_t address, eptr_t v) {
+	EepromDataOut out;
+	out.reset(address, 2);
+	out.writeBuffer((const void*)&v, stream_size_t(2));
+}
+
 void SystemProfile::initialize() {
 	
+	current = SYSTEM_PROFILE_DEFAULT;
 	if (eepromAccess.readByte(0)==SYSTEM_PROFILE_MAGIC
 		&& eepromAccess.readByte(1)==SYSTEM_PROFILE_VERSION) {
-			// eeprom already initialized.
-			current = SYSTEM_PROFILE_DEFAULT;
+			// eeprom already initialized.			
 	}
 	else {
 		writer.reset(0, eepromAccess.length());
@@ -57,66 +71,83 @@ void SystemProfile::initialize() {
 			eepromAccess.writeByte(i, 0xFF);
 		}
 				
-		setProfileOffset(-1, SYSTEM_PROFILE_DATA_OFFSET);
+		writePointer(SYSTEM_PROFILE_OPEN_END, SYSTEM_PROFILE_DATA_OFFSET);	// set the end of the last profile
 		
 		// create first profile by default.
 		createProfile();
 	}	
 }
 
-eptr_t readPointer(eptr_t address) {
-	eptr_t result;
-	EepromDataIn in;
-	in.reset(address, 2);
-	in.read(&result, 2);
-	return result;
-}
-
-void writePointer(eptr_t address, eptr_t v) {
-	EepromDataOut out;
-	out.reset(address, 2);
-	out.writeBuffer((const void*)&v, stream_size_t(2));
-}
 
 /**
  * Creates a new profile. 
  */
-profile_id_t SystemProfile::createProfile() {
-	deactivateCurrentProfile();
-		
+profile_id_t SystemProfile::createProfile() {		
 	eptr_t end = readPointer(SYSTEM_PROFILE_OPEN_END);
+	
 	// look for a free slot
 	profile_id_t idx = -1;
-	for (int i=SYSTEM_PROFILE_FAT; i<SYSTEM_PROFILE_DATA_OFFSET; i+=2) {
-		if (!readPointer(i)) {
+	for (profile_id_t i=0; i<MAX_SYSTEM_PROFILES; i++) {		
+		if (!getProfileOffset(i)) {
 			idx = i; break;
 		}
 	}
 	if (idx!=-1) {
-		setProfileOffset(idx, end);
-	}
+		setProfileOffset(idx, end);		
+	}	
 	return idx;
 }
 
+
+bool SystemProfile::activateProfile(profile_id_t profile) {
+	
+	// todo - maybe simpler to write new profile to eeprom then reboot.
+	// this will avoid fragmentation of the heap.		
+	if (current!=profile) {		
+		deactivateCurrentProfile();
+		if (profile>=0) {
+			current = profile;				// non-persistent change
+											// rehydrate objects in profile
+			EepromDataIn eepromReader;			
+			resetStream(eepromReader);			// get region in eeprom for the profile
+			BlackholeDataOut nullOut;
+			PipeDataIn reader(eepromReader, nullOut);
+			while (reader.hasNext()) {
+				uint8_t cmd = reader.next();
+				// if cmd is not create object then just parse the contents but don't instantiate. 
+				rehydrateObject(eepromReader.offset(), reader, cmd==CMD_CREATE_OBJECT);
+				// todo - what to do with errors? ideally some logging might help				
+			}
+			resetStream(writer, true);		// reset to available region (allow open profile)
+		}
+		setCurrentProfile(profile);	// persist the change after profile instantiated.
+	}
+	return true;
+}
+
+
 profile_id_t SystemProfile::deleteProfile(profile_id_t profile) {
-	if (profile==currentProfile()) {
+	if (profile==currentProfile()) {		// unload profile if it's the one to be deleted
 		deactivateCurrentProfile();
 	}
+	
 	// todo - need to fix up the end pointer if this is the profile that is at the end.
 	// todo - need to compress eeprom storage space - block copy data above. 
-	
-	setProfileOffset(profile, 0);	
+		
+	setProfileOffset(profile, 0);		// mark the slot as available
 	return profile;
 }
 
-eptr_t profileFAT(profile_id_t id) {
+inline eptr_t profileFAT(profile_id_t id) {
 	return SYSTEM_PROFILE_FAT+(id*2);
 }
 
 void SystemProfile::setProfileOffset(profile_id_t profile, eptr_t addr) {
 	writePointer(profileFAT(profile), addr);
 }
-
+eptr_t SystemProfile::getProfileOffset(profile_id_t profile) {
+	return readPointer(profileFAT(profile));
+}
 
 
 class BufferDataIn : public DataIn {
@@ -129,33 +160,60 @@ public:
 	uint8_t peek() { return *_data; }	
 };
 
+/**
+ * Deletes objects after any child objects have been deleted. Callback from container traversal. 
+ */
 bool deleteDynamicallyAllocatedObject(Object* obj, void* data, container_id* id, bool enter) {
 	if (!enter && isDynamicallyAllocated(obj)) {		// delete on exit, so that all children are processed first
-		BufferDataIn idStream(id);
-		deleteObject(idStream);
+		BufferDataIn idStream(id);						// stream the id
+		deleteObject(idStream);							// delete the object
 	}
-	return false;
+	return false;										// continue traversal
 }
 
 void SystemProfile::deactivateCurrentProfile() {
 	if (currentProfile()<0)
 		return;
 		
-	container_id id[MAX_CONTAINER_DEPTH];
+	container_id id[MAX_CONTAINER_DEPTH];				// buffer for id during traversal
 	
 	// delete all the objects that were dynamically allocated.
-	walkRoot(deleteDynamicallyAllocatedObject, NULL, id);	
+	walkRoot(deleteDynamicallyAllocatedObject, NULL, id);
+	current = -1;
+	resetStream(writer);
 }
 
+void SystemProfile::setCurrentProfile(profile_id_t id) {
+	current = id;
+	eepromAccess.writeByte(SYSTEM_PROFILE_CURRENT_OFFSET, id);
+}
+
+/**
+ * Retrieves the current profile.
+ * @return the id of the current profile loaded. Negative if no profile loaded.
+ */
 profile_id_t SystemProfile::currentProfile() {
-	return -1;
+	return current;
 }
 
-void SystemProfile::resetStream(EepromStreamRegion& region) {
-	region.reset(SYSTEM_PROFILE_DATA_OFFSET, eepromAccess.length()-SYSTEM_PROFILE_DATA_OFFSET);
+void SystemProfile::resetStream(EepromStreamRegion& region, bool includeOpen) {
+	// for now, assume just one profile. 
+	eptr_t offset = SYSTEM_PROFILE_DATA_OFFSET;
+	// todo - find end
+	eptr_t end = eepromAccess.length();
+	eptr_t start = getProfileOffset(current);
+	for (profile_id_t i=-1; i<MAX_SYSTEM_PROFILES; i++) {		// include last profile end
+		eptr_t p = getProfileOffset(i);
+		if (p>start && (p<end && (i>=0 || !includeOpen)))
+			end = p;
+	}
+	region.reset(offset, end-offset);
 }
 
-void SystemProfile::activateDefaultProfile() {	
+void SystemProfile::activateDefaultProfile() 
+{	
+	profile_id_t id = eepromAccess.readByte(SYSTEM_PROFILE_CURRENT_OFFSET);
+	activateProfile(id);
 }
 
 EepromDataOut SystemProfile::writer;

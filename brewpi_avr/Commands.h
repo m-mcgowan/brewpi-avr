@@ -16,6 +16,13 @@ typedef const char* cpchar;
 
 void handleCommand(DataIn& data, DataOut& out);
 
+/**
+ * @param	offset	The location in eeprom of this object
+ * @param	in		Commands for the object, starting after the command id.
+ * @return	>=0 on success, <0 on error.
+ */
+uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in, bool dryRun=false);
+
 void rehydrateObjects();
 
 /**

@@ -31,7 +31,16 @@ class SystemProfile {
 	static profile_id_t current;
 	
 	static void setProfileOffset(profile_id_t id, eptr_t offset);
-	
+	static eptr_t getProfileOffset(profile_id_t id);
+	static void setCurrentProfile(profile_id_t id);
+		
+
+	/**
+	 * Deactivate the current profile by deleting all objects. (TODO: ideally this should be in reverse order, but I'm counting on objects not being
+	 active during this time and that they have no resources to clean up.)
+	 */
+	static void deactivateCurrentProfile();
+
 public:
 	
 	/**
@@ -39,12 +48,17 @@ public:
 	 */
 	static EepromDataOut writer;
 
-	SystemProfile() {}
+	
 	
 	/**
 	 * Initialize this system profile handler.
 	 */
 	static void initialize();
+	
+	/*
+	 * Load the profile last persisted. 
+	 */
+	static void activateDefaultProfile();
 	
 	/**
 	 * Fetches the root container for the currently active profile.
@@ -67,20 +81,12 @@ public:
 	static profile_id_t deleteProfile(profile_id_t profile);
 	
 	/**
-	 * Activate the default (previous) profile.
-	 */
-	static void activateDefaultProfile();
-	
-	/**
 	 * Activate the selected profile.
+	 * @param The profile to activate. Can be -1 to deactivate the profile.
+	 * The active profile is persistent.
 	 */
 	static bool activateProfile(profile_id_t index);
 	
-	/**
-	 * Deactivate the current profile by deleting all objects. (TODO: ideally this should be in reverse order, but I'm counting on objects not being
-	 active during this time and that they have no resources to clean up.)
-	 */
-	static void deactivateCurrentProfile();
 	
 	/**
 	 * Returns the id of the current profile, or -1 if no profile is active.
@@ -94,7 +100,7 @@ public:
 	 * Resets the stream to the region in eeprom for the currently active profile. 
 	 * If there is no profile, it is set to the end of eeprom, length 0.
 	 */
-	static void resetStream(EepromStreamRegion& region);
+	static void resetStream(EepromStreamRegion& region, bool includeOpen=false);
 
 };
 
