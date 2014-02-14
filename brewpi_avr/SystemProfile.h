@@ -32,6 +32,7 @@ class SystemProfile {
 	
 	static void setProfileOffset(profile_id_t id, eptr_t offset);
 	static eptr_t getProfileOffset(profile_id_t id);
+	static eptr_t getProfileEnd(profile_id_t id, bool includeOpen=false);
 	static void setCurrentProfile(profile_id_t id);
 		
 
@@ -40,11 +41,13 @@ class SystemProfile {
 	 active during this time and that they have no resources to clean up.)
 	 */
 	static void deactivateCurrentProfile();
+	
 
 public:
 	
 	/**
 	 * The eeprom stream that maintains the current write position in eeprom for the current profile.
+	 * For open profiles, this keeps a pointer to the end of the profile.
 	 */
 	static EepromDataOut writer;
 
@@ -93,8 +96,6 @@ public:
 	 * @return The currently active profile index, or -1 if no profile is active.
 	 */
 	static profile_id_t currentProfile();
-
-	static bool isCurrentProfileOpen();
 
 	/**
 	 * Resets the stream to the region in eeprom for the currently active profile. 
