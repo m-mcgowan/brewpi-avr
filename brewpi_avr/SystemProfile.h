@@ -4,6 +4,10 @@
 #include "Values.h"
 #include "DataStreamEeprom.h"
 
+#ifndef SYSTEM_PROFILE_ENABLE
+#define SYSTEM_PROFILE_ENABLE 0
+#endif
+
 typedef container_id profile_id_t;
 
 /**
@@ -51,7 +55,6 @@ public:
 	 */
 	static EepromDataOut writer;
 
-	
 	
 	/**
 	 * Initialize this system profile handler.

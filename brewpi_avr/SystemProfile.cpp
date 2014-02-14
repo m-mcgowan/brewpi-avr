@@ -70,11 +70,14 @@ void SystemProfile::initialize() {
 		// reset profile store
 		writeEepromRange(SYSTEM_PROFILE_DATA_OFFSET, eepromAccess.length(), 0xFF);
 		
+#if SYSTEM_PROFILE_ENABLE		
 		// the end of the highest profile point (non-inclusive) is at the start
 		setProfileOffset(-1, SYSTEM_PROFILE_DATA_OFFSET);	// next profile begins at the start
-		
-		// create first profile automatically and activate
 		profile_id_t id = createProfile();
+#else
+		profile_id_t id = 0;		
+#endif		
+		// create first profile automatically and activate
 		activateProfile(id);		
 	}	
 }
@@ -87,19 +90,24 @@ void SystemProfile::initialize() {
  * The current profile is not changed, although if the current profile was previously open, it will be closed.
  */
 profile_id_t SystemProfile::createProfile() {		
+
+	profile_id_t idx = -1;
+
+#if SYSTEM_PROFILE_ENABLE
 	eptr_t end = readPointer(SYSTEM_PROFILE_OPEN_END);	// find the end of the last profile
 	
 	// look for a free slot
-	profile_id_t idx = -1;
 	for (profile_id_t i=0; i<MAX_SYSTEM_PROFILES; i++) {		
 		if (!getProfileOffset(i)) {
 			idx = i; break;
 		}
 	}
+	
 	if (idx!=-1) {
 		setProfileOffset(idx, end);
 		resetStream(writer, false);		// reset the stream so that it's limited now.
 	}	
+#endif
 	return idx;
 }
 
@@ -113,7 +121,9 @@ bool SystemProfile::activateProfile(profile_id_t profile) {
 	// todo - maybe simpler to write new profile to eeprom then reboot.
 	// this will avoid fragmentation of the heap.		
 	if (current!=profile) {		
+#if SYSTEM_PROFILE_ENABLE	
 		deactivateCurrentProfile();
+#endif		
 
 		if (profile>=0) {
 			current = profile;				// non-persistent change											
@@ -138,6 +148,7 @@ bool SystemProfile::activateProfile(profile_id_t profile) {
  * Deletes a profile. If the profile being deleted is the active profile, the current profile is deactivated.
  */
 profile_id_t SystemProfile::deleteProfile(profile_id_t profile) {
+#if SYSTEM_PROFILE_ENABLE
 	if (profile==current) {		// persistently unload profile if it's the one to be deleted
 		activateProfile(-1);
 	}
@@ -159,10 +170,14 @@ profile_id_t SystemProfile::deleteProfile(profile_id_t profile) {
 		uint8_t b = eepromAccess.readByte(end++);
 		eepromAccess.writeByte(start++, b);
 	}
-	writeEepromRange(start, eepromAccess.length(), 0xFF);	
+	writeEepromRange(start, eepromAccess.length(), 0xFF);		
 	return profile;
+#else
+	return -1;	// not supported	
+#endif	
 }
 
+#if SYSTEM_PROFILE_ENABLE
 eptr_t profileFAT(profile_id_t id) {
 	return SYSTEM_PROFILE_FAT+(id*2);
 }
@@ -170,6 +185,7 @@ eptr_t profileFAT(profile_id_t id) {
 void SystemProfile::setProfileOffset(profile_id_t profile, eptr_t addr) {
 	writePointer(profileFAT(profile), addr);
 }
+
 eptr_t SystemProfile::getProfileOffset(profile_id_t profile) {
 	return readPointer(profileFAT(profile));
 }
@@ -196,11 +212,15 @@ bool deleteDynamicallyAllocatedObject(Object* obj, void* data, container_id* id,
 	return false;										// continue traversal
 }
 
+/**
+ * Deactivates the current profile. If there is no profile currently active this is a no-op.
+ * Deactivation is transient - the eeprom still contains the previously active profile.
+ */
 void SystemProfile::deactivateCurrentProfile() {
 	if (current<0)
 		return;
 		
-	// if this profile is open, store the offset in the writer stream
+	// if this profile is open, store the offset currently in the writer stream (which marks the last object written to the profile.)
 	if (getProfileEnd(current, true)==eepromAccess.length()) {
 		setProfileOffset(-1, writer.offset());
 	}
@@ -212,6 +232,7 @@ void SystemProfile::deactivateCurrentProfile() {
 	current = -1;		
 	resetStream(writer);
 }
+#endif
 
 void SystemProfile::setCurrentProfile(profile_id_t id) {
 	current = id;
@@ -228,8 +249,13 @@ profile_id_t SystemProfile::currentProfile() {
 
 void SystemProfile::resetStream(EepromStreamRegion& region, bool includeOpen) {	
 	if (current>=0) {
+#if SYSTEM_PROFILE_ENABLE
 		eptr_t offset = getProfileOffset(current);
 		eptr_t end = getProfileEnd(current, includeOpen);
+#else
+		eptr_t offset = SYSTEM_PROFILE_DATA_OFFSET;
+		eptr_t end = eepromAccess.length();
+#endif		
 		region.reset(offset, end-offset);
 	}
 	else {
