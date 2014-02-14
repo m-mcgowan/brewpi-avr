@@ -18,6 +18,8 @@ const uint8_t SYSTEM_PROFILE_FAT = SYSTEM_PROFILE_OPEN_END+sizeof(eptr_t);
 
 const uint8_t SYSTEM_PROFILE_DATA_OFFSET = SYSTEM_PROFILE_FAT + (MAX_SYSTEM_PROFILES*sizeof(eptr_t));
 
+const uint16_t SYSTEM_PROFILE_EEPROM_HEADER = 		uint16_t(SYSTEM_PROFILE_MAGIC)<<8 | SYSTEM_PROFILE_VERSION;
+
 typedef int8_t system_profile_t;
 
 /**
@@ -33,43 +35,40 @@ typedef int8_t system_profile_t;
  *	  end	
  */
 
-inline eptr_t readPointer(eptr_t address) {
+eptr_t readPointer(eptr_t address) {
 	eptr_t result;
-	EepromDataIn in;
-	in.reset(address, 2);
-	in.read(&result, 2);
+	uint8_t* d = (uint8_t*)&result;
+	*d++ = eepromAccess.readByte(address);
+	*d = eepromAccess.readByte(++address);
 	return result;
 }
 
-inline void writePointer(eptr_t address, eptr_t v) {
-	EepromDataOut out;
-	out.reset(address, 2);
-	out.writeBuffer((const void*)&v, stream_size_t(2));
+void writePointer(eptr_t address, eptr_t v) {
+	eepromAccess.writeByte(address, v>>8);
+	eepromAccess.writeByte(address+1, v&0xFF);
+}
+
+inline void writeEepromRange(eptr_t start, eptr_t end, uint8_t data) {
+	while (start<end) {
+		eepromAccess.writeByte(start++, data);
+	}
 }
 
 void SystemProfile::initialize() {
 	
 	current = SYSTEM_PROFILE_DEFAULT;
-	if (eepromAccess.readByte(0)==SYSTEM_PROFILE_MAGIC
-		&& eepromAccess.readByte(1)==SYSTEM_PROFILE_VERSION) {
+	if (readPointer(0)==SYSTEM_PROFILE_EEPROM_HEADER) {
 			// eeprom already initialized.			
 	}
 	else {
-		writer.reset(0, eepromAccess.length());		
-		writer.write(SYSTEM_PROFILE_MAGIC);			// marker
-		writer.write(SYSTEM_PROFILE_VERSION);		// version
-		writer.write(SYSTEM_PROFILE_NONE);			// no selected profile
-		writer.write(0);							// reserved
+		writePointer(0, SYSTEM_PROFILE_EEPROM_HEADER);
+		writePointer(2, -1);
 		
 		// clear the fat
-		for (int i=SYSTEM_PROFILE_FAT; i<SYSTEM_PROFILE_DATA_OFFSET; i++)	{
-			eepromAccess.writeByte(i, 0);
-		}
-
+		writeEepromRange(SYSTEM_PROFILE_FAT, SYSTEM_PROFILE_DATA_OFFSET, 0);
+		
 		// reset profile store
-		for (eptr_t i=SYSTEM_PROFILE_DATA_OFFSET; i<eepromAccess.length(); i++) {
-			eepromAccess.writeByte(i, 0xFF);
-		}
+		writeEepromRange(SYSTEM_PROFILE_DATA_OFFSET, eepromAccess.length(), 0xFF);
 		
 		// the end of the highest profile point (non-inclusive) is at the start
 		setProfileOffset(-1, SYSTEM_PROFILE_DATA_OFFSET);	// next profile begins at the start
@@ -140,7 +139,7 @@ bool SystemProfile::activateProfile(profile_id_t profile) {
  */
 profile_id_t SystemProfile::deleteProfile(profile_id_t profile) {
 	if (profile==current) {		// persistently unload profile if it's the one to be deleted
-		activateProfile(-1);	
+		activateProfile(-1);
 	}
 	
 	eptr_t start = getProfileOffset(profile);
@@ -155,17 +154,16 @@ profile_id_t SystemProfile::deleteProfile(profile_id_t profile) {
 	}
 
 	// block copy eeprom
+
 	while (end<eepromAccess.length()) {
 		uint8_t b = eepromAccess.readByte(end++);
 		eepromAccess.writeByte(start++, b);
 	}
-	while (start<eepromAccess.length()) {
-		eepromAccess.writeByte(start++, 0xFF);
-	}
+	writeEepromRange(start, eepromAccess.length(), 0xFF);	
 	return profile;
 }
 
-inline eptr_t profileFAT(profile_id_t id) {
+eptr_t profileFAT(profile_id_t id) {
 	return SYSTEM_PROFILE_FAT+(id*2);
 }
 
