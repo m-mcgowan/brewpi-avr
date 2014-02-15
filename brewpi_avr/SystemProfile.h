@@ -5,7 +5,7 @@
 #include "DataStreamEeprom.h"
 
 #ifndef SYSTEM_PROFILE_ENABLE
-#define SYSTEM_PROFILE_ENABLE 0
+#define SYSTEM_PROFILE_ENABLE 1
 #endif
 
 typedef container_id profile_id_t;
