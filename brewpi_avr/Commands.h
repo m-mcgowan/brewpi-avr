@@ -17,13 +17,18 @@ typedef const char* cpchar;
 void handleCommand(DataIn& data, DataOut& out);
 
 /**
+ * Removes deleted object definitions from the current profile eeprom block.
+ * @return The end address of the object block in the current profile.
+ */
+eptr_t compactObjectDefinitions();
+
+/**
  * @param	offset	The location in eeprom of this object
  * @param	in		Commands for the object, starting after the command id.
  * @return	>=0 on success, <0 on error.
  */
 uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in, bool dryRun=false);
 
-void rehydrateObjects();
 
 /**
  * Delete an object (but not the definition in eeprom.)
@@ -54,9 +59,7 @@ enum Commands {
     CMD_CREATE_PROFILE = 7,     // create a new profile
     CMD_DELETE_PROFILE = 8,     // delete a profile
 	CMD_COMPACT_PROFILE = 9,	// compact the current (open) profile
-	CMD_LOG_VALUES = 9,			// request to log all values
-
-	
+	CMD_LOG_VALUES = 9,			// request to log all values	
 	
 	CMD_MAX = 127,				// max command value for user-visible commands
 	CMD_SPECIAL_FLAG = 128,

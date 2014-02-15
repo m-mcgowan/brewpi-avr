@@ -105,7 +105,7 @@ profile_id_t SystemProfile::createProfile() {
 	
 	if (idx!=-1) {
 		setProfileOffset(idx, end);
-		resetStream(writer, false);		// reset the stream so that it's limited now.
+		profileWriteRegion(writer, false);		// reset the stream so that it's limited now.
 	}	
 #endif
 	return idx;
@@ -120,7 +120,7 @@ bool SystemProfile::activateProfile(profile_id_t profile) {
 	
 	// todo - maybe simpler to write new profile to eeprom then reboot.
 	// this will avoid fragmentation of the heap.		
-	if (current!=profile) {		
+	if (current!=profile) {
 #if SYSTEM_PROFILE_ENABLE	
 		deactivateCurrentProfile();
 #endif		
@@ -128,16 +128,18 @@ bool SystemProfile::activateProfile(profile_id_t profile) {
 		if (profile>=0) {
 			current = profile;				// non-persistent change											
 			EepromDataIn eepromReader;			
-			resetStream(eepromReader);			// get region in eeprom for the profile
+			profileReadRegion(eepromReader);			// get region in eeprom for the profile
 			BlackholeDataOut nullOut;
-			PipeDataIn reader(eepromReader, nullOut);
+			PipeDataIn reader(eepromReader, nullOut);	// rehydrateObject expects a pipe stream to save the object definition. we just throw it away.
 			while (reader.hasNext()) {
 				uint8_t cmd = reader.next();
 				// if cmd is not create object then just parse the contents but don't instantiate. 
 				rehydrateObject(eepromReader.offset(), reader, cmd!=CMD_CREATE_OBJECT);
-				// todo - what to do with errors? ideally some logging might help				
+				// todo - what to do with errors? at least log errors. 
 			}
-			resetStream(writer, true);		// reset to available region (allow open profile)
+			// TODO this is wrong - stream should be reset from the profile end to eepromAccess.length() if this is open
+			// else set to end of profile, length 0.
+			profileWriteRegion(writer, true);		// reset to available region (allow open profile)
 		}
 		setCurrentProfile(profile);			// persist the change after profile instantiated.
 	}
@@ -220,9 +222,10 @@ void SystemProfile::deactivateCurrentProfile() {
 	if (current<0)
 		return;
 		
-	// if this profile is open, store the offset currently in the writer stream (which marks the last object written to the profile.)
+	// if this profile is open, be sure to compact eeprom
 	if (getProfileEnd(current, true)==eepromAccess.length()) {
-		setProfileOffset(-1, writer.offset());
+		eptr_t end = compactObjectDefinitions();
+		setProfileOffset(-1, end);
 	}
 	
 	container_id id[MAX_CONTAINER_DEPTH];				// buffer for id during traversal
@@ -230,7 +233,7 @@ void SystemProfile::deactivateCurrentProfile() {
 	// delete all the objects that were dynamically allocated.
 	walkRoot(deleteDynamicallyAllocatedObject, NULL, id);
 	current = -1;		
-	resetStream(writer);
+	profileWriteRegion(writer);
 }
 #endif
 
@@ -247,21 +250,37 @@ profile_id_t SystemProfile::currentProfile() {
 	return current;
 }
 
-void SystemProfile::resetStream(EepromStreamRegion& region, bool includeOpen) {	
+/**
+ * Sets the stream region to be the writable portion of a profile storage.
+ * @param region	The region to set
+ * @param includeOpen	If the current profile is the open one. The end is then set to the end of eeprom. 
+ */
+void SystemProfile::profileWriteRegion(EepromStreamRegion& region, bool includeOpen) {	
 	if (current>=0) {
-#if SYSTEM_PROFILE_ENABLE
-		eptr_t offset = getProfileOffset(current);
+		eptr_t offset = getProfileEnd(current);
 		eptr_t end = getProfileEnd(current, includeOpen);
-#else
-		eptr_t offset = SYSTEM_PROFILE_DATA_OFFSET;
-		eptr_t end = eepromAccess.length();
-#endif		
 		region.reset(offset, end-offset);
 	}
 	else {
 		region.reset(0,0);
 	}
 }
+
+/**
+ * Sets the stream to correspond with the start and end locations for the current profile.
+ * 
+ */
+void SystemProfile::profileReadRegion(EepromStreamRegion& region) {
+	if (current>=0) {
+		eptr_t offset = getProfileOffset(current);
+		eptr_t end = getProfileEnd(current, false);
+		region.reset(offset, end-offset);
+	}
+	else {
+		region.reset(0,0);
+	}
+}
+
 
 /**
  * Locates the end (exclusive) of the current profile.
@@ -273,7 +292,7 @@ eptr_t SystemProfile::getProfileEnd(profile_id_t profile, bool includeOpen)  {
 	// find smallest profile offset that is greater than the start
 	for (profile_id_t i=-1; i<MAX_SYSTEM_PROFILES; i++) {		// include last profile end
 		eptr_t p = getProfileOffset(i);
-		if ((p>start) && (p<end) && (i>=0 || !includeOpen))
+		if ((p>start) && (p<end) && (i>=0 || !includeOpen))		// when i==-1 and !includeOpen then the end is used, otherwise end remains at eepromAccess.length()
 			end = p;
 	}
 	return end;

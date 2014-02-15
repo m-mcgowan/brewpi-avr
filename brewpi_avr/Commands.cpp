@@ -186,8 +186,9 @@ void createObjectCommandHandler(DataIn& _in, DataOut& out)
 	systemProfile.writer.write(CMD_INVALID);			// value for partial write, will go a back when successfully completed and write this again
 	uint8_t error_code = rehydrateObject(offset, in, false);
 	if (!error_code) {
-		eepromAccess.writeByte(offset, CMD_CREATE_OBJECT);	// finalize creation in eeprom
+		eepromAccess.writeByte(offset, CMD_CREATE_OBJECT);	// finalize creation in eeprom		
 	}
+	systemProfile.setOpenProfileEnd(systemProfile.writer.offset());	// save end of open profile
 	out.write(error_code);							// status is index it was created at	
 }
 
@@ -264,7 +265,7 @@ typedef BufferDataOut<MAX_CONTAINER_DEPTH+1> IDCapture;
  */
 void removeEepromCreateCommand(IDCapture& id) {
 	EepromDataIn eepromData;
-	systemProfile.resetStream(eepromData);	
+	systemProfile.profileReadRegion(eepromData);	
 	ObjectDefinitionWalker walker(eepromData);
 	IDCapture capture;							// save the contents of the eeprom
 	
@@ -313,7 +314,7 @@ void deleteObjectCommandHandler(DataIn& in, DataOut& out)
  */ 
 void listEepromInstructionsTo(DataOut& out) {
 	EepromDataIn eepromData;
-	systemProfile.resetStream(eepromData);
+	systemProfile.profileReadRegion(eepromData);
 	ObjectDefinitionWalker walker(eepromData);
 	while (walker.writeNext(out));
 }
@@ -322,10 +323,11 @@ void listEepromInstructionsTo(DataOut& out) {
  * Compacts the eeprom instruction store by removing deleted object definitions.
  *
  * @return The offset where the next eeprom instruction will be stored. 
+ * This method assumes SystemProfile::writer points to the last written location at the end of the profile.
  */
 eptr_t compactObjectDefinitions() {
 	EepromDataOut eepromData;
-	systemProfile.resetStream(eepromData);
+	systemProfile.profileReadRegion(eepromData);
 	listEepromInstructionsTo(eepromData);
 	return eepromData.offset();
 }
@@ -369,7 +371,8 @@ void createProfileCommandHandler(DataIn& in, DataOut& out) {
 /**
  * Compact the object definitions store. 
  */
-void compactStorageCommandHandler(DataIn& in, DataOut& out) {
+void compactStorageCommandHandler(DataIn& in, DataOut& out) {	
+	
 	/*eptr_t last = */compactObjectDefinitions();
 	// todo - update system profile with this info
 	out.write(0);

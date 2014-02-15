@@ -46,6 +46,11 @@ class SystemProfile {
 	 */
 	static void deactivateCurrentProfile();
 	
+	/**
+	 * Resets the stream to the region in eeprom for the currently active profile. 
+	 * If there is no profile, it is set to the end of eeprom, length 0.
+	 */
+	static void profileWriteRegion(EepromStreamRegion& region, bool includeOpen=false);
 
 public:
 	
@@ -100,12 +105,13 @@ public:
 	 */
 	static profile_id_t currentProfile();
 
-	/**
-	 * Resets the stream to the region in eeprom for the currently active profile. 
-	 * If there is no profile, it is set to the end of eeprom, length 0.
-	 */
-	static void resetStream(EepromStreamRegion& region, bool includeOpen=false);
+	static void profileReadRegion(EepromStreamRegion& region);
 
+
+	static void setOpenProfileEnd(eptr_t end) {
+		if (end>getProfileOffset(-1))
+			setProfileOffset(-1, end);
+	}
 };
 
 
