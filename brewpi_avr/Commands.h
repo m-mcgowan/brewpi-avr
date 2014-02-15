@@ -50,12 +50,20 @@ enum Commands {
    	CMD_CREATE_OBJECT = 3,		// add object in a container
    	CMD_DELETE_OBJECT = 4,		// delete the object at the specified location
    	CMD_LIST_OBJECTS = 5,		// list objects in a container
+    CMD_FREE_SLOT = 6,          // retrieves the next free slot in a container
+    CMD_CREATE_PROFILE = 7,     // create a new profile
+    CMD_DELETE_PROFILE = 8,     // delete a profile
+	CMD_COMPACT_PROFILE = 9,	// compact the current (open) profile
+	CMD_LOG_VALUES = 9,			// request to log all values
+
+	
 	
 	CMD_MAX = 127,				// max command value for user-visible commands
 	CMD_SPECIAL_FLAG = 128,
 	CMD_INVALID = CMD_SPECIAL_FLAG | CMD_NONE,						// special value for invalid command in eeprom. Used as a placeholder for incomplete data
-	CMD_DISPOSED_OBJECT = CMD_CREATE_OBJECT | CMD_SPECIAL_FLAG	// flag in eeprom for object that is now deleted. Allows space to be reclaimed later.
+	CMD_DISPOSED_OBJECT = CMD_CREATE_OBJECT | CMD_SPECIAL_FLAG,	// flag in eeprom for object that is now deleted. Allows space to be reclaimed later.
+	CMD_LOG_VALUES_AUTO = CMD_LOG_VALUES | CMD_SPECIAL_FLAG,
 };
 
 
-
+void logValuesImpl(container_id* ids, DataOut& out);

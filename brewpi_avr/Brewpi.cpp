@@ -132,34 +132,32 @@ bool updateCallback(Object* o, void* data, container_id* id, bool enter) {
 }
 
 /**
- * Writes an ID chain to the stream.
- */
-void writeID(container_id* id, DataOut& out) {
-	do {
-		out.write(*id);
-	} while (*id++<0);
-}
-
-bool logValuesCallback(Object* o, void* data, container_id* id, bool enter) {
-	DataOut& out = *(DataOut*)data;
-	if (enter && isLoggedValue(o)) {
-		Value* r = (Value*)o;
-		writeID(id, out);
-		out.write(r->streamSize());
-		r->readTo(out);
-	}
-	return false;
-}
-
-/**
  * Logs all values in the system. 
  */
 void logValues(container_id* ids)
 {
 	DataOut& out = Comms::dataOut();
-	out.write(CMD_READ_VALUE);						
-	walkRoot(logValuesCallback, &out, ids);
+	out.write(CMD_LOG_VALUES_AUTO);
+	logValuesImpl(ids, out);
 	out.close();
+}
+
+void process() {
+	container_id ids[MAX_CONTAINER_DEPTH];
+	Container* root = rootContainer();
+
+	prepare_t d = root->prepare();
+	if (d<1000) d = 1000;	// todo - just for testing to stop
+	wait.millis(d);
+		
+	root->update();
+		
+	// todo - should brewpi always log, or only log when requested?
+	if (logValuesFlag)
+	{
+		logValuesFlag = false;
+		logValues(ids);
+	}
 }
 
 /*
@@ -171,24 +169,7 @@ void logValues(container_id* ids)
 void brewpiLoop(void)
 {		
 	Comms::receive();
-
-	container_id ids[MAX_CONTAINER_DEPTH];
-	
-	Container* root = rootContainer();
-
-	prepare_t d = root->prepare();
-	if (d<1000) d = 1000;	// todo - just for testing to stop 
-	wait.millis(d);
-	
-	root->update();
-	
-	// todo - should brewpi always log, or only log when requested?
-	if (logValuesFlag)
-	{
-		logValuesFlag = false;
-		logValues(ids);
-	}
-
+	process();
 }
 
 void loop() {       

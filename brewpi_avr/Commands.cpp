@@ -67,7 +67,7 @@ void setValueCommandHandler(DataIn& in, DataOut& out) {
 		uint8_t available = in.next();
 		if (isWritable(o) && v->streamSize()==available) {		// if it's writable and the correct number of bytes were parsed.
 			v->writeFrom(in);									// assign from stream			
-			out.write(v->streamSize());
+			out.write(v->streamSize());							// now write out actual value
 			v->readTo(out);			
 		}
 		else {													// either not writable or invalid size
@@ -375,6 +375,46 @@ void compactStorageCommandHandler(DataIn& in, DataOut& out) {
 	out.write(0);
 }
 
+/**
+ * Writes an ID chain to the stream.
+ */
+void writeID(container_id* id, DataOut& out) {
+	do {
+		out.write(*id);
+	} while (*id++<0);
+}
+
+/**
+ * Hierarchy traversal callback
+ */
+bool logValuesCallback(Object* o, void* data, container_id* id, bool enter) {
+	DataOut& out = *(DataOut*)data;
+	if (enter && isLoggedValue(o)) {
+		Value* r = (Value*)o;
+		writeID(id, out);
+		out.write(r->streamSize());
+		r->readTo(out);
+	}
+	return false;
+}
+
+void logValuesImpl(container_id* ids, DataOut& out) {
+	walkRoot(logValuesCallback, NULL, ids);
+}
+
+void logValuesCommandHandler(DataIn& in, DataOut& out) {
+	uint8_t flags = in.next();
+	Object* source = rootContainer();
+	if (flags & 1) {
+		source = lookupObject(in);
+	}
+	if (source) {
+		container_id ids[MAX_CONTAINER_DEPTH];
+		walkObject(source, logValuesCallback, &out, ids, ids);
+	}
+}
+
+
 // object 0 in root container is current profile id.
 // writing that changes the profile
 
@@ -388,8 +428,8 @@ CommandHandler handlers[] = {
 	freeSlotCommandHandler,			// 0x06
 	createProfileCommandHandler,	// 0x07
 	deleteProfileCommandHandler,	// 0x08
-	activateProfileCommandHandler,	// 0x09
-	compactStorageCommandHandler,	// 0x0A
+	compactStorageCommandHandler,	// 0x09	
+	logValuesCommandHandler,		// 0x0A
 };
 
 /*
@@ -399,8 +439,13 @@ CommandHandler handlers[] = {
  */
 void handleCommand(DataIn& dataIn, DataOut& dataOut)
 {
-	PipeDataIn pipeIn = PipeDataIn(dataIn, dataOut);	
-	uint8_t cmd_id = pipeIn.next();
-	handlers[cmd_id](pipeIn, dataOut);	
+	PipeDataIn pipeIn = PipeDataIn(dataIn, dataOut);	// ensure command input is also piped to output
+	uint8_t cmd_id = pipeIn.next();						// command type code
+	if (cmd_id>sizeof(handlers)/sizeof(handlers[0]))	// check range
+		cmd_id = 0;
+	handlers[cmd_id](pipeIn, dataOut);					// do it!
 }
+
+
+
 
