@@ -148,7 +148,8 @@ enum RehydrateErrors {
 
 /**
  * Rehydrate an object from a definition. 
- * @param in	The stream containing the object definition. First the id, then the object type, definition block length and
+ * @param offset	The location in eeprom where this object definition exists.
+ * @param in		The stream containing the object definition. First the id, then the object type, definition block length and
  * the definition block.
  * @return 0 on success, an error code on failure.
  */
@@ -161,7 +162,10 @@ uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in, bool dryRun)
 	uint8_t error = rehydrateFail;
 	if (in.pipeOk() && lastID>=0 && target && newObject && isOpenContainer(target)) {		// if the lastID >=0 then it was fetched from a container
 		OpenContainer* c = (OpenContainer*)target;
-		if (c->add(lastID, newObject)) {			
+		if (c->add(lastID, newObject)) {
+			// skip object create command, type and id. 
+			offset+=2;
+			while (int8_t(eepromAccess.readByte(offset++))<0) {}
 			newObject->rehydrated(offset);
 			error = rehydrateNoError;
 		}
