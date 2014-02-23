@@ -421,6 +421,10 @@ void logValuesCommandHandler(DataIn& in, DataOut& out) {
 	}
 }
 
+void resetCommandHandler(DataIn& in, DataOut& out) {
+	out.write(0);
+	handleReset();
+}
 
 // object 0 in root container is current profile id.
 // writing that changes the profile
@@ -437,6 +441,7 @@ CommandHandler handlers[] = {
 	deleteProfileCommandHandler,	// 0x08
 	compactStorageCommandHandler,	// 0x09	
 	logValuesCommandHandler,		// 0x0A
+	resetCommandHandler,			// 0x0B
 };
 
 /*

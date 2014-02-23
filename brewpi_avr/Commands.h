@@ -17,6 +17,12 @@ typedef const char* cpchar;
 void handleCommand(DataIn& data, DataOut& out);
 
 /**
+ * Function prototype expected by the commands implementation to perform
+ * a reset.  
+ */
+extern void handleReset();
+
+/**
  * Removes deleted object definitions from the current profile eeprom block.
  * @return The end address of the object block in the current profile.
  */
@@ -55,11 +61,14 @@ enum Commands {
    	CMD_CREATE_OBJECT = 3,		// add object in a container
    	CMD_DELETE_OBJECT = 4,		// delete the object at the specified location
    	CMD_LIST_OBJECTS = 5,		// list objects in a container
-    CMD_FREE_SLOT = 6,          // retrieves the next free slot in a container
-    CMD_CREATE_PROFILE = 7,     // create a new profile
-    CMD_DELETE_PROFILE = 8,     // delete a profile
+	CMD_FREE_SLOT = 6,          // retrieves the next free slot in a container
+	CMD_CREATE_PROFILE = 7,     // create a new profile
+	CMD_DELETE_PROFILE = 8,     // delete a profile
 	CMD_COMPACT_PROFILE = 9,	// compact the current (open) profile
-	CMD_LOG_VALUES = 9,			// request to log all values	
+	CMD_LOG_VALUES = 10,		// request to log all values	
+	CMD_RESET = 11,				// perform a reset so that values are read in again from persistent storage.
+	
+	
 	
 	CMD_MAX = 127,				// max command value for user-visible commands
 	CMD_SPECIAL_FLAG = 128,
