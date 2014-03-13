@@ -8,7 +8,7 @@
 #include "Brewpi.h"
 #include "Comms.h"
 #include "Commands.h"
-
+#include "Version.h"
 
 
 // Rename Serial to piStream, to abstract it for later platform independence
@@ -164,6 +164,9 @@ public:
  */
 void HexTextToBinaryIn::fetchNextByte() 
 {
+	if (char1)		// already have data
+		return;
+	
 	DataIn& _text = *this->_text;
 	if (!_text.hasNext())
 		return;
@@ -217,13 +220,31 @@ public:
 
 BinaryToHexTextOut hexOut(commsOut);
 DataOut& Comms::hexOut = hexOut;
+bool prevConnected = false;
+
+#define VERSION /* 0  */ "[\"s\":0,"\
+				/* 7  */ "\"y\":0,"\
+				/* 13 */ "\"b\":\" \",\"v\":\"" VERSION_STRING "\",\"c\":\"" BUILD_NAME "\"]\n"
+void printVersion()
+{
+	char buf[64];
+	strcpy_P(buf, PSTR(VERSION));
+	buf[5] = BREWPI_STATIC_CONFIG+'0';
+	buf[11] = BREWPI_SIMULATE+'0';
+	buf[18] = BREWPI_BOARD;
+	commsOut.writeBuffer(buf, strlen(buf));	
+}
 
 void Comms::receive() {
+		
+	if (comms && !prevConnected) {
+		prevConnected = true;
+		printVersion();
+	}
 		
 	while (comms.available()>0) {			// there is some data ready to be processed											// form this point on, the system will block waiting for a complete command or newline.
 		TextIn textIn(commsIn);
 		HexTextToBinaryIn hexIn(textIn);
-		BinaryToHexTextOut hexOut(commsOut);
 		if (hexIn.hasNext())				// ignore blank newlines, annotations etc..
 			handleCommand(hexIn, hexOut);
 		hexOut.close();
