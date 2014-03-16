@@ -59,10 +59,11 @@ void loop (void);
 TicksImpl ticks = TicksImpl(TICKS_IMPL_CONFIG);
 DelayImpl wait = DelayImpl(DELAY_IMPL_CONFIG);
 
+Object* rootItems[5];
 
 Container* createRootContainer()
 {
-	return new StaticContainer<5>();
+	return new FixedContainer(sizeof(rootItems)/sizeof(rootItems[0]), rootItems);
 }
 
 

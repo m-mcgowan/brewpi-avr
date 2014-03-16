@@ -396,10 +396,9 @@ void SystemProfile::listEepromInstructionsTo(profile_id_t profile, DataOut& out)
 }
 
 
-
-
 EepromDataOut SystemProfile::writer;
 profile_id_t SystemProfile::current;
 Container* SystemProfile::root = NULL;
-StaticContainer<1> SystemProfile::systemRoot;
+Object* systemRootItems[1];
+FixedContainer SystemProfile::systemRoot(1, systemRootItems);
 

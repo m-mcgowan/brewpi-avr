@@ -59,7 +59,7 @@ class SystemProfile {
 	 */
 	static Container* root;
 	
-	static StaticContainer<1> systemRoot;
+	static FixedContainer systemRoot;
 	
 	static void setProfileOffset(profile_id_t id, eptr_t offset);
 	static eptr_t getProfileOffset(profile_id_t id);
