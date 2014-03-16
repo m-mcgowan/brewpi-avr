@@ -393,9 +393,20 @@ inline bool walkRoot(EnumObjectsFn callback, void* data, container_id* id) {
 /**
  * Read the id chain from the stream and resolve the corresponding object.
  */
-Object* lookupObject(DataIn& data);
+Object* lookupObject(Object* current, DataIn& data);
 
 /**
  * Read the id chain from the stream and resolve the container and the final index.
  */
-Object* lookupContainer(DataIn& data, int8_t& lastID);
+Object* lookupContainer(Object* current, DataIn& data, int8_t& lastID);
+
+
+/**
+ * Read the id chain from the stream and resolve the corresponding object.
+ */
+Object* lookupUserObject(DataIn& data);
+
+/**
+ * Read the id chain from the stream and resolve the container and the final index.
+ */
+Object* lookupUserContainer(DataIn& data, int8_t& lastID);

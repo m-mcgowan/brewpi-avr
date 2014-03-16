@@ -71,8 +71,7 @@ Object* fetchContainedObject(Object* o, uint8_t id)
  * @param data	The data stream to read the id chain.
  * @return The fetched object, or {@code NULL} if the id in the stream doesn't correspond to 
  */
-Object* lookupObject(DataIn& data) {
-	Object* current = rootContainer();
+Object* lookupObject(Object* current, DataIn& data) {
 	int8_t id = -1;
 	while (data.hasNext() && id<0)
 	{
@@ -92,9 +91,8 @@ Object* lookupObject(DataIn& data) {
  * For example, given a stream encoding the id chain "2.3.5", the container returned would correspond with
  * object "2.3" and lastID would be set to 5.
  */
-Object* lookupContainer(DataIn& data, int8_t& lastID) 
-{
-	Object* current = rootContainer();
+Object* lookupContainer(Object* current, DataIn& data, int8_t& lastID) 
+{	
 	int8_t id = int8_t(data.next());
 	while (id<0 && data.hasNext())
 	{
@@ -104,3 +102,12 @@ Object* lookupContainer(DataIn& data, int8_t& lastID)
 	lastID = id;
 	return current;
 }
+
+Object* lookupUserObject(DataIn& data) {
+	return lookupObject(rootContainer(), data);
+}
+
+Object* lookupUserContainer(DataIn& data, int8_t& lastID) {
+	return lookupContainer(rootContainer(), data, lastID);
+}
+

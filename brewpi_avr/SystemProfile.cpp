@@ -12,7 +12,8 @@ const uint8_t EEPROM_HEADER_SIZE = 2;
 const uint8_t MAX_SYSTEM_PROFILES = 4;
 
 const uint8_t SYSTEM_PROFILE_CURRENT_OFFSET = EEPROM_HEADER_SIZE;	// start address of profile fat.
-const uint8_t SYSTEM_PROFILE_RESERVED_OFFSET = SYSTEM_PROFILE_CURRENT_OFFSET+1;
+const uint8_t SYSTEM_PROFILE_ID_OFFSET = SYSTEM_PROFILE_CURRENT_OFFSET+1;
+const uint8_t SYSTEM_PROFILE_RESERVED_OFFSET = SYSTEM_PROFILE_ID_OFFSET+1;
 const uint8_t SYSTEM_PROFILE_OPEN_END = SYSTEM_PROFILE_RESERVED_OFFSET+1;
 const uint8_t SYSTEM_PROFILE_FAT = SYSTEM_PROFILE_OPEN_END+sizeof(eptr_t);
 
@@ -21,15 +22,6 @@ const uint8_t SYSTEM_PROFILE_DATA_OFFSET = SYSTEM_PROFILE_FAT + (MAX_SYSTEM_PROF
 const uint16_t SYSTEM_PROFILE_EEPROM_HEADER = 		uint16_t(SYSTEM_PROFILE_MAGIC)<<8 | SYSTEM_PROFILE_VERSION;
 
 typedef int8_t system_profile_t;
-
-EepromDataOut SystemProfile::writer;
-profile_id_t SystemProfile::current;
-Container* SystemProfile::root = NULL;
-
-/**
- * equivalent to /dev/null. Used for discarding output.
- */
-BlackholeDataOut blackhole;
 
 
 /**
@@ -45,6 +37,11 @@ BlackholeDataOut blackhole;
  *	  end	
  */
 
+
+/**
+ * equivalent to /dev/null. Used for discarding output.
+ */
+BlackholeDataOut blackhole;
 
 eptr_t readPointer(eptr_t address) {	
 	return  eptr_t(eepromAccess.readByte(address))<<8 |
@@ -62,34 +59,19 @@ inline void writeEepromRange(eptr_t start, eptr_t end, uint8_t data) {
 	}
 }
 
+EepromStreamValue system_id(SYSTEM_PROFILE_ID_OFFSET, 1);
+
 void SystemProfile::initialize() {
+	
+	// build system objects
+	systemRoot.add(0, &system_id);
 	
 	current = SYSTEM_PROFILE_DEFAULT;
 	if (readPointer(0)==SYSTEM_PROFILE_EEPROM_HEADER) {
-#if SYSTEM_PROFILE_ENABLE && 0
-        // eeprom already initialized.
-        // the end offset of the currently open profile may not have been written (e.g. power failure), 
-        // so compute this if needed
-		eptr_t max = 0;
-		for (profile_id_t i=0; i<MAX_SYSTEM_PROFILES; i++) {
-			eptr_t c = getProfileOffset(i);
-			if (c>max) {
-				max = c;
-			}
-		}
-		eptr_t end = getProfileOffset(-1);
-		if (max && end<=max) {		// end needs writing
-			EepromDataIn eepromStream;
-			eepromStream.reset(max, eepromAccess.length());
-			ObjectDefinitionWalker walker(eepromStream);
-			while (walker.writeNext(blackhole));
-			// the location of the stream is now the end of the
-			setProfileOffset(-1, eepromStream.offset());
-		}
-#endif		
+		// no initialization required
 	}
 	else {
-		writePointer(2, -1);            // reserved
+		writePointer(SYSTEM_PROFILE_ID_OFFSET, -1);            // id and reserved
 		
 		// clear the fat
 		writeEepromRange(SYSTEM_PROFILE_FAT-2, SYSTEM_PROFILE_DATA_OFFSET, 0);
@@ -382,7 +364,7 @@ bool ObjectDefinitionWalker::writeNext(DataOut& out) {
 	if (valid) {			
 		PipeDataIn pipe(*_in, next<0 ? blackhole : out);	// next<0 if command not fully completed, so output is discarded
 		pipe.next();										// fetch the next value already peek'ed at so this is written to the output stream
-		/*Object* target = */lookupObject(pipe);			// find the container where the object will be added
+		/*Object* target = */lookupUserObject(pipe);			// find the container where the object will be added
 		// todo - could flag warning if target is NULL
 		createObject(pipe, true);							// dry run for create object, just want data to be output
 	}
@@ -412,3 +394,12 @@ void SystemProfile::listEepromInstructionsTo(profile_id_t profile, DataOut& out)
 	ObjectDefinitionWalker walker(eepromData);
 	while (walker.writeNext(out));
 }
+
+
+
+
+EepromDataOut SystemProfile::writer;
+profile_id_t SystemProfile::current;
+Container* SystemProfile::root = NULL;
+StaticContainer<1> SystemProfile::systemRoot;
+

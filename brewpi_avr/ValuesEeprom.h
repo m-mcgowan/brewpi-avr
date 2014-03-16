@@ -33,13 +33,14 @@ protected:
 /**
  * Streams an eeprom value of a given fixed size.
  */
-template <uint8_t _size> class EepromStreamValue : public EepromBaseValue
+class EepromStreamValue : public EepromBaseValue
 {
 	protected:
 		eptr_t _offset;
+		uint8_t _size;
 					
 	public:
-		EepromStreamValue(eptr_t offset) : _offset(offset) {}
+		EepromStreamValue(eptr_t offset, uint8_t size) : _offset(offset), _size(size) {}
 
 		void readTo(DataOut& out) {
 			_readTo(out, eeprom_offset(), streamSize());
@@ -52,17 +53,16 @@ template <uint8_t _size> class EepromStreamValue : public EepromBaseValue
 		eptr_t eeprom_offset() { return _offset; }
 		uint8_t streamSize() { return _size; }
 
-
 };
 
 /**
  * Provides state read/write (in addition to stream read/write) for an eeprom value. 
  */
-template <class T, int _size=sizeof(T)> class EepromValue : public EepromStreamValue<_size>
+template <class T, int _size=sizeof(T)> class EepromValue : public EepromStreamValue
 {
 	public:
 		
-		EepromValue(eptr_t offset) : EepromStreamValue<_size>(offset) {}
+		EepromValue(eptr_t offset) : EepromStreamValue(offset, _size) {}
 		
 		T read() {
 			T result;

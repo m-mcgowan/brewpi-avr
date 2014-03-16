@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "Values.h"
 #include "DataStreamEeprom.h"
+#include "GenericContainer.h"
 
 #ifndef SYSTEM_PROFILE_ENABLE
 #define SYSTEM_PROFILE_ENABLE 1
@@ -58,6 +59,8 @@ class SystemProfile {
 	 */
 	static Container* root;
 	
+	static StaticContainer<1> systemRoot;
+	
 	static void setProfileOffset(profile_id_t id, eptr_t offset);
 	static eptr_t getProfileOffset(profile_id_t id);
 	static eptr_t getProfileEnd(profile_id_t id, bool includeOpen=false);
@@ -107,6 +110,10 @@ public:
 	 */
 	static Container* rootContainer() {
 		return root;
+	}
+	
+	static Container* systemContainer() {
+		return &systemRoot;
 	}
 		
 	/**
