@@ -59,6 +59,11 @@ inline void writeEepromRange(eptr_t start, eptr_t end, uint8_t data) {
 	}
 }
 
+void SystemProfile::initializeEeprom() {
+	writeEepromRange(0, eepromAccess.length(), 0xFF);
+}
+
+
 EepromStreamValue system_id(SYSTEM_PROFILE_ID_OFFSET, 1);
 
 void SystemProfile::initialize() {

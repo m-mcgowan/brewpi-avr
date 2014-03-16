@@ -158,6 +158,8 @@ public:
 	static void listDefinedProfiles(DataIn& in, DataOut& out);
 	
 	static void listEepromInstructionsTo(profile_id_t profile, DataOut& out);
+	
+	static void initializeEeprom();
 };
 
 /**

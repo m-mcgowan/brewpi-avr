@@ -311,6 +311,10 @@ void logValuesCommandHandler(DataIn& in, DataOut& out) {
 }
 
 void resetCommandHandler(DataIn& in, DataOut& out) {
+	uint8_t flags = in.next();
+	if (flags==1)
+		systemProfile.initializeEeprom();
+		
 	out.write(0);
 	handleReset();
 }
