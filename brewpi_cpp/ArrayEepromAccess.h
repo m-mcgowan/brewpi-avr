@@ -22,6 +22,7 @@
 
 #include "EepromTypes.h"
 #include "assert.h"
+#include "string.h"
 
 class ArrayEepromAccess
 {    

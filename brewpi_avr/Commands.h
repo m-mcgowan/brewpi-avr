@@ -60,15 +60,16 @@ enum Commands {
    	CMD_WRITE_VALUE = 2,		// write a value
    	CMD_CREATE_OBJECT = 3,		// add object in a container
    	CMD_DELETE_OBJECT = 4,		// delete the object at the specified location
-   	CMD_LIST_OBJECTS = 5,		// list objects in a container
+   	CMD_LIST_PROFILE = 5,		// list objects in a profile
 	CMD_FREE_SLOT = 6,          // retrieves the next free slot in a container
 	CMD_CREATE_PROFILE = 7,     // create a new profile
 	CMD_DELETE_PROFILE = 8,     // delete a profile
-	CMD_COMPACT_PROFILE = 9,	// compact the current (open) profile
+	CMD_ACTIVATE_PROFILE = 9,	// activate a profile
 	CMD_LOG_VALUES = 10,		// request to log all values	
 	CMD_RESET = 11,				// perform a reset so that values are read in again from persistent storage.
-	
-	
+	CMD_FREE_SLOT_ROOT = 12,	// retrieves the next free slot in the root container
+	CMD_NOT_USED = 13,			
+	CMD_LIST_PROFILES = 14,		// list the active profile and the available profiles
 	
 	CMD_MAX = 127,				// max command value for user-visible commands
 	CMD_SPECIAL_FLAG = 128,

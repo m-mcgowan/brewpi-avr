@@ -59,12 +59,10 @@ void loop (void);
 TicksImpl ticks = TicksImpl(TICKS_IMPL_CONFIG);
 DelayImpl wait = DelayImpl(DELAY_IMPL_CONFIG);
 
-StaticContainer<5> root;
 
-Container* rootContainer()
+Container* createRootContainer()
 {
-	//return profiles.rootContainer();
-	return &root;
+	return new StaticContainer<5>();
 }
 
 
@@ -78,8 +76,6 @@ class BuildInfoValues : public FactoryContainer {
 	virtual Object* item(container_id id) { return new_object(ProgmemStringValue((PSTR(BUILD_NAME)))); }
 };
 
-// just experimenting - will do properly later
-//BuildInfoValues buildInfo;
 bool logValuesFlag = false;
 
 const uint8_t loadProfileDelay = 10;	// seconds
@@ -103,12 +99,12 @@ void setup()
 	
 	Comms::init();		
 		
-
+#if 0
 	uint8_t start = ticks.seconds();
 	while (ticks.timeSince(start)<loadProfileDelay) {
 		Comms::receive();
 	}
-			
+#endif			
 	SystemProfile::activateDefaultProfile();
 }
 
@@ -144,20 +140,24 @@ void logValues(container_id* ids)
 
 void process() {
 	container_id ids[MAX_CONTAINER_DEPTH];
-	Container* root = rootContainer();
+	Container* root = SystemProfile::rootContainer();
 
-	prepare_t d = root->prepare();
-	if (d<1000) d = 1000;	// todo - just for testing to stop
+        prepare_t d = 0;
+        if (root)
+             d = root->prepare();
+        if (d<1000) d = 1000;	// todo - just for testing to stop busy waiting
 	wait.millis(d);
 		
-	root->update();
+	if (root) {
+            root->update();
 		
-	// todo - should brewpi always log, or only log when requested?
-	if (logValuesFlag)
-	{
-		logValuesFlag = false;
-		logValues(ids);
-	}
+            // todo - should brewpi always log, or only log when requested?
+            if (logValuesFlag)
+            {
+                    logValuesFlag = false;
+                    logValues(ids);
+            }
+        }
 }
 
 /*
@@ -199,9 +199,9 @@ ObjectFactory createObjectHandlers[] = {
 
 /**
  * The application supplied object factory.
- * Fetches the object type from the stream and looks this up against 
+ * Fetches the object type from the stream and looks this up against an array of object factories.
  */
-Object* createObject(DataIn& in, bool dryRun=false)
+Object* createObject(DataIn& in, bool dryRun)
 {
 	uint8_t type = in.next();		// object type
 	if (dryRun || type>=sizeof(createObjectHandlers)/sizeof(createObjectHandlers[0]))

@@ -22,25 +22,33 @@ const uint16_t SYSTEM_PROFILE_EEPROM_HEADER = 		uint16_t(SYSTEM_PROFILE_MAGIC)<<
 
 typedef int8_t system_profile_t;
 
+EepromDataOut SystemProfile::writer;
+profile_id_t SystemProfile::current;
+Container* SystemProfile::root = NULL;
+
+/**
+ * equivalent to /dev/null. Used for discarding output.
+ */
+BlackholeDataOut blackhole;
+
+
 /**
  * Eeprom format:
  *    0x00	magic number (0x69)
  *	  0x01  version
  *	  0x02	active profile 
  *	  0x03	reserved
- *	  0x04  end of open profile 
+ *	  0x04  end of open profile - if this is equal to the start of the profile then it needs to be computed and written.
  *	  0x06	start of profile FAT. 2 bytes per entry. This lists the start address of the profiles.
  *	  0x0E	start of profile storage
  *	  ....
  *	  end	
  */
 
-eptr_t readPointer(eptr_t address) {
-	eptr_t result;
-	uint8_t* d = (uint8_t*)&result;
-	*d++ = eepromAccess.readByte(address);
-	*d = eepromAccess.readByte(++address);
-	return result;
+
+eptr_t readPointer(eptr_t address) {	
+	return  eptr_t(eepromAccess.readByte(address))<<8 |
+                eepromAccess.readByte(address+1);
 }
 
 void writePointer(eptr_t address, eptr_t v) {
@@ -58,27 +66,42 @@ void SystemProfile::initialize() {
 	
 	current = SYSTEM_PROFILE_DEFAULT;
 	if (readPointer(0)==SYSTEM_PROFILE_EEPROM_HEADER) {
-			// eeprom already initialized.			
+#if SYSTEM_PROFILE_ENABLE && 0
+        // eeprom already initialized.
+        // the end offset of the currently open profile may not have been written (e.g. power failure), 
+        // so compute this if needed
+		eptr_t max = 0;
+		for (profile_id_t i=0; i<MAX_SYSTEM_PROFILES; i++) {
+			eptr_t c = getProfileOffset(i);
+			if (c>max) {
+				max = c;
+			}
+		}
+		eptr_t end = getProfileOffset(-1);
+		if (max && end<=max) {		// end needs writing
+			EepromDataIn eepromStream;
+			eepromStream.reset(max, eepromAccess.length());
+			ObjectDefinitionWalker walker(eepromStream);
+			while (walker.writeNext(blackhole));
+			// the location of the stream is now the end of the
+			setProfileOffset(-1, eepromStream.offset());
+		}
+#endif		
 	}
 	else {
-		writePointer(0, SYSTEM_PROFILE_EEPROM_HEADER);
-		writePointer(2, -1);
+		writePointer(2, -1);            // reserved
 		
 		// clear the fat
-		writeEepromRange(SYSTEM_PROFILE_FAT, SYSTEM_PROFILE_DATA_OFFSET, 0);
+		writeEepromRange(SYSTEM_PROFILE_FAT-2, SYSTEM_PROFILE_DATA_OFFSET, 0);
 		
 		// reset profile store
-		writeEepromRange(SYSTEM_PROFILE_DATA_OFFSET, eepromAccess.length(), 0xFF);
-		
-#if SYSTEM_PROFILE_ENABLE		
-		// the end of the highest profile point (non-inclusive) is at the start
-		setProfileOffset(-1, SYSTEM_PROFILE_DATA_OFFSET);	// next profile begins at the start
-		profile_id_t id = createProfile();
-#else
-		profile_id_t id = 0;		
+		writeEepromRange(SYSTEM_PROFILE_DATA_OFFSET, eepromAccess.length(), 0xFF);		
+
+		writePointer(0, SYSTEM_PROFILE_EEPROM_HEADER);          // no write the version string once the eeprom is stable and initialized.
+
+#if !SYSTEM_PROFILE_ENABLE
+		activateProfile(0);		
 #endif		
-		// create first profile automatically and activate
-		activateProfile(id);		
 	}	
 }
 
@@ -87,11 +110,14 @@ void SystemProfile::initialize() {
  * Creates a new profile. 
  * This enumerates the profile slots, looking for one that has the value 0, meaning unused, and then initializes
  * the slot to the location of the end of the previous profile.
- * The current profile is not changed, although if the current profile was previously open, it will be closed.
+ * The current profile is not changed, although if the current profile was previously open, it will be closed so that
+ * no new data can be created. 
  */
 profile_id_t SystemProfile::createProfile() {		
 
 	profile_id_t idx = -1;
+
+	closeOpenProfile();
 
 #if SYSTEM_PROFILE_ENABLE
 	eptr_t end = readPointer(SYSTEM_PROFILE_OPEN_END);	// find the end of the last profile
@@ -113,10 +139,14 @@ profile_id_t SystemProfile::createProfile() {
 
 /**
  * Activates the named profile. If the current profile is the same as the requested active profile, the method silently
- * returns. The new active profile ID is persisted to eeprom after successful activation.
+ * returns. The new active profile ID is persisted to eeprom before successful activation so that any errors that cause a reset will
+ * ensure the system comes back up with the correct profile.
  * @param profile	The profile id to activate. If this is -1, the current profile is deactivated and no profile is activated.
  */
 bool SystemProfile::activateProfile(profile_id_t profile) {
+	
+	if (profile>=MAX_SYSTEM_PROFILES || !SYSTEM_PROFILE_ENABLE)
+		return false;
 	
 	// todo - maybe simpler to write new profile to eeprom then reboot.
 	// this will avoid fragmentation of the heap.		
@@ -124,26 +154,30 @@ bool SystemProfile::activateProfile(profile_id_t profile) {
 #if SYSTEM_PROFILE_ENABLE	
 		deactivateCurrentProfile();
 #endif		
-
-		if (profile>=0) {
-			current = profile;				// non-persistent change											
-			EepromDataIn eepromReader;			
-			profileReadRegion(eepromReader);			// get region in eeprom for the profile
-			BlackholeDataOut nullOut;
-			PipeDataIn reader(eepromReader, nullOut);	// rehydrateObject expects a pipe stream to save the object definition. we just throw it away.
-			while (reader.hasNext()) {
-				uint8_t cmd = reader.next();
-				// if cmd is not create object then just parse the contents but don't instantiate. 
-				rehydrateObject(eepromReader.offset(), reader, cmd!=CMD_CREATE_OBJECT);
-				// todo - what to do with errors? at least log errors. 
-			}
-			// TODO this is wrong - stream should be reset from the profile end to eepromAccess.length() if this is open
-			// else set to end of profile, length 0.
+		if (profile>=0) {			
+			setCurrentProfile(profile);					// persist the change
+			root = createRootContainer();
+			EepromDataIn eepromReader;
+			profileReadRegion(profile, eepromReader);			// get region in eeprom for the profile
+			streamObjectDefinitions(eepromReader);
 			profileWriteRegion(writer, true);		// reset to available region (allow open profile)
 		}
-		setCurrentProfile(profile);			// persist the change after profile instantiated.
 	}
 	return true;
+}
+
+void SystemProfile::streamObjectDefinitions(EepromDataIn& eepromReader)
+{
+	BlackholeDataOut nullOut;
+	PipeDataIn reader(eepromReader, nullOut);	// rehydrateObject expects a pipe stream to save the object definition. we just throw it away.
+	while (reader.hasNext()) {
+		uint8_t cmd = reader.next();
+		// if cmd is not create object then just parse the contents but don't instantiate.
+		if (rehydrateObject(eepromReader.offset(), reader, cmd!=CMD_CREATE_OBJECT) && cmd==CMD_CREATE_OBJECT) {
+			// todo - what to do with errors? at least log errors.
+			// if error creating object, attempt a reset. Write a reset count to eeprom to avoid endless resets.
+		}
+	}		
 }
 
 /**
@@ -214,6 +248,17 @@ bool deleteDynamicallyAllocatedObject(Object* obj, void* data, container_id* id,
 	return false;										// continue traversal
 }
 
+void SystemProfile::closeOpenProfile()
+{
+	// if this profile is open, be sure to compact eeprom
+	if (getProfileEnd(current, true)==eepromAccess.length()) {
+		eptr_t end = compactObjectDefinitions();
+		setProfileOffset(-1, end);
+	}
+	// close the writer region
+	profileWriteRegion(writer, false);
+}
+
 /**
  * Deactivates the current profile. If there is no profile currently active this is a no-op.
  * Deactivation is transient - the eeprom still contains the previously active profile.
@@ -222,17 +267,16 @@ void SystemProfile::deactivateCurrentProfile() {
 	if (current<0)
 		return;
 		
-	// if this profile is open, be sure to compact eeprom
-	if (getProfileEnd(current, true)==eepromAccess.length()) {
-		eptr_t end = compactObjectDefinitions();
-		setProfileOffset(-1, end);
-	}
-	
-	container_id id[MAX_CONTAINER_DEPTH];				// buffer for id during traversal
+	closeOpenProfile();
 	
 	// delete all the objects that were dynamically allocated.
+	container_id id[MAX_CONTAINER_DEPTH];				// buffer for id during traversal	
 	walkRoot(deleteDynamicallyAllocatedObject, NULL, id);
-	current = -1;		
+	current = -1;
+	
+	if (isDynamicallyAllocated(root))
+		delete_object(root);
+	root = NULL;
 	profileWriteRegion(writer);
 }
 #endif
@@ -252,7 +296,7 @@ profile_id_t SystemProfile::currentProfile() {
 
 /**
  * Sets the stream region to be the writable portion of a profile storage.
- * @param region	The region to set
+ * @param region		The region to set
  * @param includeOpen	If the current profile is the open one. The end is then set to the end of eeprom. 
  */
 void SystemProfile::profileWriteRegion(EepromStreamRegion& region, bool includeOpen) {	
@@ -270,10 +314,10 @@ void SystemProfile::profileWriteRegion(EepromStreamRegion& region, bool includeO
  * Sets the stream to correspond with the start and end locations for the current profile.
  * 
  */
-void SystemProfile::profileReadRegion(EepromStreamRegion& region) {
-	if (current>=0) {
-		eptr_t offset = getProfileOffset(current);
-		eptr_t end = getProfileEnd(current, false);
+void SystemProfile::profileReadRegion(profile_id_t profile, EepromStreamRegion& region) {
+	if (profile>=0 && profile<MAX_SYSTEM_PROFILES) {
+		eptr_t offset = getProfileOffset(profile);
+		eptr_t end = getProfileEnd(profile, false);
 		region.reset(offset, end-offset);
 	}
 	else {
@@ -283,7 +327,9 @@ void SystemProfile::profileReadRegion(EepromStreamRegion& region) {
 
 
 /**
- * Locates the end (exclusive) of the current profile.
+ * Locates the end (exclusive) of the current profile. 
+ * If includeOpen is true and the profile is the last one, the end is set to the end of eeprom, otherwise
+ * end is set to the end of the profile.
  */
 eptr_t SystemProfile::getProfileEnd(profile_id_t profile, bool includeOpen)  {
 	eptr_t end = eepromAccess.length();
@@ -304,5 +350,65 @@ void SystemProfile::activateDefaultProfile()
 	activateProfile(id);
 }
 
-EepromDataOut SystemProfile::writer;
-profile_id_t SystemProfile::current;
+void SystemProfile::listDefinedProfiles(DataIn& in, DataOut& out) {
+	out.write(currentProfile());
+#if SYSTEM_PROFILE_ENABLE
+	// todo - this command format is not self-describing regaring length. The caller will have to consume bytes until the end to determine which profiles are active.
+	for (profile_id_t i=0; i<MAX_SYSTEM_PROFILES; i++) {
+		if (getProfileOffset(i))
+			out.write(i);
+	}
+#else
+	out.write(0);
+#endif	
+}
+
+Container* rootContainer() {
+	return SystemProfile::rootContainer();
+}
+
+
+/**
+ * Writes the next object definition from the data input to the given output.
+ * When the input stream is exhausted or the current position is not an object creation command,
+ * the method returns false and the stream location is unchanged. 
+ */							
+bool ObjectDefinitionWalker::writeNext(DataOut& out) {
+	if (!_in->hasNext())
+		return false;
+			
+	int8_t next = _in->peek();
+	bool valid =  ((next&0x7F)==CMD_CREATE_OBJECT);
+	if (valid) {			
+		PipeDataIn pipe(*_in, next<0 ? blackhole : out);	// next<0 if command not fully completed, so output is discarded
+		pipe.next();										// fetch the next value already peek'ed at so this is written to the output stream
+		/*Object* target = */lookupObject(pipe);			// find the container where the object will be added
+		// todo - could flag warning if target is NULL
+		createObject(pipe, true);							// dry run for create object, just want data to be output
+	}
+	return valid;
+}
+
+/**
+ * Compacts the eeprom instruction store by removing deleted object definitions.
+ *
+ * @return The offset where the next eeprom instruction will be stored. 
+ * This method assumes SystemProfile::writer points to the last written location at the end of the profile.
+ */
+eptr_t SystemProfile::compactObjectDefinitions() {
+	EepromDataOut eepromData;
+	profile_id_t current = SystemProfile::currentProfile();
+	systemProfile.profileReadRegion(current, eepromData);
+	listEepromInstructionsTo(current, eepromData);
+	return eepromData.offset();
+}
+
+/**
+ * Enumerates all the create object instructions in eeprom to an output stream.
+ */ 
+void SystemProfile::listEepromInstructionsTo(profile_id_t profile, DataOut& out) {
+	EepromDataIn eepromData;
+	systemProfile.profileReadRegion(profile, eepromData);
+	ObjectDefinitionWalker walker(eepromData);
+	while (walker.writeNext(out));
+}

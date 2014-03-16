@@ -14,11 +14,6 @@
 #include "SystemProfile.h"
 
 /**
- * equivalent to /dev/null. Used for discarding output.
- */
-BlackholeDataOut blackhole;
-
-/**
  * A command handler function. This is the signature of commands.
  * @param in	The data stream providing input to the command.
  * @param out	The data stream that accepts output from the command.
@@ -38,19 +33,15 @@ void noopCommandHandler(DataIn& _in, DataOut& out)
  * data for that object, or a 0-byte block if the object is not known or is not readable.
  */
 void readValueCommandHandler(DataIn& in, DataOut& out) {	
-	while (in.hasNext()) {					// allow multiple read commands
-		Object* o = lookupObject(in);		// read the object and pipe read data to output
-		uint8_t available = in.next();		// number of bytes expected
-		Value* v = (Value*)o;
-		if (isValue(o) && available==v->streamSize()) {		
-			v->readTo(out);
-		}
-		else {								// not a readable object, flag as 0 length						
-			while (available-->0) {			// consume data in stream				
-				in.next();
-			}
-			out.write(0);
-		}
+	Object* o = lookupObject(in);		// read the object and pipe read data to output
+	uint8_t available = in.next();		// number of bytes expected
+	Value* v = (Value*)o;
+	if (isValue(o) && available==v->streamSize()) {		
+		out.write(available);
+		v->readTo(out);
+	}
+	else {								// not a readable object, flag as 0 length						
+		out.write(0);
 	}
 }
 
@@ -129,21 +120,10 @@ Object* nullFactory(ObjectDefinition& def) {
 	return NULL;
 }
 
-/**
- * Application-provided function to create the object of the given type.
- * @param in	The data input stream that provides the object details. The format is:
- * <pre>
- *	uint8_t			object type
- *  uint8_t			data length
- *  uint8_t[len]	data 
- * </pre>
- */
-extern Object* createObject(DataIn& in, bool dryRun=false);
-
 
 enum RehydrateErrors {
 	rehydrateNoError = 0,
-	rehydrateFail = 1			// descriptive :)
+	rehydrateFail = -1			// descriptive :)
 };
 
 /**
@@ -186,7 +166,7 @@ void createObjectCommandHandler(DataIn& _in, DataOut& out)
 {
 	PipeDataIn in(_in, systemProfile.writer);		// pipe object creation command to eeprom
 	
-	eptr_t offset = systemProfile.writer.offset();	// save current eeprom pointer - this is where the object definition is written.
+	eptr_t offset = systemProfile.writer.offset();          // save current eeprom pointer - this is where the object definition is written.
 	systemProfile.writer.write(CMD_INVALID);			// value for partial write, will go a back when successfully completed and write this again
 	uint8_t error_code = rehydrateObject(offset, in, false);
 	if (!error_code) {
@@ -196,40 +176,6 @@ void createObjectCommandHandler(DataIn& _in, DataOut& out)
 	out.write(error_code);							// status is index it was created at	
 }
 
-
-/**
- * Parses a stream of object definitions, piping the valid definitions to an output stream.
- * Stops when the input stream doesn't contain a recognized object definition. 
- */
-class ObjectDefinitionWalker {
-	
-	DataIn* _in;		// using pointer to avoid non-POD warnings
-	
-public:
-	ObjectDefinitionWalker(DataIn& in):
-		_in(&in) {}
-						
-	/**
-	 * Writes the next object definition from the data input to the given output.
-	 * When the input stream is exhausted or the current position is not an object creation command,
-	 * the method returns false and the stream location is unchanged. 
-	 */							
-	bool writeNext(DataOut& out) {
-		if (!_in->hasNext())
-			return false;
-			
-		int8_t next = _in->peek();
-		bool valid =  ((next&0x7F)==CMD_CREATE_OBJECT);
-		if (valid) {			
-			PipeDataIn pipe(*_in, next<0 ? blackhole : out);	// next<0 if command not fully completed, so output is discarded
-			pipe.next();										// fetch the next value already peek'ed at so this is written to the output stream
-			/*Object* target = */lookupObject(pipe);			// find the container where the object will be added
-			// todo - could flag warning if target is NULL
-			createObject(pipe, true);							// dry run for create object, just want data to be output
-		}
-		return valid;
-	}
-};
 
 template <int SIZE> class BufferDataOut : public DataOut {
 	uint8_t buffer[SIZE];
@@ -269,7 +215,7 @@ typedef BufferDataOut<MAX_CONTAINER_DEPTH+1> IDCapture;
  */
 void removeEepromCreateCommand(IDCapture& id) {
 	EepromDataIn eepromData;
-	systemProfile.profileReadRegion(eepromData);	
+	systemProfile.profileReadRegion(systemProfile.currentProfile(), eepromData);	
 	ObjectDefinitionWalker walker(eepromData);
 	IDCapture capture;							// save the contents of the eeprom
 	
@@ -312,53 +258,35 @@ void deleteObjectCommandHandler(DataIn& in, DataOut& out)
 	out.write(error);	
 }
 
-
-/**
- * Enumerates all the create object instructions in eeprom to an output stream.
- */ 
-void listEepromInstructionsTo(DataOut& out) {
-	EepromDataIn eepromData;
-	systemProfile.profileReadRegion(eepromData);
-	ObjectDefinitionWalker walker(eepromData);
-	while (walker.writeNext(out));
-}
-
-/**
- * Compacts the eeprom instruction store by removing deleted object definitions.
- *
- * @return The offset where the next eeprom instruction will be stored. 
- * This method assumes SystemProfile::writer points to the last written location at the end of the profile.
- */
-eptr_t compactObjectDefinitions() {
-	EepromDataOut eepromData;
-	systemProfile.profileReadRegion(eepromData);
-	listEepromInstructionsTo(eepromData);
-	return eepromData.offset();
-}
-
 /**
  * Walks the eeprom and writes out the construction definitions.
  */
 void listObjectsCommandHandler(DataIn& _in, DataOut& out)
 {
-	listEepromInstructionsTo(out);
+	profile_id_t profile = _in.next();
+	SystemProfile::listEepromInstructionsTo(profile, out);
+}
+
+void fetchNextSlot(Object* obj, DataIn& in, DataOut& out)
+{
+	container_id slot = -1;
+	if (isOpenContainer(obj)) {
+		OpenContainer* container = (OpenContainer*)obj;
+		slot = container->next();
+	}
+	out.write(slot);	
 }
 
 void freeSlotCommandHandler(DataIn& in, DataOut& out)
 {
 	Object* obj = lookupObject(in);
-	container_id id = -1;
-	if (isOpenContainer(obj)) {
-		OpenContainer* container = (OpenContainer*)obj;
-		id = container->next();
-	}
-	out.write(id);
+	fetchNextSlot(obj, in, out);
 }
 
-void activateProfileCommandHandler(DataIn& in, DataOut& out) {
-	uint8_t profile_id = in.next();
-	uint8_t result = systemProfile.activateProfile(profile_id);
-	out.write(result);
+void freeSlotRootCommandHandler(DataIn& in, DataOut& out)
+{
+	Object* obj = rootContainer();
+	fetchNextSlot(obj, in, out);
 }
 
 void deleteProfileCommandHandler(DataIn& in, DataOut& out) {
@@ -370,16 +298,6 @@ void deleteProfileCommandHandler(DataIn& in, DataOut& out) {
 void createProfileCommandHandler(DataIn& in, DataOut& out) {	
 	uint8_t result = systemProfile.createProfile();
 	out.write(result);
-}
-
-/**
- * Compact the object definitions store. 
- */
-void compactStorageCommandHandler(DataIn& in, DataOut& out) {	
-	
-	/*eptr_t last = */compactObjectDefinitions();
-	// todo - update system profile with this info
-	out.write(0);
 }
 
 /**
@@ -426,8 +344,11 @@ void resetCommandHandler(DataIn& in, DataOut& out) {
 	handleReset();
 }
 
-// object 0 in root container is current profile id.
-// writing that changes the profile
+void activateProfileCommandHandler(DataIn& in, DataOut& out) {
+	profile_id_t id = in.next();
+	bool result = SystemProfile::activateProfile(id);
+	out.write(result ? 0 : -1);
+}
 
 CommandHandler handlers[] = {
 	noopCommandHandler,				// 0x00
@@ -439,9 +360,12 @@ CommandHandler handlers[] = {
 	freeSlotCommandHandler,			// 0x06
 	createProfileCommandHandler,	// 0x07
 	deleteProfileCommandHandler,	// 0x08
-	compactStorageCommandHandler,	// 0x09	
+	activateProfileCommandHandler,	// 0x09
 	logValuesCommandHandler,		// 0x0A
 	resetCommandHandler,			// 0x0B
+	freeSlotRootCommandHandler,		// 0x0C
+	
+	SystemProfile::listDefinedProfiles	// 0x0E
 };
 
 /*

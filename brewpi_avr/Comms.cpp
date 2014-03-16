@@ -36,6 +36,13 @@ static MockSerial comms;
 StdIO comms;
 #else
 #define comms Serial
+#define BREWPI_USE_FLUSH 0
+// for serial, flush waits until the output has been flushed. The flush is there just to ensure the output is not
+// buffered, which it never is with serial.
+#endif
+
+#ifndef BREWPI_USE_FLUSH
+#define BREWPI_USE_FLUSH 1
 #endif
 
 void Comms::init() {
@@ -51,7 +58,13 @@ class CommsIn : public DataIn
 
 class CommsOut : public DataOut
 {
+public:	
 	bool write(uint8_t data) { comms.write(data); return true; }	
+	void flush() { 
+	#if BREWPI_USE_FLUSH		// only flush for those stream types that require it
+		comms.flush(); 
+	#endif		
+	}
 };
 
 // low-level binary in/out streams
@@ -214,12 +227,12 @@ public:
 	 * Rather than closing the global stream, write a newline to signify the end of this command.
 	 */
 	void close() {
-		_out->write('\n');
+		_out->write('\n');		
 	}
 };
 
 BinaryToHexTextOut hexOut(commsOut);
-DataOut& Comms::hexOut = hexOut;
+DataOut& Comms::hexOut = ::hexOut;
 bool prevConnected = false;
 
 #define VERSION /* 0  */ "[\"s\":0,"\
@@ -233,6 +246,7 @@ void printVersion()
 	buf[11] = BREWPI_SIMULATE+'0';
 	buf[18] = BREWPI_BOARD;
 	commsOut.writeBuffer(buf, strlen(buf));	
+	commsOut.flush();
 }
 
 void Comms::receive() {
@@ -248,6 +262,7 @@ void Comms::receive() {
 		if (hexIn.hasNext())				// ignore blank newlines, annotations etc..
 			handleCommand(hexIn, hexOut);
 		hexOut.close();
+		commsOut.flush();
 	}	
 }
 
