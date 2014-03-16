@@ -46,7 +46,7 @@ public:
 			DeviceAddress address;			
 			def.in->read(address, 8);
 			fixed4_4 calibration = def.in->next();
-			OneWireBus* bus = cast_object_ptr(OneWireBus, lookupObject(*def.in));
+			OneWireBus* bus = cast_object_ptr(OneWireBus, lookupUserObject(*def.in));
 			if (bus)
 				result = new OneWireTempSensor(bus, address, calibration);
 		}
@@ -98,6 +98,7 @@ public:
 	temperature readAndConstrainTemp();
 	
 	DallasTemperature sensor;
+	// todo - consider moving this into eeprom
 	DeviceAddress sensorAddress;
 
 	fixed4_4 calibrationOffset;		
