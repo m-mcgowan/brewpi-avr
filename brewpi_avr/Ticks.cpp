@@ -38,11 +38,35 @@ ticks_seconds_t ExternalTicks::timeSince(ticks_seconds_t previousTime){
 	return ::timeSince(currentTime, previousTime);
 }
 
+#if BREWPI_VIRTUAL
 // return time that has passed since timeStamp, take overflow into account
 ticks_seconds_t DesktopTicks::timeSince(ticks_seconds_t previousTime){
 	ticks_seconds_t currentTime = ticks.seconds();
 	return ::timeSince(currentTime, previousTime);
 }
+
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
+void mySleep(uint32_t sleepUs)
+{
+#ifdef _WIN32
+    Sleep(sleepUs/1000);
+#else
+    usleep(sleepUs);   // usleep takes sleep time in us
+#endif  
+}
+
+void DesktopDelay::microseconds(uint32_t micros) 
+{        
+    mySleep(micros);
+}
+#endif
+
 
 
 

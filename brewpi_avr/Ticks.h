@@ -85,6 +85,13 @@ public:
 	void microseconds(uint32_t micros) { }
 };
 
+class DesktopDelay {
+public:	
+	void seconds(uint16_t seconds)	{ millis(seconds*1000); }
+	void millis(uint32_t millis)	{ microseconds(millis*1000); }	
+	void microseconds(uint32_t micros);    
+};
+
 /*
  * The Ticks class provides the time period since the device was powered up.
  */
@@ -125,8 +132,11 @@ extern TicksImpl ticks;
 // For emulation, don't delay, since time in the emulator is not real time, so the delay is meaningless.
 // For regular code, use the arduino delay function.
 
-#if BREWPI_VIRTUAL || BREWPI_EMULATE || !defined(ARDUINO)
+#if BREWPI_EMULATE
 typedef NoOpDelay DelayImpl;		// for emulation (avr debugger), don't bother delaying, it takes ages.
+#define DELAY_IMPL_CONFIG
+#elif BREWPI_VIRTUAL
+typedef DesktopDelay DelayImpl;
 #define DELAY_IMPL_CONFIG
 #else
 typedef HardwareDelay DelayImpl;
