@@ -198,4 +198,7 @@
 #define DS2413_SUPPORT_SENSE 0
 #endif
 
+#ifndef BREWPI_VIRTUAL
+#define BREWPI_VIRTUAL 0
+#endif
 
