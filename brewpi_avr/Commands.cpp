@@ -315,7 +315,7 @@ void resetCommandHandler(DataIn& in, DataOut& out) {
 	uint8_t flags = in.next();
 	if (flags==1)
 		systemProfile.initializeEeprom();
-		
+        handleReset(false);
 	out.write(0);
 	Comms::resetOnCommandComplete();
 }

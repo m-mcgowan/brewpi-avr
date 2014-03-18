@@ -19,8 +19,11 @@ void handleCommand(DataIn& data, DataOut& out);
 /**
  * Function prototype expected by the commands implementation to perform
  * a reset.  
+ * @param exit false on first call, true on second call. The first call (exit==false) is 
+ * during command processing, so that actions can be taken before the command response is sent.
+ * The second call (exit==true) is called to perform the actual reset.
  */
-extern void handleReset();
+extern void handleReset(bool exit);
 
 /**
  * Removes deleted object definitions from the current profile eeprom block.

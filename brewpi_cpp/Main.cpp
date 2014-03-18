@@ -31,10 +31,6 @@ extern void loop (void);
 
 static bool quit = false;
 
-void handleReset() {
-    quit = true;
-}
-
 void saveEeprom(const char* file)
 {
     if (file) {
@@ -53,6 +49,14 @@ void saveEepromIfNeeded(const char* file)
         saveEeprom(file);
     }
 }
+
+char buf[256];
+
+void handleReset(bool enter) {
+    quit = true;
+    saveEeprom(buf);
+}
+
 
 void loadEeprom(const char* source)
 {
@@ -74,13 +78,13 @@ int main(int argc, const char* argv[])
     sprintf(buf, "%s.eeprom", argv[0]);    
     loadEeprom(buf);
     
-        setup();
-	saveEepromIfNeeded(buf);
-	for (;!quit;) {
-		loop();
-                saveEepromIfNeeded(buf);
-	}
-        saveEepromIfNeeded(buf);
-        return 0;
+    setup();
+    saveEepromIfNeeded(buf);
+    for (;!quit;) {
+            loop();
+            saveEepromIfNeeded(buf);
+    }
+    saveEepromIfNeeded(buf);
+    return 0;
 }
 

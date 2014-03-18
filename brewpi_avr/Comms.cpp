@@ -261,7 +261,7 @@ void Comms::receive() {
 	}
 
 	if (reset)	// reset received, don't process any more commands
-            return;
+		return;
 		
 	while (comms.available()>0) {                           // there is some data ready to be processed											// form this point on, the system will block waiting for a complete command or newline.
 		TextIn textIn(commsIn);
@@ -272,7 +272,7 @@ void Comms::receive() {
 		commsOut.flush();		
 	}
 	if (reset) {
-		handleReset();
+		handleReset(true);					// do the hard reset
 	}
 }
 
