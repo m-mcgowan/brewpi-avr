@@ -142,16 +142,21 @@ bool SystemProfile::activateProfile(profile_id_t profile) {
 #if SYSTEM_PROFILE_ENABLE	
 		deactivateCurrentProfile();
 #endif		
-		if (profile>=0) {
-                    if (!getProfileOffset(profile))
-                        return false;
-                    setCurrentProfile(profile);					// persist the change
-                    root = createRootContainer();
-                    EepromDataIn eepromReader;
-                    profileReadRegion(profile, eepromReader);			// get region in eeprom for the profile
-                    streamObjectDefinitions(eepromReader);
-                    profileWriteRegion(writer, true);		// reset to available region (allow open profile)                    
+		bool activated = true;
+		
+		if (profile>=0 && !getProfileOffset(profile)) {
+			activated = false;
+			profile = -1;
 		}
+		setCurrentProfile(profile);								// persist the change
+		if (profile>=0) {			
+			root = createRootContainer();
+			EepromDataIn eepromReader;
+			profileReadRegion(profile, eepromReader);			// get region in eeprom for the profile
+			streamObjectDefinitions(eepromReader);
+			profileWriteRegion(writer, true);		// reset to available region (allow open profile)                    
+		}		
+		return activated;
 	}
 	return true;
 }
