@@ -33,8 +33,6 @@ bool walkObject(Object* obj, EnumObjectsFn callback, void* data, container_id* i
 	if (callback(obj, data, id, false))
 		return true;
 		
-	return true;
-
 	return false;
 }
 

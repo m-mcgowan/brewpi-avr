@@ -11,11 +11,11 @@
 const uint8_t EEPROM_HEADER_SIZE = 2;
 const uint8_t MAX_SYSTEM_PROFILES = 4;
 
-const uint8_t SYSTEM_PROFILE_CURRENT_OFFSET = EEPROM_HEADER_SIZE;	// start address of profile fat.
-const uint8_t SYSTEM_PROFILE_ID_OFFSET = SYSTEM_PROFILE_CURRENT_OFFSET+1;
-const uint8_t SYSTEM_PROFILE_RESERVED_OFFSET = SYSTEM_PROFILE_ID_OFFSET+1;
-const uint8_t SYSTEM_PROFILE_OPEN_END = SYSTEM_PROFILE_RESERVED_OFFSET+1;
-const uint8_t SYSTEM_PROFILE_FAT = SYSTEM_PROFILE_OPEN_END+sizeof(eptr_t);
+const uint8_t SYSTEM_PROFILE_CURRENT_OFFSET = EEPROM_HEADER_SIZE;               // start address of profile fat.
+const uint8_t SYSTEM_PROFILE_ID_OFFSET = SYSTEM_PROFILE_CURRENT_OFFSET+1;       // 1 byte for current profile
+const uint8_t SYSTEM_PROFILE_RESERVED_OFFSET = SYSTEM_PROFILE_ID_OFFSET+1;      // 1 byte for ID
+const uint8_t SYSTEM_PROFILE_OPEN_END = SYSTEM_PROFILE_RESERVED_OFFSET+2;       // 2 reserved bytes
+const uint8_t SYSTEM_PROFILE_FAT = SYSTEM_PROFILE_OPEN_END+sizeof(eptr_t);      // end of last profile address
 
 const uint8_t SYSTEM_PROFILE_DATA_OFFSET = SYSTEM_PROFILE_FAT + (MAX_SYSTEM_PROFILES*sizeof(eptr_t));
 
@@ -79,7 +79,9 @@ void SystemProfile::initialize() {
 		writePointer(SYSTEM_PROFILE_ID_OFFSET, -1);            // id and reserved
 		
 		// clear the fat
-		writeEepromRange(SYSTEM_PROFILE_FAT-2, SYSTEM_PROFILE_DATA_OFFSET, 0);
+		writeEepromRange(SYSTEM_PROFILE_FAT, SYSTEM_PROFILE_DATA_OFFSET, 0);
+                
+                setProfileOffset(-1, SYSTEM_PROFILE_DATA_OFFSET);   // set the marker for the last profile
 		
 		// reset profile store
 		writeEepromRange(SYSTEM_PROFILE_DATA_OFFSET, eepromAccess.length(), 0xFF);		
@@ -107,7 +109,7 @@ profile_id_t SystemProfile::createProfile() {
 	closeOpenProfile();
 
 #if SYSTEM_PROFILE_ENABLE
-	eptr_t end = readPointer(SYSTEM_PROFILE_OPEN_END);	// find the end of the last profile
+	eptr_t end = getProfileOffset(-1);	// find the end of the last profile
 	
 	// look for a free slot
 	for (profile_id_t i=0; i<MAX_SYSTEM_PROFILES; i++) {		
@@ -117,8 +119,7 @@ profile_id_t SystemProfile::createProfile() {
 	}
 	
 	if (idx!=-1) {
-		setProfileOffset(idx, end);
-		profileWriteRegion(writer, false);		// reset the stream so that it's limited now.
+                setProfileOffset(idx, end);
 	}	
 #endif
 	return idx;
@@ -141,13 +142,15 @@ bool SystemProfile::activateProfile(profile_id_t profile) {
 #if SYSTEM_PROFILE_ENABLE	
 		deactivateCurrentProfile();
 #endif		
-		if (profile>=0) {			
-			setCurrentProfile(profile);					// persist the change
-			root = createRootContainer();
-			EepromDataIn eepromReader;
-			profileReadRegion(profile, eepromReader);			// get region in eeprom for the profile
-			streamObjectDefinitions(eepromReader);
-			profileWriteRegion(writer, true);		// reset to available region (allow open profile)
+		if (profile>=0) {
+                    if (!getProfileOffset(profile))
+                        return false;
+                    setCurrentProfile(profile);					// persist the change
+                    root = createRootContainer();
+                    EepromDataIn eepromReader;
+                    profileReadRegion(profile, eepromReader);			// get region in eeprom for the profile
+                    streamObjectDefinitions(eepromReader);
+                    profileWriteRegion(writer, true);		// reset to available region (allow open profile)                    
 		}
 	}
 	return true;
@@ -168,7 +171,10 @@ void SystemProfile::streamObjectDefinitions(EepromDataIn& eepromReader)
 }
 
 /**
- * Deletes a profile. If the profile being deleted is the active profile, the current profile is deactivated.
+ * Deletes a profile. If the profile being deleted is the active profile, 
+ * the current profile is deactivated.
+ * All profiles above this one in eeprom are shuffled down by the size of the
+ * profile. 
  */
 profile_id_t SystemProfile::deleteProfile(profile_id_t profile) {
 #if SYSTEM_PROFILE_ENABLE
@@ -177,23 +183,30 @@ profile_id_t SystemProfile::deleteProfile(profile_id_t profile) {
 	}
 	
 	eptr_t start = getProfileOffset(profile);
+        if (!start || profile<0)             // profile not defined
+            return 0;
+        
 	eptr_t end = getProfileEnd(profile);
 	
-	setProfileOffset(profile, 0);		// mark the slot as available
+	setProfileOffset(profile, 0);  // mark the slot as available
+        
+        // adjust all profile end points, including the end point for the open profile
 	for (int i=-1; i<MAX_SYSTEM_PROFILES; i++) {
 		eptr_t e = getProfileOffset(i);
-		if (e>=end) {
+		if (e>=end) {    // profile is above the one just deleted
 			setProfileOffset(i, e-(end-start));
 		}
 	}
 
 	// block copy eeprom
-
 	while (end<eepromAccess.length()) {
 		uint8_t b = eepromAccess.readByte(end++);
 		eepromAccess.writeByte(start++, b);
 	}
-	writeEepromRange(start, eepromAccess.length(), 0xFF);		
+	writeEepromRange(start, eepromAccess.length(), 0xFF);
+        
+        // update the start/end of the writable region
+        profileWriteRegion(writer, true);
 	return profile;
 #else
 	return -1;	// not supported	
@@ -238,7 +251,7 @@ bool deleteDynamicallyAllocatedObject(Object* obj, void* data, container_id* id,
 void SystemProfile::closeOpenProfile()
 {
 	// if this profile is open, be sure to compact eeprom
-	if (getProfileEnd(current, true)==eepromAccess.length()) {
+	if (current >= 0 && getProfileEnd(current, true)==eepromAccess.length()) {
 		eptr_t end = compactObjectDefinitions();
 		setProfileOffset(-1, end);
 	}
@@ -263,8 +276,7 @@ void SystemProfile::deactivateCurrentProfile() {
 	
 	if (isDynamicallyAllocated(root))
 		delete_object(root);
-	root = NULL;
-	profileWriteRegion(writer);
+	root = NULL;	
 }
 #endif
 
@@ -325,7 +337,7 @@ eptr_t SystemProfile::getProfileEnd(profile_id_t profile, bool includeOpen)  {
 	// find smallest profile offset that is greater than the start
 	for (profile_id_t i=-1; i<MAX_SYSTEM_PROFILES; i++) {		// include last profile end
 		eptr_t p = getProfileOffset(i);
-		if ((p>start) && (p<end) && (i>=0 || !includeOpen))		// when i==-1 and !includeOpen then the end is used, otherwise end remains at eepromAccess.length()
+		if ((i!=profile) && (p>=start) && (p<end) && (i>=0 || !includeOpen))		// when i==-1 and !includeOpen then the end is used, otherwise end remains at eepromAccess.length()
 			end = p;
 	}
 	return end;
