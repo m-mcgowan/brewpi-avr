@@ -12,6 +12,7 @@
 #include "ValuesEeprom.h"
 #include "GenericContainer.h"
 #include "SystemProfile.h"
+#include "Comms.h"
 
 /**
  * A command handler function. This is the signature of commands.
@@ -32,8 +33,8 @@ void readValue(Object* root, DataIn& in, DataOut& out) {
 	Object* o = lookupObject(root, in);		// read the object and pipe read data to output
 	uint8_t available = in.next();		// number of bytes expected
 	Value* v = (Value*)o;
-	if (isValue(o) && available==v->streamSize()) {
-		out.write(available);
+	if (isValue(o) && (available==v->streamSize() || available==0)) {
+		out.write(v->streamSize());
 		v->readTo(out);
 	}
 	else {								// not a readable object, flag as 0 length
@@ -60,7 +61,7 @@ void setValue(Object* root, DataIn& in, DataOut& out) {
 	Object* o = lookupObject(root, in);		// fetch the id and the object		
 	Value* v = (Value*)o;			
 	uint8_t available = in.next();
-	if (isWritable(o) && v->streamSize()==available) {		// if it's writable and the correct number of bytes were parsed.
+	if (isWritable(o) && (v->streamSize()==available)) {		// if it's writable and the correct number of bytes were parsed.
 		v->writeFrom(in);									// assign from stream			
 		out.write(v->streamSize());							// now write out actual value
 		v->readTo(out);			
@@ -144,7 +145,7 @@ void createObjectCommandHandler(DataIn& _in, DataOut& out)
 		eepromAccess.writeByte(offset, CMD_CREATE_OBJECT);	// finalize creation in eeprom		
 	}
 	systemProfile.setOpenProfileEnd(systemProfile.writer.offset());	// save end of open profile
-	out.write(error_code);							// status is index it was created at	
+	out.write(error_code);						// status is index it was created at	
 }
 
 
@@ -316,7 +317,7 @@ void resetCommandHandler(DataIn& in, DataOut& out) {
 		systemProfile.initializeEeprom();
 		
 	out.write(0);
-	handleReset();
+	Comms::resetOnCommandComplete();
 }
 
 void activateProfileCommandHandler(DataIn& in, DataOut& out) {

@@ -249,20 +249,30 @@ void printVersion()
 	commsOut.flush();
 }
 
+bool reset = false;
+void Comms::resetOnCommandComplete() {
+	reset = true;
+}
+
 void Comms::receive() {
-		
 	if (comms && !prevConnected) {
 		prevConnected = true;
 		printVersion();
 	}
+
+	if (reset)	// reset received, don't process any more commands
+            return;
 		
-	while (comms.available()>0) {			// there is some data ready to be processed											// form this point on, the system will block waiting for a complete command or newline.
+	while (comms.available()>0) {                           // there is some data ready to be processed											// form this point on, the system will block waiting for a complete command or newline.
 		TextIn textIn(commsIn);
 		HexTextToBinaryIn hexIn(textIn);
 		if (hexIn.hasNext())				// ignore blank newlines, annotations etc..
 			handleCommand(hexIn, hexOut);
 		hexOut.close();
-		commsOut.flush();
-	}	
+		commsOut.flush();		
+	}
+	if (reset) {
+		handleReset();
+	}
 }
 

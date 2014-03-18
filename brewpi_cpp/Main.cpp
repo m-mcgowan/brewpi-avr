@@ -80,6 +80,7 @@ int main(int argc, const char* argv[])
 		loop();
                 saveEepromIfNeeded(buf);
 	}
+        saveEepromIfNeeded(buf);
         return 0;
 }
 

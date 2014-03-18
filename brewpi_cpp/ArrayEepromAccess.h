@@ -78,7 +78,8 @@ protected:
         bool isValidRange(uint16_t offset, uint16_t size) const
         {
             assert(sizeof(ArrayEepromAccess)>1024);
-            bool valid = offset>=0 && offset<1024 && size<=1024 && offset+size<=1024;
+            bool valid = offset>=0 && offset<eepromLength() 
+                && size<=eepromLength() && offset+size<=eepromLength();
             return valid;
         }
 private:

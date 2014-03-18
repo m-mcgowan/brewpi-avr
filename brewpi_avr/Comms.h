@@ -21,6 +21,8 @@ public:
 	 */
 	static void receive();
 	
+	static void resetOnCommandComplete();
+	
 	/**
 	 * Output stream. Used to write data after command processing.
 	 */

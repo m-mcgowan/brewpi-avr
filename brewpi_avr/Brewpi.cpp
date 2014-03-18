@@ -55,7 +55,7 @@ void setup(void);
 void loop (void);
 
 /* Configure the counter and delay timer. The actual type of these will vary depending upon the environment.
- * They are non-virtual to keep code size minimal, so typedefs and preprocessing are used to select the actual compile-time type used. */
+ * They are non-virtual to keep code	 size minimal, so typedefs and preprocessing are used to select the actual compile-time type used. */
 TicksImpl ticks = TicksImpl(TICKS_IMPL_CONFIG);
 DelayImpl wait = DelayImpl(DELAY_IMPL_CONFIG);
 
@@ -141,15 +141,26 @@ void logValues(container_id* ids)
 
 void process() {
 	container_id ids[MAX_CONTAINER_DEPTH];
-	Container* root = SystemProfile::rootContainer();
+	
+    prepare_t d = 0;
+    Container* root = SystemProfile::rootContainer();
+    if (root)
+            d = root->prepare();
+    if (d<1000) 
+		d = 1000;	// todo - just for testing to stop busy waiting
 
-        prepare_t d = 0;
-        if (root)
-             d = root->prepare();
-        if (d<1000) d = 1000;	// todo - just for testing to stop busy waiting
-	wait.millis(d);
-		
-	if (root) {
+    uint32_t end = ticks.millis()+d;
+    while (ticks.millis()<end) {
+        Comms::receive();
+#if BREWPI_VIRTUAL              // avoid busy waiting on a desktop PC since this hogs the cpu
+        wait.millis(10);
+#endif        
+    }        
+        
+        Container* root2 = SystemProfile::rootContainer();	
+        // root may have been changed by commands, so original prepare may not be valid
+        // should watch out for newly created objects, since these will then also need preparing
+	if (root==root2 && root) {
             root->update();
 		
             // todo - should brewpi always log, or only log when requested?
@@ -169,8 +180,8 @@ void process() {
  */
 void brewpiLoop(void)
 {		
-	Comms::receive();
 	process();
+	Comms::receive();
 }
 
 void loop() {       
