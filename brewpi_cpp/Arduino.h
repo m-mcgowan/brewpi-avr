@@ -60,17 +60,6 @@ inline char *strchrnul(char *s, int c)
        return ptr;
 }
 
-/*
-namespace sc = std::chrono;
-
-inline uint32_t millis() {             
-    auto time = sc::system_clock::now(); // get the current time
-    auto since_epoch = time.time_since_epoch(); // get the duration since epoch
-    auto millis = sc::duration_cast<sc::milliseconds>(since_epoch);
-    long now = millis.count(); // just like java (new Date()).getTime();
-}
-*/
-
 #include "timems.h"
 
 inline uint32_t millis() { return (uint32_t)millisSinceStartup(); } 
