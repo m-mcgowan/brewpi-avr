@@ -12,7 +12,15 @@ public:
 	void readTo(DataOut& out)
 	{
 		ticks_millis_t millis = ticks.millis();
+#if ARDUINO				
+		// arduino is little-endian
+		uint8_t* buf = (uint8_t*)&millis;				
+		for (int i=4; i-->0; )
+			out.write(buf[i]);
+#else		
+		// intel is big endian
 		out.writeBuffer(&millis, sizeof(millis));
+#endif		
 	}
 	
 	uint8_t streamSize()
