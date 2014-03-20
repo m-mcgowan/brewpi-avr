@@ -100,7 +100,8 @@ enum RehydrateErrors {
 
 /**
  * Rehydrate an object from a definition. 
- * @param offset	The location in eeprom where this object definition exists.
+ * @param offset	The location in eeprom where this object definition exists. This points to the first byte
+	in the object creation command, namely the command id. 
  * @param in		The stream containing the object definition. First the id, then the object type, definition block length and
  * the definition block.
  * @return 0 on success, an error code on failure.
@@ -108,20 +109,18 @@ enum RehydrateErrors {
 uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in, bool dryRun) 
 {	
 	container_id lastID;
-	Object* target = lookupContainer(rootContainer(), in, lastID);			// find the container where the object will be added
+	OpenContainer* target = lookupUserOpenContainer(in, lastID);			// find the container where the object will be added
 	Object* newObject = createObject(in, dryRun);			// read the type and create args
 	
 	uint8_t error = rehydrateFail;
-	if (in.pipeOk() && lastID>=0 && target && newObject && isOpenContainer(target)) {		// if the lastID >=0 then it was fetched from a container
-		OpenContainer* c = (OpenContainer*)target;
-		if (c->add(lastID, newObject)) {
-			// skip object create command, type and id. 
-			offset+=2;
-			while (int8_t(eepromAccess.readByte(offset++))<0) {}
-			newObject->rehydrated(offset);
-			error = rehydrateNoError;
-		}
-	}
+	if (in.pipeOk() && lastID>=0 && newObject && target && target->add(lastID,newObject)) {		// if the lastID >=0 then it was fetched from a container				
+        // skip object create command, type and id. 
+        offset++; // skip creation id
+        while (int8_t(eepromAccess.readByte(offset++))<0) {}	// skip contianer
+		offset+=2;												// skip last part of id chain, and object type
+        newObject->rehydrated(offset);
+        error = rehydrateNoError;
+    }
 	
 	if (error) {
 		delete_object(newObject);
@@ -138,7 +137,15 @@ void createObjectCommandHandler(DataIn& _in, DataOut& out)
 {
 	PipeDataIn in(_in, systemProfile.writer);		// pipe object creation command to eeprom
 	
+	// todo - streaming the object creation command to eeprom is elegant and simple (little code)
+	// but wasteful of space. Each object definition requires a minimum of 4 bytes overhead:
+	// 0x03 - object creation command
+	// 0xXX+ - container id
+	// 0xTT - object type id - will not need 256 of these, so this is a candidate for combining with the command id
+	// 0xLL - number of data blocks - this could be implicit?
+	
 	eptr_t offset = systemProfile.writer.offset();          // save current eeprom pointer - this is where the object definition is written.
+	// write the command id placeholder to eeprom (since that's already been consumed)
 	systemProfile.writer.write(CMD_INVALID);			// value for partial write, will go a back when successfully completed and write this again
 	uint8_t error_code = rehydrateObject(offset, in, false);
 	if (!error_code) {
@@ -206,11 +213,10 @@ void removeEepromCreateCommand(IDCapture& id) {
 
 uint8_t deleteObject(DataIn& id) {
 	int8_t lastID;
-	Object* obj = lookupContainer(rootContainer(), id, lastID);	// find the container and the ID in the chain to remove
 	uint8_t error = -1;
-	if (obj!=NULL && isOpenContainer(obj) && lastID>=0) {
-		OpenContainer* c = (OpenContainer*)obj;
-		c->remove(lastID);
+	OpenContainer* obj = lookupUserOpenContainer(id, lastID);	// find the container and the ID in the chain to remove
+	if (obj && lastID>=0 && lastID<obj->size()) {		
+		obj->remove(lastID);
 		error = 0;
 	}
 	return error;
@@ -313,11 +319,12 @@ void logValuesCommandHandler(DataIn& in, DataOut& out) {
 
 void resetCommandHandler(DataIn& in, DataOut& out) {
 	uint8_t flags = in.next();
-	if (flags==1)
+	if (flags&1)
 		systemProfile.initializeEeprom();
         handleReset(false);
 	out.write(0);
-	Comms::resetOnCommandComplete();
+	if (flags&2)
+		Comms::resetOnCommandComplete();
 }
 
 void activateProfileCommandHandler(DataIn& in, DataOut& out) {

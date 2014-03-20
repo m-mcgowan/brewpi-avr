@@ -89,7 +89,7 @@ Object* lookupObject(Object* current, DataIn& data) {
  * For example, given a stream encoding the id chain "2.3.5", the container returned would correspond with
  * object "2.3" and lastID would be set to 5.
  */
-Object* lookupContainer(Object* current, DataIn& data, int8_t& lastID) 
+OpenContainer* lookupOpenContainer(Object* current, DataIn& data, int8_t& lastID) 
 {	
 	int8_t id = int8_t(data.next());
 	while (id<0 && data.hasNext())
@@ -98,14 +98,15 @@ Object* lookupContainer(Object* current, DataIn& data, int8_t& lastID)
 		id = int8_t(data.next());
 	}
 	lastID = id;
-	return current;
+	
+	return isOpenContainer(current) ? (OpenContainer*)current : NULL;
 }
 
 Object* lookupUserObject(DataIn& data) {
 	return lookupObject(rootContainer(), data);
 }
 
-Object* lookupUserContainer(DataIn& data, int8_t& lastID) {
-	return lookupContainer(rootContainer(), data, lastID);
+OpenContainer* lookupUserOpenContainer(DataIn& data, int8_t& lastID) {
+	return lookupOpenContainer(rootContainer(), data, lastID);
 }
 

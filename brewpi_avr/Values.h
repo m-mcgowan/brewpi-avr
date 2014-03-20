@@ -52,7 +52,9 @@ struct Object
 	/**
 	 * Notifies this object that it has been created and is operational in the system.
 	 * The eeprom address that contains the object's definition is provided for instances
-	 * that want to retrieve or amend their definition details.
+	 * that want to retrieve or amend their definition details. 
+	 * @param eeprom_address address of the length of the data buffer, followed by 'length' bytes.
+	 * Preceeding this address is the id_chain, and before that, the creation command. (0x03)
 	 */
 	virtual void rehydrated(eptr_t eeprom_address) {}
 
@@ -74,6 +76,7 @@ struct Object
 };
 
 const uint8_t MAX_CONTAINER_DEPTH = 8;
+const container_id MAX_CONTAINER_ID = 127;
 
 /**
  * A container that you cannot open. You can see the objects inside the container, but not add new ones.
@@ -134,6 +137,9 @@ public:
 	 * @param index	The index of the slot. >=0.
 	 * @param item	The object to add.
 	 * @return non-zero on success, zero on error. 
+	 * The current size of the container may be less than the slot. If the container can resize
+	 * to make additional slots available, it should do so, but this is an optional operation for
+	 * fixed size containers.
 	 */
 	virtual bool add(container_id index, Object* item) { return false; }
 		
@@ -322,7 +328,7 @@ public:
 
 
 struct ObjectDefinition {
-	DataIn* in;			// stream providing definition data for this object
+	DataIn* in;		// stream providing definition data for this object
 	uint8_t len;		// number of bytes in the stream for this object definition
 	uint8_t type;
 };
@@ -398,7 +404,7 @@ Object* lookupObject(Object* current, DataIn& data);
 /**
  * Read the id chain from the stream and resolve the container and the final index.
  */
-Object* lookupContainer(Object* current, DataIn& data, int8_t& lastID);
+Container* lookupContainer(Object* current, DataIn& data, int8_t& lastID);
 
 
 /**
@@ -409,4 +415,4 @@ Object* lookupUserObject(DataIn& data);
 /**
  * Read the id chain from the stream and resolve the container and the final index.
  */
-Object* lookupUserContainer(DataIn& data, int8_t& lastID);
+OpenContainer* lookupUserOpenContainer(DataIn& data, int8_t& lastID);
