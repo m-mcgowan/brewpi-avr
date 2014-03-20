@@ -59,11 +59,10 @@ void loop (void);
 TicksImpl ticks = TicksImpl(TICKS_IMPL_CONFIG);
 DelayImpl wait = DelayImpl(DELAY_IMPL_CONFIG);
 
-Object* rootItems[5];
-
 Container* createRootContainer()
 {
-	return new FixedContainer(sizeof(rootItems)/sizeof(rootItems[0]), rootItems);
+	DynamicContainer* d = new DynamicContainer();
+    return d;
 }
 
 
@@ -92,14 +91,11 @@ class GlobalSettings {
 };
 
 void setup()
-{    
-	//root.add(root.next(), &buildInfo);
-	//root.add(root.next(), &logInterval);
-
+{    	
 	SystemProfile::initialize();
 	
-	Comms::init();		
-		
+	Comms::init();
+			
 #if 0
 	uint8_t start = ticks.seconds();
 	while (ticks.timeSince(start)<loadProfileDelay) {
@@ -145,10 +141,10 @@ void process() {
     prepare_t d = 0;
     Container* root = SystemProfile::rootContainer();
     if (root)
-            d = root->prepare();
-    if (d<1000) 
-		d = 1000;	// todo - just for testing to stop busy waiting
-
+        d = root->prepare();
+#if BREWPI_VIRTUAL			
+    d = min(prepare_t(1000), d);	// just for testing to stop busy waiting
+#endif
     uint32_t end = ticks.millis()+d;
     while (ticks.millis()<end) {
         Comms::receive();
@@ -157,19 +153,19 @@ void process() {
 #endif        
     }        
         
-        Container* root2 = SystemProfile::rootContainer();	
+    Container* root2 = SystemProfile::rootContainer();	
         // root may have been changed by commands, so original prepare may not be valid
         // should watch out for newly created objects, since these will then also need preparing
 	if (root==root2 && root) {
-            root->update();
+        root->update();
 		
-            // todo - should brewpi always log, or only log when requested?
-            if (logValuesFlag)
-            {
-                    logValuesFlag = false;
-                    logValues(ids);
-            }
+        // todo - should brewpi always log, or only log when requested?
+        if (logValuesFlag)
+        {
+            logValuesFlag = false;
+            logValues(ids);
         }
+    }
 }
 
 /*
@@ -206,7 +202,8 @@ ObjectFactory createObjectHandlers[] = {
 	nullFactory,                                            // type 0
 	ARDUINO_OBJECT(OneWireBus::create),						// type 1
 	ARDUINO_OBJECT(OneWireTempSensor::create),       		// type 2
-	CurrentTicksValue::create								// type 3
+	CurrentTicksValue::create,								// type 3
+	DynamicContainer::create								// type 4
 };
 
 /**
