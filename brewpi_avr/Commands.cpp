@@ -117,7 +117,7 @@ uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in, bool dryRun)
         // skip object create command, type and id. 
         offset++; // skip creation id
         while (int8_t(eepromAccess.readByte(offset++))<0) {}	// skip contianer
-		offset+=2;												// skip last part of id chain, and object type
+		offset++;												// skip object type
         newObject->rehydrated(offset);
         error = rehydrateNoError;
     }

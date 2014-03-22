@@ -64,7 +64,7 @@ void SystemProfile::initializeEeprom() {
 }
 
 
-EepromStreamValue system_id(SYSTEM_PROFILE_ID_OFFSET, 1);
+EepromBlock system_id(SYSTEM_PROFILE_ID_OFFSET, 1);
 
 void SystemProfile::initialize() {
 	
@@ -166,9 +166,11 @@ void SystemProfile::streamObjectDefinitions(EepromDataIn& eepromReader)
 	BlackholeDataOut nullOut;
 	PipeDataIn reader(eepromReader, nullOut);	// rehydrateObject expects a pipe stream to save the object definition. we just throw it away.
 	while (reader.hasNext()) {
-		uint8_t cmd = reader.next();
+		
 		// if cmd is not create object then just parse the contents but don't instantiate.
-		if (rehydrateObject(eepromReader.offset(), reader, cmd!=CMD_CREATE_OBJECT) && cmd==CMD_CREATE_OBJECT) {
+		eptr_t offset = eepromReader.offset();
+		uint8_t cmd = reader.next();
+		if (rehydrateObject(offset, reader, cmd!=CMD_CREATE_OBJECT) && cmd==CMD_CREATE_OBJECT) {
 			// todo - what to do with errors? at least log errors.
 			// if error creating object, attempt a reset. Write a reset count to eeprom to avoid endless resets.
 		}
