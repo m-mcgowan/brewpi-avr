@@ -31,30 +31,67 @@ protected:
 };
 
 /**
+ * An object that uses it's construction definition in eeprom storage also as it's value.
+ * So, the initial construction data block sets the desired size and initial data.
+ * Subsequent read/write operations read and write to that data. 
+ */
+class EepromValue : public EepromBaseValue
+{
+	eptr_t address;
+public:
+	void rehydrated(eptr_t address)
+	{
+		this->address = address+1;	// skip over the size byte
+	}
+	
+	void readTo(DataOut& out) {
+		_readTo(out, eeprom_offset(), streamSize());
+	}
+		
+	void writeFrom(DataIn& out) {
+		_writeFrom(out, eeprom_offset(), streamSize());
+	}
+
+	eptr_t eeprom_offset() { return address; }
+	uint8_t streamSize() { return eepromAccess.readByte(address-1); }
+		
+	static Object* create(ObjectDefinition& defn) 
+	{
+			// read the contents of the stream so they are spooled 
+			// to eeprom
+			for (uint8_t i=0; i<defn.len; i++) {
+				defn.in->next();
+			}
+			return new_object(EepromValue());
+	}
+};
+
+
+/**
  * Streams an eeprom value of a given fixed size.
  */
-class EepromStreamValue : public EepromBaseValue
+class EepromBlock : public EepromBaseValue
 {
 	protected:
-		eptr_t _offset;
+		eptr_t _offset;		
 		uint8_t _size;
 					
 	public:
-		EepromStreamValue(eptr_t offset, uint8_t size) : _offset(offset), _size(size) {}
+		EepromBlock(eptr_t offset, uint8_t size) : _offset(offset), _size(size) {}
 
 		void readTo(DataOut& out) {
-			_readTo(out, eeprom_offset(), streamSize());
+			_readTo(out, _offset, _size);
 		}
 	
 		void writeFrom(DataIn& out) {
-			_writeFrom(out, eeprom_offset(), streamSize());
+			_writeFrom(out, _offset, _size);
 		}
 
 		eptr_t eeprom_offset() { return _offset; }
 		uint8_t streamSize() { return _size; }
-
 };
 
+#if 0
 /**
  * Provides state read/write (in addition to stream read/write) for an eeprom value. 
  */
@@ -62,7 +99,7 @@ template <class T, int _size=sizeof(T)> class EepromValue : public EepromStreamV
 {
 	public:
 		
-		EepromValue(eptr_t offset) : EepromStreamValue(offset, _size) {}
+		EepromValue(eptr_t offset) : EepromStreamValue(offset) {}
 		
 		T read() {
 			T result;
@@ -76,11 +113,14 @@ template <class T, int _size=sizeof(T)> class EepromValue : public EepromStreamV
 			out.write(&t, _size);
 		}
 		
+		uint8_t streamSize() { return _size; }
 };
+
 
 /**
  * Provides a streamable value to eeprom. The size is dynamic, unlike EepromStreamValue, where the size is
  * known at compile time. 
+ * mdm: I forget why I wrote this - it's presently unused.
  */
 class EepromDynamicStreamValue : public EepromBaseValue
 {
@@ -101,4 +141,4 @@ class EepromDynamicStreamValue : public EepromBaseValue
 		
 		uint8_t streamSize() { return _size; }
 };
-	
+#endif

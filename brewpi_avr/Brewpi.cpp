@@ -61,7 +61,7 @@ DelayImpl wait = DelayImpl(DELAY_IMPL_CONFIG);
 
 Container* createRootContainer()
 {
-	DynamicContainer* d = new DynamicContainer();
+	DynamicContainer* d = new DynamicContainer();    
     return d;
 }
 
@@ -203,7 +203,15 @@ ObjectFactory createObjectHandlers[] = {
 	ARDUINO_OBJECT(OneWireBus::create),						// type 1
 	ARDUINO_OBJECT(OneWireTempSensor::create),       		// type 2
 	CurrentTicksValue::create,								// type 3
-	DynamicContainer::create								// type 4
+	DynamicContainer::create,								// type 4
+	EepromValue::create,									// type 5
+	NULL
+	
+	// When defining a new object type, add the handler above the last NULL value (it's just there to make
+	// editing the code easier).
+	// The Object definition passed to the create handler contains the stream and the block length.
+	// it's critical that the create code reads len bytes from the stream so that the data is 
+	// spooled to eeprom to the persisted object definition.
 };
 
 /**
