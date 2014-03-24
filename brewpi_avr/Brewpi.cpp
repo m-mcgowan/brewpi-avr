@@ -106,7 +106,7 @@ void setup()
 	SystemProfile::activateDefaultProfile();
 }
 
-bool prepareCallback(Object* o, void* data, container_id* id, boolean enter) {
+bool prepareCallback(Object* o, void* data, container_id* id, bool enter) {
 	if (enter) {				
 		uint32_t& waitUntil = *(uint32_t*)data;
 		prepare_t millisToWait = o->prepare();

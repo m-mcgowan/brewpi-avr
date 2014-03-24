@@ -177,7 +177,7 @@ class DallasTemperature
   void readScratchPad(const uint8_t*, uint8_t*);
 
   // write device's scratchpad
-  void writeScratchPad(const uint8_t*, const uint8_t*, boolean copyToEeprom);
+  void writeScratchPad(const uint8_t*, const uint8_t*, bool copyToEeprom);
 
   // read device's power requirements
   bool readPowerSupply(const uint8_t*);

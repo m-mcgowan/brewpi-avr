@@ -70,7 +70,7 @@ inline uint32_t millis() { return (uint32_t)millisSinceStartup(); }
 
 typedef uint8_t DeviceAddress[8];
 
-inline boolean isHexadecimalDigit(int c)
+inline bool isHexadecimalDigit(int c)
 {
   return ( isxdigit (c) == 0 ? false : true);
 }
