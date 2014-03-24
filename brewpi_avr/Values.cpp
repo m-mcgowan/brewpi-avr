@@ -36,8 +36,6 @@ bool walkObject(Object* obj, EnumObjectsFn callback, void* data, container_id* i
 	return false;
 }
 
-
-
 /**
  * Fetches the object at a given index in a container.
  * @param o	The object containing the object to fetch. This may be NULL and may or may not be a container.
@@ -57,7 +55,7 @@ Object* fetchContainedObject(Object* o, uint8_t id)
 	}
 	else {
 		// special case of 0 is also allowed as a self reference for non-container objects
-		// this allows ids to be padded with 0 bytes without affecting the lookup		
+		// this allows ids to be padded with 0 bytes without affecting the lookup
 		if (!id)		
 			result = o;
 	}
@@ -108,5 +106,12 @@ Object* lookupUserObject(DataIn& data) {
 
 OpenContainer* lookupUserOpenContainer(DataIn& data, int8_t& lastID) {
 	return lookupOpenContainer(rootContainer(), data, lastID);
+}
+
+
+void ObjectDefinition::spool() {
+	for (uint8_t i=0; i<len; i++) {
+		in->next();
+	}
 }
 

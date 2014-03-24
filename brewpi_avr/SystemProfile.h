@@ -182,6 +182,7 @@ public:
 	bool writeNext(DataOut& out);
 };
 
-
+eptr_t readPointer(eptr_t address);
+void writePointer(eptr_t address, eptr_t v);
 
 extern SystemProfile systemProfile;

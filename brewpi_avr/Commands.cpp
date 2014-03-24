@@ -57,12 +57,12 @@ void readSystemValueCommandHandler(DataIn& in, DataOut& out) {
 /**
  * Implements the set value command. 
  */
-void setValue(Object* root, DataIn& in, DataOut& out) {	
+void setValue(Object* root, DataIn& in, DataIn& mask, DataOut& out) {	
 	Object* o = lookupObject(root, in);		// fetch the id and the object		
 	Value* v = (Value*)o;			
 	uint8_t available = in.next();
 	if (isWritable(o) && (v->streamSize()==available)) {		// if it's writable and the correct number of bytes were parsed.
-		v->writeFrom(in);									// assign from stream			
+		v->writeMaskedFrom(in, mask);									// assign from stream			
 		out.write(v->streamSize());							// now write out actual value
 		v->readTo(out);			
 	}
@@ -74,12 +74,15 @@ void setValue(Object* root, DataIn& in, DataOut& out) {
 	}
 }
 
+
 void setValueCommandHandler(DataIn& in, DataOut& out) {	
-	setValue(rootContainer(), in, out);
+	DefaultMask defaultMask;
+	setValue(rootContainer(), in, defaultMask, out);
 }
 
 void setSystemValueCommandHandler(DataIn& in, DataOut& out) {
-	setValue(SystemProfile::systemContainer(), in, out);
+	DefaultMask defaultMask;
+	setValue(SystemProfile::systemContainer(), in, defaultMask, out);
 }
 
 
@@ -87,9 +90,7 @@ void setSystemValueCommandHandler(DataIn& in, DataOut& out) {
  * Consumes the definition data from the stream and returns a {@code NULL} pointer.
  */
 Object* nullFactory(ObjectDefinition& def) {
-    for (int i=0; i<def.len; i++) {    
-        def.in->next();
-    }
+    def.spool();
     return NULL;
 }
 
@@ -117,7 +118,7 @@ uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in, bool dryRun)
         // skip object create command, type and id. 
         offset++; // skip creation id
         while (int8_t(eepromAccess.readByte(offset++))<0) {}	// skip contianer
-		offset++;												// skip object type
+		offset+=2;												// skip object type and length
         newObject->rehydrated(offset);
         error = rehydrateNoError;
     }
@@ -229,8 +230,8 @@ uint8_t deleteObject(DataIn& id) {
 void deleteObjectCommandHandler(DataIn& in, DataOut& out)
 {
 	IDCapture idCapture;						// buffer to capture id
-	PipeDataIn id(in, idCapture);				// capture read id
-	uint8_t error = deleteObject(in);
+	PipeDataIn idPipe(in, idCapture);				// capture read id
+	uint8_t error = deleteObject(idPipe);
 	if (!error)
 		removeEepromCreateCommand(idCapture);
 	out.write(error);	
@@ -333,6 +334,11 @@ void activateProfileCommandHandler(DataIn& in, DataOut& out) {
 	out.write(result ? 0 : -1);
 }
 
+void setMaskValueCommandHandler(DataIn& in, DataOut& out) {
+	// the mask is given as the input stream - the data are interleaved.
+	setValue(rootContainer(), in, in, out);
+}
+
 CommandHandler handlers[] = {
 	noopCommandHandler,				// 0x00
 	readValueCommandHandler,		// 0x01
@@ -347,10 +353,11 @@ CommandHandler handlers[] = {
 	logValuesCommandHandler,		// 0x0A
 	resetCommandHandler,			// 0x0B
 	freeSlotRootCommandHandler,		// 0x0C
-	NULL,							// 0x0D
+	noopCommandHandler,				// 0x0D
 	SystemProfile::listDefinedProfiles,	// 0x0E
 	readSystemValueCommandHandler,	// 0x0F
-	setSystemValueCommandHandler	// 0x10
+	setSystemValueCommandHandler,	// 0x10
+	setMaskValueCommandHandler		// 0x11	
 };
 
 /*

@@ -12,21 +12,33 @@
 class EepromBaseValue : public Value  {
 
 protected:
-		void _readTo(DataOut& out, eptr_t offset, uint8_t size)
-		{
-			EepromDataIn in;
-			in.reset(offset, size);
-			in.push(out, size);
+
+	void _readTo(DataOut& out, eptr_t offset, uint8_t size)
+	{
+		EepromDataIn in;
+		in.reset(offset, size);
+		in.push(out, size);
+	}
+		
+	void _writeFrom(DataIn& in, eptr_t offset, uint8_t size)
+	{
+		EepromDataOut out;
+		out.reset(offset, size);
+		in.push(out, size);
+	}		
+
+	void _writeMaskedFrom(DataIn& dataIn, DataIn& maskIn, int8_t length, 
+                                                        eptr_t address) {
+		while (--length>=0) {
+			uint8_t current = eepromAccess.readByte(address);
+			uint8_t update = WritableValue::nextMaskedByte(current, dataIn, maskIn);
+			eepromAccess.writeByte(address++, update);
 		}
-		
-		void _writeFrom(DataIn& in, eptr_t offset, uint8_t size)
-		{
-			EepromDataOut out;
-			out.reset(offset, size);
-			in.push(out, size);
-		}		
-		
-		object_t objectType() { return otValue | otWritableFlag; }
+	}
+
+
+
+	object_t objectType() { return otValue | otWritableFlag; }
 			
 };
 
@@ -38,18 +50,20 @@ protected:
 class EepromValue : public EepromBaseValue
 {
 	eptr_t address;
+		
 public:
+
 	void rehydrated(eptr_t address)
 	{
-		this->address = address+1;	// skip over the size byte
+		this->address = address;
+	}
+
+	void readTo(DataOut& out) {
+		_readTo(out, eeprom_offset(), EepromValue::streamSize());
 	}
 	
-	void readTo(DataOut& out) {
-		_readTo(out, eeprom_offset(), streamSize());
-	}
-		
-	void writeFrom(DataIn& out) {
-		_writeFrom(out, eeprom_offset(), streamSize());
+	void writeMaskedFrom(DataIn& dataIn, DataIn& maskIn) {
+            _writeMaskedFrom(dataIn, maskIn, EepromValue::streamSize(), address);
 	}
 
 	eptr_t eeprom_offset() { return address; }
@@ -59,9 +73,7 @@ public:
 	{
 			// read the contents of the stream so they are spooled 
 			// to eeprom
-			for (uint8_t i=0; i<defn.len; i++) {
-				defn.in->next();
-			}
+			defn.spool();
 			return new_object(EepromValue());
 	}
 };
@@ -83,9 +95,9 @@ class EepromBlock : public EepromBaseValue
 			_readTo(out, _offset, _size);
 		}
 	
-		void writeFrom(DataIn& out) {
-			_writeFrom(out, _offset, _size);
-		}
+                void writeMaskedFrom(DataIn& dataIn, DataIn& maskIn) {
+                    _writeMaskedFrom(dataIn, maskIn, _size, _offset);
+                }
 
 		eptr_t eeprom_offset() { return _offset; }
 		uint8_t streamSize() { return _size; }

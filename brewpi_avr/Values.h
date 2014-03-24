@@ -53,8 +53,8 @@ struct Object
 	 * Notifies this object that it has been created and is operational in the system.
 	 * The eeprom address that contains the object's definition is provided for instances
 	 * that want to retrieve or amend their definition details. 
-	 * @param eeprom_address address of the length of the data buffer, followed by 'length' bytes.
-	 * Preceeding this address is the id_chain, and before that, the creation command. (0x03)
+	 * @param eeprom_address offset in eeprom that defines the data for this object. the length 		
+	 * Preceeding this address is the length, then id_chain, and before that, the creation command. (0x03)
 	 */
 	virtual void rehydrated(eptr_t eeprom_address) {}
 
@@ -169,13 +169,20 @@ public:
 	virtual void readTo(DataOut& out)=0;
 	virtual uint8_t streamSize()=0;			// the size this value occupies in the stream.
 	
-	virtual void writeFrom(DataIn& in){};	// default is a no-op. Caller always checks if item is writable first.
+	virtual void writeMaskedFrom(DataIn& in, DataIn& mask){};	// default is a no-op. Caller always checks if item is writable first.
 	
 };
 
 class WritableValue : public Value {
-	virtual object_t objectType() { return otValueWrite; }	
-	virtual void writeFrom(DataIn& in)=0;	
+public:	
+	virtual object_t objectType() { return otValueWrite; }		
+	virtual void writeMaskedFrom(DataIn& dataIn, DataIn& maskIn);
+	
+	static uint8_t nextMaskedByte(uint8_t current, DataIn& dataIn, DataIn& maskIn) {
+			uint8_t next = dataIn.next();
+			uint8_t mask = maskIn.next();			
+			return (next & mask) | (current & ~mask);		
+	}
 };
 
 /**
@@ -331,6 +338,8 @@ struct ObjectDefinition {
 	DataIn* in;		// stream providing definition data for this object
 	uint8_t len;		// number of bytes in the stream for this object definition
 	uint8_t type;
+
+	void spool();
 };
 
 inline bool hasFlags(uint8_t value, uint8_t flags) {

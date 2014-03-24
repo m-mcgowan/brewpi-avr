@@ -75,7 +75,7 @@ enum Commands {
 	CMD_LIST_PROFILES = 14,		// list the active profile and the available profiles
 	CMD_READ_SYSTEM_VALUE = 15,	// read the value from a system object
 	CMD_WRITE_SYSTEM_VALUE = 16,// write the value to a system object
-	CMD_LIST_SYSTEM_OBJECTS = 17,// list all system objects
+	CMD_WRITE_MASK_VALUE = 17,	// write a value with a mask to preserve some of the existing value
 	
 	CMD_MAX = 127,				// max command value for user-visible commands
 	CMD_SPECIAL_FLAG = 128,

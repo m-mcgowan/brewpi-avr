@@ -20,6 +20,7 @@ class ProgmemStringValue : public Value
 
 		virtual void readTo(DataOut& out);
 		virtual uint8_t streamSize();
+				
 };
 
 

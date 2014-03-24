@@ -234,16 +234,6 @@ eptr_t SystemProfile::getProfileOffset(profile_id_t profile) {
 }
 
 
-class BufferDataIn : public DataIn {
-	const uint8_t* _data;
-public:
-	BufferDataIn(const void* data) : _data((const uint8_t*)data) {}
-		
-	uint8_t next() { return *_data++; }
-	bool hasNext() { return true; }
-	uint8_t peek() { return *_data; }	
-};
-
 /**
  * Deletes objects after any child objects have been deleted. Callback from container traversal. 
  */
@@ -416,7 +406,7 @@ void SystemProfile::listEepromInstructionsTo(profile_id_t profile, DataOut& out)
 	EepromDataIn eepromData;
 	systemProfile.profileReadRegion(profile, eepromData);
 	ObjectDefinitionWalker walker(eepromData);
-	while (walker.writeNext(out));
+	while (walker.writeNext(out)) {}
 }
 
 

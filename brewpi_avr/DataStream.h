@@ -113,6 +113,27 @@ public:
 	
 };
 
+class BufferDataIn : public DataIn {
+	const uint8_t* _data;
+	public:
+	BufferDataIn(const void* data) : _data((const uint8_t*)data) {}
+	
+	uint8_t next() { return *_data++; }
+	bool hasNext() { return true; }
+	uint8_t peek() { return *_data; }
+};
+
+
+/**
+ * A stream that provides the default mask.
+ */
+class DefaultMask : public DataIn
+{
+	uint8_t next() { return 0xFF; }
+	uint8_t peek() { return 0xFF; }
+	bool hasNext() { return true; }	
+};
+
 
 
 #define WRITE_ANNOTATION_STR(out, value) \

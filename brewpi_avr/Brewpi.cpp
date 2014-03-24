@@ -36,6 +36,7 @@
 #include "ValueModels.h"
 #include "ValueTicks.h"
 #include "SystemProfile.h"
+#include "Profile.h"
 
 #ifdef ARDUINO
 #include "BrewpiOneWire.h"
@@ -205,6 +206,7 @@ ObjectFactory createObjectHandlers[] = {
 	CurrentTicksValue::create,								// type 3
 	DynamicContainer::create,								// type 4
 	EepromValue::create,									// type 5
+	ProfileRaw::create,										// type 6
 	NULL
 	
 	// When defining a new object type, add the handler above the last NULL value (it's just there to make
@@ -229,4 +231,3 @@ Object* createObject(DataIn& in, bool dryRun)
 	Object* result = createObjectHandlers[type](def);	
 	return result;
 }
-

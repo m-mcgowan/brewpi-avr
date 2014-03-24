@@ -9,7 +9,7 @@
 #include "Comms.h"
 #include "Commands.h"
 #include "Version.h"
-
+#include "Ticks.h"
 
 // Rename Serial to piStream, to abstract it for later platform independence
 
@@ -36,7 +36,7 @@ static MockSerial comms;
 StdIO comms;
 #else
 #define comms Serial
-#define BREWPI_USE_FLUSH 0
+	#define BREWPI_USE_FLUSH 0
 // for serial, flush waits until the output has been flushed. The flush is there just to ensure the output is not
 // buffered, which it never is with serial.
 #endif
@@ -46,7 +46,7 @@ StdIO comms;
 #endif
 
 void Comms::init() {
-	comms.begin(57600);
+	comms.begin(57600);	
 }
 
 class CommsIn : public DataIn
@@ -254,13 +254,36 @@ void Comms::resetOnCommandComplete() {
 	reset = true;
 }
 
-void Comms::receive() {
-	if (comms && !prevConnected) {
-		prevConnected = true;
-		printVersion();
-	}
 
-	if (reset)	// reset received, don't process any more commands
+void Comms::receive() {
+	
+	static uint16_t connections = 0;
+	// ensure that the Uno prints the version string on startup
+	// or that the leonardo prints it with each disconnect/connection made
+	bool b = comms;
+	if (b != prevConnected) {
+		printVersion();			
+		prevConnected = b;
+		if (b)
+			connections++;
+	}		
+#if 0
+	digitalWrite(13, prevConnected ? LOW : HIGH);
+	
+	// this is to keep the port busy so that disconnects are detected immediately
+	static byte count = 0;
+	if ((count = (count+1)&0x3F))
+		comms.write(' ');
+	else {
+		comms.write('[');
+		comms.print(connections);
+		comms.write(']');
+		comms.println();
+	}
+#endif	
+
+		
+	if (!prevConnected || reset)	// reset received, don't process any more commands
 		return;
 		
 	while (comms.available()>0) {                           // there is some data ready to be processed											// form this point on, the system will block waiting for a complete command or newline.
@@ -268,6 +291,10 @@ void Comms::receive() {
 		HexTextToBinaryIn hexIn(textIn);
 		if (hexIn.hasNext())				// ignore blank newlines, annotations etc..
 			handleCommand(hexIn, hexOut);
+		
+		while (hexIn.hasNext())	{			// todo - log a message about unconsumed data?
+			hexIn.next();			
+		}
 		hexOut.close();
 		commsOut.flush();		
 	}

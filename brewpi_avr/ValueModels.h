@@ -27,9 +27,13 @@ public:
 	void readTo(DataOut& out) {
 		out.writeBuffer(_pValue, _size);
 	}
-	
-	void writeFrom(DataIn& in) {
-		in.read((uint8_t*)_pValue, _size);
+		
+	void writeMaskedFrom(DataIn& in, DataIn& mask) {
+		uint8_t* p = (uint8_t*)_pValue;
+		for (uint8_t i=0; i<_size; i++) {			
+			*p = nextMaskedByte(*p, in, mask);
+			p++;
+		}
 	}
 	
 	uint8_t streamSize() {
