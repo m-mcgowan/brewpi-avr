@@ -25,7 +25,12 @@
 
 #include "Print.h"
 
+#ifdef WIN32
 #include "windows.h"
+#else
+#include <sys/ioctl.h>
+#endif
+
 #include "conio.h"
 
 
@@ -38,18 +43,19 @@ Print::Print(const Print& orig) {
 Print::~Print() {
 }
 
-
+#ifdef WIN32
 static int is_pipe = 0;
 static HANDLE input_handle = 0;
-
+#endif
 
 StdIO::StdIO()
 : in(std::cin), out(stdout)
 {
+#ifdef WIN32
     DWORD dw;
   input_handle = GetStdHandle(STD_INPUT_HANDLE);
   is_pipe = !GetConsoleMode(input_handle, &dw);
-
+#endif
 }
     
 
@@ -71,7 +77,8 @@ void StdIO::println() {
 
 int input_available()
 {
-  DWORD nchars = 0;
+#ifdef WIN32
+    DWORD nchars = 0;
   /* When using Standard C input functions, also check if there
    is anything in the buffer. After a call to such functions,
    the input waiting in the pipe will be copied to the buffer,
@@ -93,6 +100,11 @@ int input_available()
   }
   else
     return _kbhit() != 0; /* In "text-mode" without GUI */
+#else
+    int bytes; 
+    ioctl(STDIN_FILENO, FIONREAD, &bytes); 
+    return bytes;
+#endif
 }
 
 int StdIO::available() { 
