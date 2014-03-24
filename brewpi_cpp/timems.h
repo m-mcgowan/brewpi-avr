@@ -18,7 +18,7 @@ inline msec_t time_ms(void)
 msec_t time_ms(void)
 {
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    gettimeofday(&tv, 0);
     return (msec_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
