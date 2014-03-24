@@ -53,6 +53,7 @@
       <itemPath>../brewpi_avr/OneWireTempSensor.h</itemPath>
       <itemPath>../brewpi_avr/PiLink.h</itemPath>
       <itemPath>../brewpi_avr/Pins.h</itemPath>
+      <itemPath>../brewpi_avr/Profile.cpp</itemPath>
       <itemPath>../brewpi_avr/RotaryEncoder.h</itemPath>
       <itemPath>../brewpi_avr/Sensor.cpp</itemPath>
       <itemPath>../brewpi_avr/Sensor.h</itemPath>
@@ -60,6 +61,7 @@
       <itemPath>../brewpi_avr/SettingsManager.h</itemPath>
       <itemPath>../brewpi_avr/Simulator.h</itemPath>
       <itemPath>../brewpi_avr/SpiLcd.h</itemPath>
+      <itemPath>../brewpi_avr/SystemProfile.cpp</itemPath>
       <itemPath>../brewpi_avr/TempControl.h</itemPath>
       <itemPath>../brewpi_avr/TempSensor.h</itemPath>
       <itemPath>../brewpi_avr/TempSensorBasic.h</itemPath>
@@ -315,6 +317,8 @@
       </item>
       <item path="../brewpi_avr/Pins.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../brewpi_avr/Profile.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../brewpi_avr/RotaryEncoder.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Sensor.cpp" ex="false" tool="1" flavor2="0">
@@ -328,6 +332,8 @@
       <item path="../brewpi_avr/Simulator.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/SpiLcd.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../brewpi_avr/SystemProfile.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/TempControl.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -491,6 +497,11 @@
           </linkerLibItems>
         </linkerTool>
       </folder>
+      <folder path="brewpi_avr">
+        <ccTool>
+          <commandLine>-std=c++11</commandLine>
+        </ccTool>
+      </folder>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
@@ -607,6 +618,8 @@
       </item>
       <item path="../brewpi_avr/Pins.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../brewpi_avr/Profile.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../brewpi_avr/RotaryEncoder.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Sensor.cpp" ex="false" tool="1" flavor2="0">
@@ -620,6 +633,8 @@
       <item path="../brewpi_avr/Simulator.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/SpiLcd.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../brewpi_avr/SystemProfile.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/TempControl.h" ex="false" tool="3" flavor2="0">
       </item>
