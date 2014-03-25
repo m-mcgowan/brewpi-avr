@@ -238,7 +238,7 @@ void DallasTemperature::readScratchPad(const uint8_t* deviceAddress, uint8_t* sc
 }
 
 // writes device's scratch pad
-void DallasTemperature::writeScratchPad(const uint8_t* deviceAddress, const uint8_t* scratchPad, boolean copyToEeprom)
+void DallasTemperature::writeScratchPad(const uint8_t* deviceAddress, const uint8_t* scratchPad, bool copyToEeprom)
 {
 	sendCommand(deviceAddress, WRITESCRATCH);
     
