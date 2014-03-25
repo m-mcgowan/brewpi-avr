@@ -58,6 +58,8 @@
  */
 #ifdef ARDUINO
 typedef uint16_t pointer_scalar;
+#elif __x86_64__ || __ppc64__
+typedef uint64_t pointer_scalar;
 #else
 typedef uint32_t pointer_scalar;
 #endif
