@@ -25,13 +25,14 @@
 
 #include "Print.h"
 
-#ifdef WIN32
+#if defined(__WIN32__)
 #include "windows.h"
+#include "conio.h"
 #else
 #include <sys/ioctl.h>
+#include <unistd.h>
 #endif
 
-#include "conio.h"
 
 
 Print::Print() {
@@ -43,7 +44,7 @@ Print::Print(const Print& orig) {
 Print::~Print() {
 }
 
-#ifdef WIN32
+#if defined(__WIN32__)
 static int is_pipe = 0;
 static HANDLE input_handle = 0;
 #endif
@@ -51,7 +52,7 @@ static HANDLE input_handle = 0;
 StdIO::StdIO()
 : in(std::cin), out(stdout)
 {
-#ifdef WIN32
+#if defined(__WIN32__)
     DWORD dw;
   input_handle = GetStdHandle(STD_INPUT_HANDLE);
   is_pipe = !GetConsoleMode(input_handle, &dw);
@@ -77,7 +78,7 @@ void StdIO::println() {
 
 int input_available()
 {
-#ifdef WIN32
+#if defined(__WIN32__)
     DWORD nchars = 0;
   /* When using Standard C input functions, also check if there
    is anything in the buffer. After a call to such functions,
