@@ -111,6 +111,7 @@ uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in, bool dryRun)
 {	
 	container_id lastID;
 	OpenContainer* target = lookupUserOpenContainer(in, lastID);			// find the container where the object will be added
+
 	Object* newObject = createObject(in, dryRun);			// read the type and create args
 	
 	uint8_t error = rehydrateFail;
@@ -129,11 +130,19 @@ uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in, bool dryRun)
 	return error;
 }
 
+Object* createObject(DataIn& in, bool dryRun)
+{
+	uint8_t type = in.next();
+	uint8_t len = in.next();
+	RegionDataIn region(in, len);							// limit stream to actual data block
+	ObjectDefinition def = { &region, len, type };
+	Object* newObject = createApplicationObject(def, dryRun);			// read the type and create args		
+	return newObject;
+}
 
 /**
  * Creates a new object at a specific location. 
  */
-// todo - when writing to eeprom check result
 void createObjectCommandHandler(DataIn& _in, DataOut& out)
 {
 	PipeDataIn in(_in, systemProfile.writer);		// pipe object creation command to eeprom

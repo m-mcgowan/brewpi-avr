@@ -86,3 +86,8 @@ enum Commands {
 
 
 void logValuesImpl(container_id* ids, DataOut& out);
+
+/**
+ * 
+ */
+extern Object* createApplicationObject(ObjectDefinition& def, bool dryRun=false);

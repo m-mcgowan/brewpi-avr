@@ -123,6 +123,21 @@ class BufferDataIn : public DataIn {
 	uint8_t peek() { return *_data; }
 };
 
+/**
+ * Limits reading from the stream to the given number of bytes.
+ */
+class RegionDataIn : public DataIn {
+	DataIn* in;
+	uint8_t len;
+public:	
+	RegionDataIn(DataIn& _in, uint8_t _len)
+	: in(&_in), len(_len) {}
+		
+	uint8_t next() { return hasNext() ? len--, in->next() : 0; }
+	bool hasNext() { return len && in->hasNext(); }
+	uint8_t peek() { return in->peek(); }
+	
+};
 
 /**
  * A stream that provides the default mask.

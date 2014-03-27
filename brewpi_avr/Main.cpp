@@ -37,8 +37,12 @@ void handleReset(bool exit)
 { 
 	// resetting using the watchdog timer (which is a full reset of all registers) 
 	// might not be compatible with old Arduino bootloaders. jumping to 0 is safer.
-	if (exit)
+	if (exit) {
+		#if defined(USBCON)
+		USBDevice.detach();
+		#endif	
 		asm volatile ("  jmp 0");
+	}
 }
 
 void main() __attribute__ ((noreturn)); // tell the compiler main doesn't return.
@@ -50,6 +54,8 @@ void main(void)
 	#if defined(USBCON)
 		USBDevice.attach();
 	#endif
+	
+	__malloc_margin = 64;
 	
 	setup();
 	

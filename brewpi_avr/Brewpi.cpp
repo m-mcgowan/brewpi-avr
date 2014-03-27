@@ -220,14 +220,12 @@ ObjectFactory createObjectHandlers[] = {
  * The application supplied object factory.
  * Fetches the object type from the stream and looks this up against an array of object factories.
  */
-Object* createObject(DataIn& in, bool dryRun)
+Object* createApplicationObject(ObjectDefinition& def, bool dryRun)
 {
-	uint8_t type = in.next();		// object type
+	uint8_t type = def.type;
 	if (dryRun || type>=sizeof(createObjectHandlers)/sizeof(createObjectHandlers[0]))
 		type = 0;		// null object creator. Ensures stream is properly consumed even for invalid type values.
 	
-	uint8_t len = in.next();
-	ObjectDefinition def = { &in, len, type };
 	Object* result = createObjectHandlers[type](def);	
 	return result;
 }

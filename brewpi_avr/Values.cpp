@@ -110,8 +110,7 @@ OpenContainer* lookupUserOpenContainer(DataIn& data, int8_t& lastID) {
 
 
 void ObjectDefinition::spool() {
-	for (uint8_t i=0; i<len; i++) {
-		in->next();
-	}
+	while (in->hasNext())
+		in->next();	
 }
 
