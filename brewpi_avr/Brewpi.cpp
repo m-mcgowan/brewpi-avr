@@ -35,6 +35,7 @@
 #include "GenericContainer.h"
 #include "ValueModels.h"
 #include "ValueTicks.h"
+#include "ValueActuator.h"
 #include "SystemProfile.h"
 #include "Profile.h"
 
@@ -207,6 +208,7 @@ ObjectFactory createObjectHandlers[] = {
 	DynamicContainer::create,								// type 4
 	EepromValue::create,									// type 5
 	ProfileRaw::create,										// type 6
+	LogicActuator::create,									// type 7
 	NULL
 	
 	// When defining a new object type, add the handler above the last NULL value (it's just there to make

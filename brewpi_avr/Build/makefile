@@ -131,6 +131,7 @@ $(SRC)Profile.cpp \
 $(SRC)SystemProfile.cpp \
 $(SRC)Temperature.cpp \
 $(SRC)Ticks.cpp \
+$(SRC)ValueActuator.cpp \
 $(SRC)Values.cpp \
 $(SRC)ValuesProgmem.cpp 
 
