@@ -42,6 +42,37 @@ struct DataOut
 	virtual void close() {}
 };
 
+
+class BufferDataOut : public DataOut {
+	uint8_t* buffer;
+	uint8_t size;
+	uint8_t pos;
+	public:
+	BufferDataOut(uint8_t* _buffer, uint8_t _size)
+	: buffer(_buffer), size(_size), pos(0)
+	{
+	}
+	
+	bool write(uint8_t data) {
+		if (pos<size) {
+			buffer[pos++] = data;
+			return true;
+		}
+		return false;
+	}
+	
+	void reset() {
+		pos = 0;
+	}
+	
+	uint8_t bytesWritten() { return pos; }
+		
+	const uint8_t* data() {
+		return buffer;
+	}
+};
+
+
 struct BlackholeDataOut : public DataOut {	
 	virtual bool write(uint8_t data) { return true; }	
 };

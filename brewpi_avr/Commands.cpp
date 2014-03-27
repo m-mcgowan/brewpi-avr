@@ -165,54 +165,22 @@ void createObjectCommandHandler(DataIn& _in, DataOut& out)
 	out.write(error_code);						// status is index it was created at	
 }
 
-
-template <int SIZE> class BufferDataOut : public DataOut {
-	uint8_t buffer[SIZE];
-	uint8_t pos;
-	public:
-	BufferDataOut<SIZE>() { reset(); }
-	
-	bool write(uint8_t data) {
-		if (pos<SIZE) {
-			buffer[pos++] = data;
-			return true;
-		}
-		return false;
-	}
-	
-	void reset() {
-		pos = 0;
-	}
-	
-	uint8_t size() {
-		return pos;
-	}
-	
-	const uint8_t* data() {
-		return buffer;
-	}
-};
-
-/*
- * Capture one command byte plus a streamed ID.
- */
-typedef BufferDataOut<MAX_CONTAINER_DEPTH+1> IDCapture;
-
 /**
  * Finds the corresponding create object command in eeprom and marks it as invalid. The command is then ignored,
  * and will be removed from eeprom next time eeprom is compacted. 
  */
-void removeEepromCreateCommand(IDCapture& id) {
+void removeEepromCreateCommand(BufferDataOut& id) {
 	EepromDataIn eepromData;
 	systemProfile.profileReadRegion(systemProfile.currentProfile(), eepromData);	
 	ObjectDefinitionWalker walker(eepromData);
-	IDCapture capture;							// save the contents of the eeprom
+	uint8_t buf[MAX_CONTAINER_DEPTH+1];
+	BufferDataOut capture(buf, MAX_CONTAINER_DEPTH+1);	// save the contents of the eeprom
 	
 	eptr_t offset = eepromData.offset();		// save the offset at the start of the creation block
 	while (walker.writeNext(capture)) {			// parse creation data. The first part (command + object id) is stored in the capture buffer.
-		if (capture.size()) {					// valid entry written
+		if (capture.bytesWritten()) {					// valid entry written
 			// compare captured id with the id we are looking for
-			if (!memcmp(capture.data()+1, id.data(), id.size())) {
+			if (!memcmp(capture.data()+1, id.data(), id.bytesWritten())) {
 				eepromAccess.writeByte(offset, CMD_DISPOSED_OBJECT);				
 			}			
 			capture.reset();
@@ -238,8 +206,9 @@ uint8_t deleteObject(DataIn& id) {
  */
 void deleteObjectCommandHandler(DataIn& in, DataOut& out)
 {
-	IDCapture idCapture;						// buffer to capture id
-	PipeDataIn idPipe(in, idCapture);				// capture read id
+	uint8_t buf[MAX_CONTAINER_DEPTH+1];
+	BufferDataOut idCapture(buf, MAX_CONTAINER_DEPTH+1);	// buffer to capture id
+	PipeDataIn idPipe(in, idCapture);						// capture read id
 	uint8_t error = deleteObject(idPipe);
 	if (!error)
 		removeEepromCreateCommand(idCapture);
