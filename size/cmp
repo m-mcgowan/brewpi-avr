@@ -1,0 +1,1 @@
+./_cmp.sh baseline.txt ../brewpi_avr/Debug/avr-size.txt
