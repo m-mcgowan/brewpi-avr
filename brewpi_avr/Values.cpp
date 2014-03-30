@@ -114,3 +114,10 @@ void ObjectDefinition::spool() {
 		in->next();	
 }
 
+
+int16_t read2BytesFrom(Value* value) {	
+	uint8_t result[2];
+	BufferDataOut out(result, 2);
+	value->readTo(out);	
+	return int16_t(result[0])<<8 | result[1];
+}

@@ -136,7 +136,8 @@ Object* createObject(DataIn& in, bool dryRun)
 	uint8_t len = in.next();
 	RegionDataIn region(in, len);							// limit stream to actual data block
 	ObjectDefinition def = { &region, len, type };
-	Object* newObject = createApplicationObject(def, dryRun);			// read the type and create args		
+	Object* newObject = createApplicationObject(def, dryRun);			// read the type and create args
+	def.spool();			// ensure stream is read fully
 	return newObject;
 }
 

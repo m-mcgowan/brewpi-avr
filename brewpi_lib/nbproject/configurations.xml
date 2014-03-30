@@ -23,6 +23,7 @@
       <itemPath>../brewpi_avr/ConfigDefault.h</itemPath>
       <itemPath>../brewpi_avr/DS2413.h</itemPath>
       <itemPath>../brewpi_avr/DallasTemperature.h</itemPath>
+      <itemPath>../brewpi_avr/DataStream.cpp</itemPath>
       <itemPath>../brewpi_avr/DeviceManager.h</itemPath>
       <itemPath>../brewpi_avr/Display.cpp</itemPath>
       <itemPath>../brewpi_avr/Display.h</itemPath>
@@ -74,6 +75,7 @@
       <itemPath>../brewpi_avr/Ticks.h</itemPath>
       <itemPath>../brewpi_avr/TicksArduino.h</itemPath>
       <itemPath>../brewpi_avr/Values.cpp</itemPath>
+      <itemPath>../brewpi_avr/ValuesEeprom.cpp</itemPath>
       <itemPath>../brewpi_avr/ValuesProgmem.cpp</itemPath>
       <itemPath>../brewpi_avr/Version.h</itemPath>
       <itemPath>../brewpi_avr/brewpi_avr.cppproj</itemPath>
@@ -259,6 +261,8 @@
       </item>
       <item path="../brewpi_avr/DallasTemperature.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../brewpi_avr/DataStream.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../brewpi_avr/DeviceManager.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Display.cpp" ex="false" tool="1" flavor2="0">
@@ -361,6 +365,8 @@
       <item path="../brewpi_avr/TicksArduino.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Values.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../brewpi_avr/ValuesEeprom.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/ValuesProgmem.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -560,6 +566,8 @@
       </item>
       <item path="../brewpi_avr/DallasTemperature.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../brewpi_avr/DataStream.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../brewpi_avr/DeviceManager.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Display.cpp" ex="false" tool="1" flavor2="0">
@@ -662,6 +670,8 @@
       <item path="../brewpi_avr/TicksArduino.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Values.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../brewpi_avr/ValuesEeprom.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/ValuesProgmem.cpp" ex="false" tool="1" flavor2="0">
       </item>

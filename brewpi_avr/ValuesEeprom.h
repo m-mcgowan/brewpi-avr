@@ -4,6 +4,7 @@
 #include "Values.h"
 #include "EepromAccess.h"
 #include "DataStreamEeprom.h"
+#include "SystemProfile.h"
 
 /**
  * Base class for a read-write value in eeprom. This class is responsible for moving the data
@@ -27,6 +28,9 @@ protected:
 		in.push(out, size);
 	}		
 
+	/**
+	 * Writes masked data to eeprom starting at the given address.
+	 */
 	void _writeMaskedFrom(DataIn& dataIn, DataIn& maskIn, int8_t length, 
                                                         eptr_t address) {
 		while (--length>=0) {
@@ -36,6 +40,11 @@ protected:
 		}
 	}
 
+	void _writeMaskedOut(DataIn& dataIn, DataIn& maskIn, DataIn& in, DataOut& out, int8_t length) {
+		while (--length>=0) {			
+			out.write(WritableValue::nextMaskedByte(in.next(), dataIn, maskIn));
+		}
+	}
 
 
 	object_t objectType() { return otValue | otWritableFlag; }
@@ -49,6 +58,7 @@ protected:
  */
 class EepromValue : public EepromBaseValue
 {
+	
 	eptr_t address;
 		
 public:
@@ -63,7 +73,7 @@ public:
 	}
 	
 	void writeMaskedFrom(DataIn& dataIn, DataIn& maskIn) {
-            _writeMaskedFrom(dataIn, maskIn, EepromValue::streamSize(), address);
+		_writeMaskedFrom(dataIn, maskIn, EepromValue::streamSize(), address);
 	}
 
 	eptr_t eeprom_offset() { return address; }
@@ -71,10 +81,7 @@ public:
 		
 	static Object* create(ObjectDefinition& defn) 
 	{
-			// read the contents of the stream so they are spooled 
-			// to eeprom
-			defn.spool();
-			return new_object(EepromValue());
+		return new_object(EepromValue());
 	}
 };
 
@@ -95,12 +102,65 @@ class EepromBlock : public EepromBaseValue
 			_readTo(out, _offset, _size);
 		}
 	
-                void writeMaskedFrom(DataIn& dataIn, DataIn& maskIn) {
-                    _writeMaskedFrom(dataIn, maskIn, _size, _offset);
-                }
+        void writeMaskedFrom(DataIn& dataIn, DataIn& maskIn) {
+            _writeMaskedFrom(dataIn, maskIn, _size, _offset);
+        }
 
 		eptr_t eeprom_offset() { return _offset; }
 		uint8_t streamSize() { return _size; }
+};
+
+inline uint8_t readMaskedByte(DataIn& in, DataIn& mask)
+{	
+	return in.next() & mask.next();
+}
+
+/**
+ * A value that saves the state to eeprom when the difference between the persisted value and the current
+ * value is greater than a given threshold.
+ */
+class PersistChangeValue : EepromValue
+{
+	int16_t currentValue;
+	
+public:
+	
+	int16_t difference() {
+		return readPointer(eeprom_offset()+2);
+	}	
+	
+	int16_t savedValue() {
+		return readPointer(eeprom_offset());
+	}
+	
+	void rehydrated(eptr_t address) {
+		EepromValue::rehydrated(address);
+		currentValue = savedValue();
+	}
+	
+	void readTo(DataOut& out) {
+		out.write(uint8_t(currentValue>>8));
+		out.write(uint8_t(currentValue&0xFF));		
+	}
+				
+	void writeMaskedFrom(DataIn& dataIn, DataIn& maskIn) {
+		// to save space, we don't bother allowing masking against the source
+		currentValue = int16_t(readMaskedByte(dataIn, maskIn))<<8 | readMaskedByte(dataIn, maskIn);				
+		if (abs(currentValue-savedValue())>difference())
+			writePointer(eeprom_offset(), currentValue);
+	}
+			
+	uint8_t streamSize() {
+		return 2;
+	}
+
+	/**
+	 * 2 bytes: current value
+	 * 2 bytes: difference threshold to save
+	 */
+	static Object* create(ObjectDefinition& def) {				
+		return new_object(PersistChangeValue());
+	}
 };
 
 #if 0

@@ -39,6 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1979302600/Brewpi.o \
 	${OBJECTDIR}/_ext/1979302600/Commands.o \
 	${OBJECTDIR}/_ext/1979302600/Comms.o \
+	${OBJECTDIR}/_ext/1979302600/DataStream.o \
 	${OBJECTDIR}/_ext/1979302600/Display.o \
 	${OBJECTDIR}/_ext/1979302600/FilterCascaded.o \
 	${OBJECTDIR}/_ext/1979302600/FilterFixed.o \
@@ -51,6 +52,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1979302600/Temperature.o \
 	${OBJECTDIR}/_ext/1979302600/Ticks.o \
 	${OBJECTDIR}/_ext/1979302600/Values.o \
+	${OBJECTDIR}/_ext/1979302600/ValuesEeprom.o \
 	${OBJECTDIR}/_ext/1979302600/ValuesProgmem.o \
 	${OBJECTDIR}/_ext/1979304334/Main.o \
 	${OBJECTDIR}/_ext/1979304334/Print.o \
@@ -109,6 +111,11 @@ ${OBJECTDIR}/_ext/1979302600/Comms.o: ../brewpi_avr/Comms.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/Comms.o ../brewpi_avr/Comms.cpp
+
+${OBJECTDIR}/_ext/1979302600/DataStream.o: ../brewpi_avr/DataStream.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/DataStream.o ../brewpi_avr/DataStream.cpp
 
 ${OBJECTDIR}/_ext/1979302600/Display.o: ../brewpi_avr/Display.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
@@ -169,6 +176,11 @@ ${OBJECTDIR}/_ext/1979302600/Values.o: ../brewpi_avr/Values.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/Values.o ../brewpi_avr/Values.cpp
+
+${OBJECTDIR}/_ext/1979302600/ValuesEeprom.o: ../brewpi_avr/ValuesEeprom.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/ValuesEeprom.o ../brewpi_avr/ValuesEeprom.cpp
 
 ${OBJECTDIR}/_ext/1979302600/ValuesProgmem.o: ../brewpi_avr/ValuesProgmem.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
@@ -272,6 +284,19 @@ ${OBJECTDIR}/_ext/1979302600/Comms_nomain.o: ${OBJECTDIR}/_ext/1979302600/Comms.
 	    $(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/Comms_nomain.o ../brewpi_avr/Comms.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/_ext/1979302600/Comms.o ${OBJECTDIR}/_ext/1979302600/Comms_nomain.o;\
+	fi
+
+${OBJECTDIR}/_ext/1979302600/DataStream_nomain.o: ${OBJECTDIR}/_ext/1979302600/DataStream.o ../brewpi_avr/DataStream.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/_ext/1979302600/DataStream.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/DataStream_nomain.o ../brewpi_avr/DataStream.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/_ext/1979302600/DataStream.o ${OBJECTDIR}/_ext/1979302600/DataStream_nomain.o;\
 	fi
 
 ${OBJECTDIR}/_ext/1979302600/Display_nomain.o: ${OBJECTDIR}/_ext/1979302600/Display.o ../brewpi_avr/Display.cpp 
@@ -428,6 +453,19 @@ ${OBJECTDIR}/_ext/1979302600/Values_nomain.o: ${OBJECTDIR}/_ext/1979302600/Value
 	    $(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/Values_nomain.o ../brewpi_avr/Values.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/_ext/1979302600/Values.o ${OBJECTDIR}/_ext/1979302600/Values_nomain.o;\
+	fi
+
+${OBJECTDIR}/_ext/1979302600/ValuesEeprom_nomain.o: ${OBJECTDIR}/_ext/1979302600/ValuesEeprom.o ../brewpi_avr/ValuesEeprom.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/_ext/1979302600/ValuesEeprom.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/ValuesEeprom_nomain.o ../brewpi_avr/ValuesEeprom.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/_ext/1979302600/ValuesEeprom.o ${OBJECTDIR}/_ext/1979302600/ValuesEeprom_nomain.o;\
 	fi
 
 ${OBJECTDIR}/_ext/1979302600/ValuesProgmem_nomain.o: ${OBJECTDIR}/_ext/1979302600/ValuesProgmem.o ../brewpi_avr/ValuesProgmem.cpp 

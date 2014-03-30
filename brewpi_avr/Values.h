@@ -425,3 +425,5 @@ Object* lookupUserObject(DataIn& data);
  * Read the id chain from the stream and resolve the container and the final index.
  */
 OpenContainer* lookupUserOpenContainer(DataIn& data, int8_t& lastID);
+
+int16_t read2BytesFrom(Value* value);

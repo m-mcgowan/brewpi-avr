@@ -38,6 +38,7 @@
 #include "ValueActuator.h"
 #include "SystemProfile.h"
 #include "Profile.h"
+#include "BangBangController.h"
 
 #ifdef ARDUINO
 #include "BrewpiOneWire.h"
@@ -209,6 +210,8 @@ ObjectFactory createObjectHandlers[] = {
 	EepromValue::create,									// type 5
 	ProfileRaw::create,										// type 6
 	LogicActuator::create,									// type 7
+	BangBangController::create,								// type 8
+	PersistChangeValue::create,								// type 9
 	NULL
 	
 	// When defining a new object type, add the handler above the last NULL value (it's just there to make

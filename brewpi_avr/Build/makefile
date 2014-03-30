@@ -122,6 +122,7 @@ $(SRC)Brewpi.cpp \
 $(SRC)Commands.cpp \
 $(SRC)Comms.cpp \
 $(SRC)DallasTemperature.cpp \
+$(SRC)DataStream.cpp \
 $(SRC)GenericContainer.cpp \
 $(SRC)Main.cpp \
 $(SRC)Memops.cpp \
@@ -133,6 +134,7 @@ $(SRC)Temperature.cpp \
 $(SRC)Ticks.cpp \
 $(SRC)ValueActuator.cpp \
 $(SRC)Values.cpp \
+$(SRC)ValuesEeprom.cpp \
 $(SRC)ValuesProgmem.cpp 
 
 
