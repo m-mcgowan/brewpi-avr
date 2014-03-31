@@ -2,7 +2,6 @@
 
 #include "Values.h"
 #include "Actuator.h"
-#include "BrewpiObjectTypes.h"
 
 class LogicActuator : public Value
 {
