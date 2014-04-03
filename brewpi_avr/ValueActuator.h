@@ -3,10 +3,16 @@
 #include "Values.h"
 #include "Actuator.h"
 
+/**
+ * 
+ */
 class LogicActuator : public Value
 {
 	/**
-	 * The number of 
+	 * The number of actuators that must return true for this one to return true.
+	 * 0 - this functions as a NAND gate
+	 * 1 - functions as a OR gate
+	 * 2 - functions as a AND gate
 	 */
 	uint8_t count;
 	

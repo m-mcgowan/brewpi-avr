@@ -7,6 +7,9 @@
 
 #include "SystemProfile.h"
 #include "Commands.h"
+#include "Ticks.h"
+#include "ValueTicks.h"
+
 
 const uint8_t EEPROM_HEADER_SIZE = 2;
 const uint8_t MAX_SYSTEM_PROFILES = 4;
@@ -63,8 +66,14 @@ void SystemProfile::initializeEeprom() {
 	writeEepromRange(0, eepromAccess.length(), 0xFF);
 }
 
-
+// todo - in many ways this is application-centric since not all apps need ID or time
+// consider exporting creation of the system root container externally also.
 EepromBlock system_id(SYSTEM_PROFILE_ID_OFFSET, 1);
+/* Configure the counter and delay timer. The actual type of these will vary depending upon the environment.
+ * They are non-virtual to keep code	 size minimal, so typedefs and preprocessing are used to select the actual compile-time type used. */
+TicksImpl baseticks = TicksImpl(TICKS_IMPL_CONFIG);
+DelayImpl wait = DelayImpl(DELAY_IMPL_CONFIG);
+ScaledTicksValue ticks;
 
 void SystemProfile::initialize() {
 	

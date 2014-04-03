@@ -57,11 +57,6 @@
 void setup(void);
 void loop (void);
 
-/* Configure the counter and delay timer. The actual type of these will vary depending upon the environment.
- * They are non-virtual to keep code	 size minimal, so typedefs and preprocessing are used to select the actual compile-time type used. */
-TicksImpl ticks = TicksImpl(TICKS_IMPL_CONFIG);
-DelayImpl wait = DelayImpl(DELAY_IMPL_CONFIG);
-
 Container* createRootContainer()
 {
 	DynamicContainer* d = new DynamicContainer();    

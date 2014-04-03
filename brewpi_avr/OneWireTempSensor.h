@@ -42,7 +42,7 @@ public:
 	static Object* create(ObjectDefinition& def) {
 		// todo - move length requirements externally?
 		Object* result = NULL;
-		if (def.len>=10) {		// 8 address + 1 calibration + 1+ for id
+		if (def.len>=10) {		// 8 address + 1 calibration + 1+ for id of bus
 			DeviceAddress address;			
 			def.in->read(address, 8);
 			fixed4_4 calibration = def.in->next();

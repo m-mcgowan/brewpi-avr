@@ -2,4 +2,6 @@
 
 #include "DataStream.h"
 
-uint16_t read2Bytes(DataIn& in);
+void readMaskedBytes(void* data, uint8_t size, DataIn& in, DataIn& mask);
+
+void writeBytes(void* data, uint8_t size, DataOut& out);

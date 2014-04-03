@@ -46,7 +46,7 @@ struct ProfileState
 class ProfileRaw : public EepromValue
 {
 	// I choose to make this static so that all profiles are kept on the same time, and also 
-	// so that the code-side is smaller
+	// so that the code-size is smaller
 	static ticks_millis_t lastTick;
 
 	uint16_t calculateSetpoint(uint8_t step, uint8_t maxStep, uint16_t current);
@@ -116,8 +116,6 @@ public:
 		// 00 00 00 00 (initialize control block)
 		// followed by uint16_t x 2 (big endian) for each profile point (duration and setpoint)
 		// ID of target object to update (as on-wire encoding with 0x80 bit indicating more data to come.)
-		
-		
 		return new ProfileRaw();
 	}
 	

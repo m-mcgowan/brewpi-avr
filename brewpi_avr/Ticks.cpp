@@ -34,14 +34,14 @@ inline ticks_seconds_t timeSince(ticks_seconds_t currentTime, ticks_seconds_t pr
 
 // return time that has passed since timeStamp, take overflow into account
 ticks_seconds_t ExternalTicks::timeSince(ticks_seconds_t previousTime){
-	ticks_seconds_t currentTime = ticks.seconds();
+	ticks_seconds_t currentTime = seconds();
 	return ::timeSince(currentTime, previousTime);
 }
 
 #if BREWPI_VIRTUAL
 // return time that has passed since timeStamp, take overflow into account
 ticks_seconds_t DesktopTicks::timeSince(ticks_seconds_t previousTime){
-	ticks_seconds_t currentTime = ticks.seconds();
+	ticks_seconds_t currentTime = seconds();
 	return ::timeSince(currentTime, previousTime);
 }
 
@@ -74,7 +74,7 @@ void DesktopDelay::microseconds(uint32_t micros)
 
 // return time that has passed since timeStamp, take overflow into account
 ticks_seconds_t HardwareTicks::timeSince(ticks_seconds_t previousTime){
-	ticks_seconds_t currentTime = ticks.seconds();
+	ticks_seconds_t currentTime = seconds();
 	return ::timeSince(currentTime, previousTime);
 }
 

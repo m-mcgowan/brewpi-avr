@@ -30,7 +30,6 @@ const uint8_t SYSTEM_PROFILE_VERSION = 0x01;
  */
 extern Container* createRootContainer();
 
-
 /**
  * Application-provided function to create the object of the given type.
  * @param in	The data input stream that provides the object details. The format is:

@@ -8,6 +8,7 @@
 #include "Brewpi.h"
 #include "Profile.h"
 #include "Temperature.h"
+#include "ValueTicks.h"
 
 ticks_millis_t ProfileRaw::lastTick;
 
