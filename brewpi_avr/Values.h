@@ -185,6 +185,20 @@ public:
 	}
 };
 
+class RehydratedAwareObject : public Object
+{
+	eptr_t address;
+public:
+
+	void rehydrated(eptr_t _address) {
+		address = _address;
+	}
+
+	eptr_t eeprom_offset() { return address; }
+	uint8_t streamSize() { return eepromAccess.readByte(address-1); }
+		
+};
+
 /**
  * Classes that can provide a representation of their state implement this interface.
  */
