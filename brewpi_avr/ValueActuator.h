@@ -68,3 +68,55 @@ public:
 };
 
 
+#ifdef ARDUINO
+
+class DigitalPinActuator : Actuator
+{
+private:
+	bool invert;
+	uint8_t pin;
+	bool active;
+public:
+	
+	DigitalPinActuator(uint8_t pin, bool invert) {
+		this->invert = invert;
+		this->pin = pin;
+		setActive(false);
+		pinMode(pin, OUTPUT);
+	}
+	
+	void readTo(DataOut& out) {
+		out.write(isActive());
+	}
+	
+	void writeMaskedFrom(DataIn& in, DataIn& mask) {
+		setActive(in.next() & mask.next());
+	}
+	
+	uint8_t streamSize() {
+		return 1;
+	}
+	
+	inline void setActive(bool active) {
+		this->active = active;
+		digitalWrite(pin, active^invert ? HIGH : LOW);
+	}
+	
+	bool isActive() { return active; }
+		
+	/*
+	 * Params: 1 - byte
+	 *			IPPPPPPP
+	 *			I = invert (0 not inverted, 1 inverted)
+	 *			P = bits for pin number.
+	 */
+	static Object* create(ObjectDefinition& def) {
+		uint8_t v = def.in->next();
+		return new_object(DigitalPinActuator(v&0x7f, v&0x80));
+	}
+	
+};
+
+
+
+#endif

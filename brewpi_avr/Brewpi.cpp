@@ -39,6 +39,7 @@
 #include "SystemProfile.h"
 #include "Profile.h"
 #include "BangBangController.h"
+#include "ValueDisplay.h"
 
 #ifdef ARDUINO
 #include "BrewpiOneWire.h"
@@ -196,6 +197,24 @@ void loop() {
 #define ARDUINO_OBJECT(x) nullFactory
 #endif	
 
+
+#if BREWPI_LCD && 0
+#define DISPLAY_OBJECT(x) x
+#else
+#define DISPLAY_OBJECT(x) nullFactory
+#endif
+
+/**
+ * Include objects that have not been tested.
+ */
+#define BREWPI_EXPERIMENTAL 0
+
+#if BREWPI_EXPERIMENTAL
+#define EXPERIMENTAL(x) x
+#else
+#define EXPERIMENTAL(x) nullFactory
+#endif
+
 ObjectFactory createObjectHandlers[] = {
 	nullFactory,                                            // type 0
 	ARDUINO_OBJECT(OneWireBus::create),						// type 1
@@ -203,10 +222,13 @@ ObjectFactory createObjectHandlers[] = {
 	CurrentTicksValue::create,								// type 3
 	DynamicContainer::create,								// type 4
 	EepromValue::create,									// type 5
-	ProfileRaw::create,										// type 6
-	LogicActuator::create,									// type 7
-	BangBangController::create,								// type 8
+	EXPERIMENTAL(ProfileRaw::create),						// type 6
+	EXPERIMENTAL(LogicActuator::create),					// type 7
+	EXPERIMENTAL(BangBangController::create),				// type 8
 	PersistChangeValue::create,								// type 9
+	DISPLAY_OBJECT(DisplayValue::create),					// type A
+	DISPLAY_OBJECT(DisplayTemplate::create),				// type B
+	ARDUINO_OBJECT(DigitalPinActuator::create),				// type C
 	NULL
 	
 	// When defining a new object type, add the handler above the last NULL value (it's just there to make
