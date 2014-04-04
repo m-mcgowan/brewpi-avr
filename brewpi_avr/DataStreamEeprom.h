@@ -60,7 +60,7 @@ public:
  * A data input stream that reads from a region of eeprom.
  * @see EepromAccess
  */
-struct EepromDataIn : public DataIn, EepromStreamRegion
+struct EepromDataIn : public DataIn, public EepromStreamRegion
 {
 	bool hasNext() { return _length; }
 	uint8_t peek() { return eepromAccess.readByte(_offset); }

@@ -20,6 +20,7 @@
 #include "SpiLcd.h"
 
 #include "Brewpi.h"
+#include "Ticks.h"
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -36,7 +37,7 @@
 // expand the SpiLcd class to a template, with a single int instantiation parameter.
 void SpiLcd::init()
 {
-	wait.millis(2000); // give LCD time to power up
+	while (baseticks.millis()<2000) {} // give LCD time to power up
 
 	fastPinMode(lcdLatchPin, OUTPUT);
 	
@@ -48,9 +49,10 @@ void SpiLcd::init()
 }
 
 void SpiLcd::begin(uint8_t cols, uint8_t lines) {
-	_numlines = lines;
+#if BREWPI_LCD_BUFFER
 	_currline = 0;
 	_currpos = 0;
+#endif	
   
 	// Set all outputs of shift register to low, this turns the backlight ON.	
 	// The following initialization sequence should be compatible with: 
@@ -83,30 +85,35 @@ void SpiLcd::begin(uint8_t cols, uint8_t lines) {
 void SpiLcd::clear()
 {
 	command(LCD_CLEARDISPLAY);  // clear display, set cursor position to zero
-	
+#if BREWPI_LCD_BUFFER	
 	for(uint8_t i = 0; i<4; i++){
 		for(uint8_t j = 0; j<20; j++){
 			content[i][j]=' '; // initialize on all spaces
 		}
 		content[i][20]='\0'; // NULL terminate string
 	}
+#endif	
 }
 
 void SpiLcd::home()
 {
 	command(LCD_RETURNHOME);  // set cursor position to zero
+#if BREWPI_LCD_BUFFER
 	_currline = 0;
 	_currpos = 0;
+#endif	
 }
 
 void SpiLcd::setCursor(uint8_t col, uint8_t row)
 {
 	const uint8_t row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
-	if ( row >= _numlines ) {
+	if ( row >= 4 ) {
 		row = 0;  //write to first line if out off bounds
 	}
+#if BREWPI_LCD_BUFFER
 	_currline = row;
 	_currpos = col;
+#endif	
 	command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
 }
 
@@ -184,16 +191,17 @@ void SpiLcd::createChar(uint8_t location, uint8_t charmap[]) {
 
 // This resets the backlight timer and updates the SPI output
 void SpiLcd::resetBacklightTimer(void){
-	_backlightTime = ticks.seconds();
+	_backlightTime = baseticks.seconds();
 	updateBacklight();
 	spiOut();		// instant update since the backlight may be turned on by user input
 }
 
 void SpiLcd::updateBacklight(void){
-	bool backLightOutput = BREWPI_SIMULATE || ticks.timeSince(_backlightTime) > BACKLIGHT_AUTO_OFF_PERIOD;
+	bool backLightOutput = BREWPI_SIMULATE || baseticks.timeSince(_backlightTime) > BACKLIGHT_AUTO_OFF_PERIOD;
 	bitWrite(_spiByte, LCD_SHIFT_BACKLIGHT, backLightOutput); // 1=OFF, 0=ON	
 }
 
+#if BREWPI_LCD_BUFFER
 // Puts the content of one LCD line into the provided buffer.
 void SpiLcd::getLine(uint8_t lineNumber, char * buffer){
 	const char* src = content[lineNumber];
@@ -203,6 +211,7 @@ void SpiLcd::getLine(uint8_t lineNumber, char * buffer){
 	}
 	buffer[20] = '\0'; // NULL terminate string
 }
+#endif
 
 /*********** mid level commands, for sending data/cmds */
 
@@ -212,9 +221,14 @@ inline void SpiLcd::command(uint8_t value) {
 }
 
 inline size_t SpiLcd::write(uint8_t value) {
+#if BREWPI_LCD_BUFFER
 	content[_currline][_currpos] = value;
-	_currpos++;
+	if (++_currpos>20) {
+		_currpos = 0;
+		_currline++;
+	}
 	if (!_bufferOnly)
+#endif	
 	{
 		send(value, HIGH);
 		waitBusy();		
@@ -263,14 +277,14 @@ void SpiLcd::spiOut(void){
 // write either command or data
 void SpiLcd::send(uint8_t value, uint8_t mode) {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE){ // prevent interrupts during command
-	if(mode){
-		bitSet(_spiByte, LCD_SHIFT_RS);
-	}
-	else{
-		bitClear(_spiByte, LCD_SHIFT_RS);
-	}
-	spiOut();
-	write4bits(value>>4);
+		if(mode){
+			bitSet(_spiByte, LCD_SHIFT_RS);
+		}
+		else{
+			bitClear(_spiByte, LCD_SHIFT_RS);
+		}
+		spiOut();
+		write4bits(value>>4);
 		write4bits(value);	
 	}
 }
@@ -294,11 +308,13 @@ void SpiLcd::waitBusy(void) {
 	_delay_ms(1);
 }
 
+#if BREWPI_LCD_BUFFER
 void SpiLcd::printSpacesToRestOfLine(void){
 	while(_currpos < 20){
 		print(' ');
 	}
 }
+#endif
 
 #ifndef print_P_inline
 void SpiLcd::print_P(const char * str){ // print a string stored in PROGMEM
@@ -309,4 +325,13 @@ void SpiLcd::print_P(const char * str){ // print a string stored in PROGMEM
 #endif
 
 
-#endif
+void SpiLcd::writeLine(uint8_t lineNumber, uint8_t* buffer) {
+	setCursor(0, lineNumber);
+	for (int i=0; i<20; i++)
+	{
+		write(*buffer++);
+	}
+}
+
+
+#endif // BREWPI_SHIFT_LCD

@@ -21,7 +21,6 @@
 #include "TemperatureFormats.h"
 #include <string.h>
 #include <limits.h>
-#include "TempControl.h"
 
 // See header file for details about the temp format used.
 
@@ -133,10 +132,12 @@ long_temperature stringToFixedPoint(const char * numberString){
 	return negative ? -absVal:absVal;
 }
 
+char tempFormat = 'C';
+
 // convertToInternalTemp receives the external temp format in fixed point and converts it to the internal format
 // It scales the value for Fahrenheit and adds the offset needed for absolute temperatures. For temperature differences, use no offset.
 long_temperature convertToInternalTempImpl(long_temperature rawTemp, bool addOffset){
-	if(tempControl.cc.tempFormat == 'F'){ // value received is in F, convert to C
+	if(tempFormat == 'F'){ // value received is in F, convert to C
 		rawTemp = (rawTemp) * 5 / 9;
 		if(addOffset){
 			rawTemp += F_OFFSET;
@@ -152,7 +153,7 @@ long_temperature convertToInternalTempImpl(long_temperature rawTemp, bool addOff
 
 // convertAndConstrain adds an offset, then scales with *9/5 for Fahrenheit. Use it without the offset argument for temperature differences
 long_temperature convertFromInternalTempImpl(long_temperature rawTemp, bool addOffset){
-	if(tempControl.cc.tempFormat == 'F'){ // value received is in F, convert to C
+	if(tempFormat == 'F'){ // value received is in F, convert to C
 		if(addOffset){
 			rawTemp -= F_OFFSET;
 		}

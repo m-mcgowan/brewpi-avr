@@ -78,6 +78,10 @@
 // Backlight is switched with a P-channel MOSFET, so signal is inverted.
 #define BACKLIGHT_AUTO_OFF_PERIOD 600
 
+#ifndef BREWPI_LCD_BUFFER
+#define BREWPI_LCD_BUFFER 0
+#endif
+
 class SpiLcd : public Print {
 	public:
 	// Constants are set in initializer list of constructor
@@ -120,19 +124,24 @@ class SpiLcd : public Print {
 	void print_P(const char * str);
 #endif
 	// copy a line from the shadow copy to a string buffer and correct the degree sign
+#if BREWPI_LCD_BUFFER	
 	void getLine(uint8_t lineNumber, char * buffer); 
+#endif	
+	
+	void writeLine(uint8_t lineNumber, uint8_t* buffer);
 	
 	void readContent(void); // read the content from the display to the shadow copy buffer
 
 	void command(uint8_t);
 	char readChar(void);
 
-	void setBufferOnly(bool bufferOnly) { _bufferOnly = bufferOnly; }
-
 	void resetBacklightTimer(void);
 
 	void updateBacklight(void);
 	
+#if BREWPI_LCD_BUFFER
+	void setBufferOnly(bool bufferOnly) { _bufferOnly = bufferOnly; }
+
 	uint8_t getCurrPos(void){
 		return _currpos;
 	}
@@ -142,7 +151,7 @@ class SpiLcd : public Print {
 	
 	// Write spaces from current position to line end.
 	void printSpacesToRestOfLine(void);
-		
+#endif		
 	using Print::write;
 
 	private:
@@ -159,14 +168,14 @@ class SpiLcd : public Print {
 	uint8_t _displayfunction;
 	uint8_t _displaycontrol;
 	uint8_t _displaymode;
+	
+	uint16_t _backlightTime;
+	
+#if BREWPI_LCD_BUFFER
 	uint8_t _currline;
 	uint8_t _currpos;
-	uint8_t _numlines;
-	
 	bool	_bufferOnly;
-	uint16_t _backlightTime;
-
 	char content[4][21]; // always keep a copy of the display content in this variable
-	
+#endif	
 };
 

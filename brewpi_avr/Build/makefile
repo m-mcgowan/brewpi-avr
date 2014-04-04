@@ -129,8 +129,10 @@ $(SRC)Memops.cpp \
 $(SRC)OneWire.cpp \
 $(SRC)OneWireTempSensor.cpp \
 $(SRC)Profile.cpp \
+$(SRC)SpiLcd.cpp \
 $(SRC)SystemProfile.cpp \
 $(SRC)Temperature.cpp \
+$(SRC)TemperatureFormats.cpp \
 $(SRC)Ticks.cpp \
 $(SRC)ValueActuator.cpp \
 $(SRC)Values.cpp \

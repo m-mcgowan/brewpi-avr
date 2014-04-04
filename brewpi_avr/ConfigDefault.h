@@ -86,7 +86,7 @@
 #endif
 
 #ifndef FAST_DIGITAL_PIN 
-#define FAST_DIGITAL_PIN 0
+#define FAST_DIGITAL_PIN 1
 #endif
 
 /**
