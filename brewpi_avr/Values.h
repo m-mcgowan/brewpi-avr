@@ -169,8 +169,7 @@ public:
 	virtual void readTo(DataOut& out)=0;
 	virtual uint8_t streamSize()=0;			// the size this value occupies in the stream.
 	
-	virtual void writeMaskedFrom(DataIn& in, DataIn& mask){};	// default is a no-op. Caller always checks if item is writable first.
-	
+	virtual void writeMaskedFrom(DataIn& in, DataIn& mask){};	// default is a no-op. Caller always checks if item is writable first.	
 };
 
 class WritableValue : public Value {
