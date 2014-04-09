@@ -14,9 +14,9 @@
 const uint8_t EEPROM_HEADER_SIZE = 2;
 const uint8_t MAX_SYSTEM_PROFILES = 4;
 
-const uint8_t SYSTEM_PROFILE_CURRENT_OFFSET = EEPROM_HEADER_SIZE;               // start address of profile fat.
+const uint8_t SYSTEM_PROFILE_CURRENT_OFFSET = EEPROM_HEADER_SIZE;               // 2 bytes for header
 const uint8_t SYSTEM_PROFILE_ID_OFFSET = SYSTEM_PROFILE_CURRENT_OFFSET+1;       // 1 byte for current profile
-const uint8_t SYSTEM_PROFILE_RESERVED_OFFSET = SYSTEM_PROFILE_ID_OFFSET+1;      // 1 byte for ID
+const uint8_t SYSTEM_PROFILE_RESERVED_OFFSET = SYSTEM_PROFILE_ID_OFFSET+1;		// 1 byte for ID
 const uint8_t SYSTEM_PROFILE_OPEN_END = SYSTEM_PROFILE_RESERVED_OFFSET+2;       // 2 reserved bytes
 const uint8_t SYSTEM_PROFILE_FAT = SYSTEM_PROFILE_OPEN_END+sizeof(eptr_t);      // end of last profile address
 
@@ -27,18 +27,36 @@ const uint16_t SYSTEM_PROFILE_EEPROM_HEADER = 		uint16_t(SYSTEM_PROFILE_MAGIC)<<
 typedef int8_t system_profile_t;
 
 
+
+
 /**
  * Eeprom format:
  *    0x00	magic number (0x69)
  *	  0x01  version
  *	  0x02	active profile 
- *	  0x03	reserved
+ *	  0x03	system id
  *	  0x04  end of open profile - if this is equal to the start of the profile then it needs to be computed and written.
  *	  0x06	start of profile FAT. 2 bytes per entry. This lists the start address of the profiles.
  *	  0x0E	start of profile storage
  *	  ....
  *	  end	
  */
+
+// having time as a system service is a compromise over lose-coupling/dependency injection vs convenience
+EepromBlock system_id(SYSTEM_PROFILE_ID_OFFSET, 1);
+
+/* Configure the counter and delay timer. The actual type of these will vary depending upon the environment.
+ * They are non-virtual to keep code	 size minimal, so typedefs and preprocessing are used to select the actual compile-time type used. */
+TicksImpl baseticks = TicksImpl(TICKS_IMPL_CONFIG);
+DelayImpl wait = DelayImpl(DELAY_IMPL_CONFIG);
+ScaledTicksValue ticks;
+
+EepromDataOut SystemProfile::writer;
+profile_id_t SystemProfile::current;
+Container* SystemProfile::root = NULL;
+Object* systemRootItems[2];
+FixedContainer SystemProfile::systemRoot(sizeof(systemRootItems)/sizeof(systemRootItems[0]), systemRootItems);
+
 
 
 /**
@@ -66,19 +84,11 @@ void SystemProfile::initializeEeprom() {
 	writeEepromRange(0, eepromAccess.length(), 0xFF);
 }
 
-// todo - in many ways this is application-centric since not all apps need ID or time
-// consider exporting creation of the system root container externally also.
-EepromBlock system_id(SYSTEM_PROFILE_ID_OFFSET, 1);
-/* Configure the counter and delay timer. The actual type of these will vary depending upon the environment.
- * They are non-virtual to keep code	 size minimal, so typedefs and preprocessing are used to select the actual compile-time type used. */
-TicksImpl baseticks = TicksImpl(TICKS_IMPL_CONFIG);
-DelayImpl wait = DelayImpl(DELAY_IMPL_CONFIG);
-ScaledTicksValue ticks;
-
 void SystemProfile::initialize() {
 	
 	// build system objects
 	systemRoot.add(0, &system_id);
+	systemRoot.add(1, &ticks);
 	
 	current = SYSTEM_PROFILE_DEFAULT;
 	if (readPointer(0)==SYSTEM_PROFILE_EEPROM_HEADER) {
@@ -90,7 +100,7 @@ void SystemProfile::initialize() {
 		// clear the fat
 		writeEepromRange(SYSTEM_PROFILE_FAT, SYSTEM_PROFILE_DATA_OFFSET, 0);
                 
-                setProfileOffset(-1, SYSTEM_PROFILE_DATA_OFFSET);   // set the marker for the last profile
+		setProfileOffset(-1, SYSTEM_PROFILE_DATA_OFFSET);   // set the marker for the last profile
 		
 		// reset profile store
 		writeEepromRange(SYSTEM_PROFILE_DATA_OFFSET, eepromAccess.length(), 0xFF);		
@@ -418,10 +428,4 @@ void SystemProfile::listEepromInstructionsTo(profile_id_t profile, DataOut& out)
 	while (walker.writeNext(out)) {}
 }
 
-
-EepromDataOut SystemProfile::writer;
-profile_id_t SystemProfile::current;
-Container* SystemProfile::root = NULL;
-Object* systemRootItems[1];
-FixedContainer SystemProfile::systemRoot(1, systemRootItems);
 
