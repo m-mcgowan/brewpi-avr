@@ -41,6 +41,29 @@ public:
 	}
 };
 
+template <class T> class TransientValue : public WritableValue
+{
+	T value;
+public:
+	
+	void readTo(DataOut& out) {
+		writePlatformEndianBytes(&value, sizeof(value), out);
+	}
+	
+	void writeMaskedFrom(DataIn& in, DataIn& maskIn) {
+		readPlatformEndianMaskedBytes(&value, sizeof(value), in, maskIn);
+	}
+	
+	uint8_t streamSize() { return sizeof(T); }
+		
+	void setValue(const T& value) {
+		this->value = value;
+	}
+	
+	T getValue() { return value; }
+			
+};
+
 /**
  * Callback function for use by this container to establish values.
  * @param id	The index (greater or equal to 0) in the container to return the value of. When negative, returns	
@@ -82,4 +105,36 @@ public:
 	container_id size() {
 		return container_id(pointer_scalar(externalValue(-1)));
 	}
+};
+
+/**
+ * A proxy value is configured with the id chain of an object, and returns that object's value.
+ * This is used in cases where you have a complex object implemented as a container, and it requires
+ * values to be inserted into it, yet the value you want to insert is already instantiated elsewhere.
+ * It behaves something like a pointer.
+ */
+class ProxyValue : EepromValue
+{
+private:
+	Value* previous;	
+	eptr_t address;
+
+public:
+
+	void rehydrated(eptr_t address)
+	{
+		this->address = address;
+	}
+
+	prepare_t prepare() {
+		EepromDataIn data;
+		data.reset(address, eepromAccess.readByte(address-1));
+		previous = (Value*)lookupUserObject(data);
+		return previous->prepare();
+	}
+	
+	uint8_t streamSize() { return previous->streamSize(); }
+	void readTo(DataOut& out) { previous->readTo(out); }
+	void writeMaskedFrom(DataIn& dataIn, DataIn& maskedIn) { previous->writeMaskedFrom(dataIn, maskedIn); }
+	
 };
