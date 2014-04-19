@@ -2,6 +2,12 @@
 
 #include "DataStream.h"
 
-void readMaskedBytes(void* data, uint8_t size, DataIn& in, DataIn& mask);
+void readPlatformEndianMaskedBytes(void* data, uint8_t size, DataIn& in, DataIn& mask);
 
-void writeBytes(void* data, uint8_t size, DataOut& out);
+void writePlatformEndianBytes(void* data, uint8_t size, DataOut& out);
+
+
+inline uint8_t readMaskedByte(DataIn& in, DataIn& mask)
+{
+	return in.next() & mask.next();
+}

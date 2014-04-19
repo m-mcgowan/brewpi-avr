@@ -19,7 +19,7 @@ public:
 	}
 
 	void writeMaskedFrom(DataIn& in, DataIn& mask) {
-		readMaskedBytes(buffer, 80, in, mask);		
+		readPlatformEndianMaskedBytes(buffer, 80, in, mask);		
 	}
 	
 	void readTo(DataOut& out) {

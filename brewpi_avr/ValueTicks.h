@@ -10,7 +10,7 @@
  * 
  * The current time and scale are not persisted to eeprom.
  */
-class ScaledTicksValue : public Value
+class ScaledTicksValue : public WritableValue
 {
 	ticks_millis_t start;
 	uint16_t scale;
@@ -28,24 +28,35 @@ public:
 		
 	void readTo(DataOut& out) {
 		ticks_millis_t time = millis();
-		writeBytes(&time, sizeof(time), out);
-		writeBytes(&scale, sizeof(scale), out);
+		writePlatformEndianBytes(&time, sizeof(time), out);
+		writePlatformEndianBytes(&scale, sizeof(scale), out);
 	}
 	
 	void writeMaskedFrom(DataIn& in, DataIn& mask) {
 		// write the start and scale
-		readMaskedBytes(&start, sizeof(start), in, mask);
-		readMaskedBytes(&scale, sizeof(scale), in, mask);
+		readPlatformEndianMaskedBytes(&start, sizeof(start), in, mask);
+		readPlatformEndianMaskedBytes(&scale, sizeof(scale), in, mask);
 	}
 		
+	/**
+	 * Stream written/read is
+	 *   4-bytes	uint32	The number of milliseconds passed since poweron.
+	 *   2-bytes	uint16	The time scaling. a 16-bit integer. 
+	 */
 	uint8_t streamSize() { return 6; }
 		
 };
 
+/**
+ * Time is critical to so many components that this is provided as a system-level service.
+ * The SystemProfile maintains this instance and persists changes to eeprom.
+ */
 extern ScaledTicksValue ticks;
 
 /**
  * Fetches the current millisecond count from the {@code Ticks} static instance. 
+ * TODO: now that ScaledTicksValue is part of the system container, we don't really need this?
+ * It was mainly for testing, so can be replaced.
  */
 class CurrentTicksValue : public Value
 {
@@ -54,7 +65,7 @@ public:
 	void readTo(DataOut& out)
 	{
 		ticks_millis_t millis = ticks.millis();
-		writeBytes(&millis, 4, out);
+		writePlatformEndianBytes(&millis, 4, out);
 	}
 	
 	uint8_t streamSize()

@@ -64,3 +64,5 @@ typedef uint64_t pointer_scalar;
 typedef uint32_t pointer_scalar;
 #endif
 
+#define PLATFORM_BIG_ENDIAN 0
+

@@ -17,26 +17,27 @@ bool BufferDataOut::write(uint8_t data) {
 	return false;
 }
 
-// todo - given that the arduino is the most space-constrained, then better to make the default
-// little endian.
-void writeBytes(void* data, uint8_t size, DataOut& out)
+/**
+ * Writes bytes in little endian order.
+ * @param data	Pointer to the buffer, stored in the endian-ness for the platform.
+ *
+ */
+void writePlatformEndianBytes(void* data, uint8_t size, DataOut& out)
 {
-	#if ARDUINO
-	// arduino is little-endian
+	#if PLATFORM_BIG_ENDIAN
 	uint8_t* buf = (uint8_t*)data;
 	for (int i=size; i-->0; )
 		out.write(buf[i]);
-	#else
-	// intel is big endian
+	#else	
 	out.writeBuffer((uint8_t*)data, size);
 	#endif
 }
 
 
-void readMaskedBytes(void* _data, uint8_t size, DataIn& in, DataIn& mask)
+void readPlatformEndianMaskedBytes(void* _data, uint8_t size, DataIn& in, DataIn& mask)
 {
 	uint8_t* data = (uint8_t*)_data;
-	#if ARDUINO
+	#if PLATFORM_BIG_ENDIAN
 	for (uint8_t i=size; i-->0; i++)
 	#else
 	for (uint8_t i=0; i<size; i++)

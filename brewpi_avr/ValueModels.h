@@ -71,7 +71,7 @@ public:
 		return externalValue(id);
 	}
 	
-	void returnItem(Object* item) {
+	void returnItem(container_id id, Object* item) {
 #if OBJECT_VIRTUAL_DESTRUCTOR
 		delete item;
 #else		
