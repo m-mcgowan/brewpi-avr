@@ -207,7 +207,7 @@ void loop() {
 /**
  * Include objects that have not been tested.
  */
-#define BREWPI_EXPERIMENTAL 0
+#define BREWPI_EXPERIMENTAL 1
 
 #if BREWPI_EXPERIMENTAL
 #define EXPERIMENTAL(x) x
@@ -224,7 +224,7 @@ ObjectFactory createObjectHandlers[] = {
 	EepromValue::create,									// type 5
 	Profile::create,										// type 6
 	EXPERIMENTAL(LogicActuator::create),					// type 7
-	EXPERIMENTAL(BangBangController::create),				// type 8
+	EXPERIMENTAL(BangBangController2::create),				// type 8
 	PersistChangeValue::create,								// type 9
 	DISPLAY_OBJECT(DisplayValue::create),					// type A
 	DISPLAY_OBJECT(DisplayTemplate::create),				// type B
