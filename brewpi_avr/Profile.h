@@ -9,6 +9,7 @@
 #include "SystemProfile.h"
 #include "Values.h"
 #include "ValuesEeprom.h"
+#include "ValueModels.h"
 #include "Ticks.h"
 
 #ifndef PROFILE_SMOOTHING
@@ -22,6 +23,7 @@ enum ProfileInterpolation {
 	smoother
 };
 
+// The profile state persisted to eeprom.
 struct ProfileState
 {
 	uint8_t		currentStep			:4;		// the current step in the profile
@@ -39,17 +41,21 @@ struct ProfileState
 #define STATE_INTERPOLATION_SHIFT 0
 #define STATE_CURRENT_STEP_SHIFT 4
 
+
+typedef uint16_t profile_value_t;
+
 /**
- * A profile updates a 16-bit value in tandem with passing time. 
- * 
+ * A profile updates a 16-bit value in tandem with passing time.  
+ * Eeprom foramt:
+ *  
  */
-class ProfileRaw : public EepromValue
+class ProfileConfig : public EepromValue
 {
 	// I choose to make this static so that all profiles are kept on the same time, and also 
 	// so that the code-size is smaller
 	static ticks_millis_t lastTick;
 
-	uint16_t calculateSetpoint(uint8_t step, uint8_t maxStep, uint16_t current);
+	uint16_t calculateSetpoint(uint8_t step, uint8_t maxStep, profile_value_t current);
 	
 
 	bool isRunning() {
@@ -80,7 +86,7 @@ class ProfileRaw : public EepromValue
 		return readPointer(eeprom_offset()+4+(step<<1));
 	}
 
-	uint16_t stepSetpoint(uint8_t step) {
+	profile_value_t stepSetpoint(uint8_t step) {
 		return readPointer(eeprom_offset()+6+(step<<1));
 	}
 
@@ -94,6 +100,8 @@ class ProfileRaw : public EepromValue
 	
 	void setSetpoint(uint16_t setpoint);
 	
+	profile_value_t updateSetpoint(profile_value_t previous);
+	
 public:
 	// use default read to fetch profile state
 	// default write is available but not recommended
@@ -101,25 +109,37 @@ public:
 	object_t objectType() {
 		return otValueWrite|otNotLogged;
 	}
+};
 
-	void writeMaskedFrom() {
-		
-	}
-
-	void update();
-
-	/**
-	 *
-	 */
-	static Object* create(ObjectDefinition& defn) {
-		// construction data shhould be 
-		// 00 00 00 00 (initialize control block)
-		// followed by uint16_t x 2 (big endian) for each profile point (duration and setpoint)
-		// ID of target object to update (as on-wire encoding with 0x80 bit indicating more data to come.)
-		return new ProfileRaw();
+class Profile : public Container
+{
+	ProfileConfig				config;
+	TransientValue<uint16_t>	current;
+	
+public:
+	
+	// the eeprom storage is used exclusively to store the profile config
+	void rehydrated(eptr_t address) {
+		config.rehydrated(address);
 	}
 	
-	// TODO- can't decide if API should be a read/write block and let external code handle changes,
-	// or if this object should be a container that exposes individual values (interpolation type, running, offset, time) as 
-	// 
+	Object* item(container_id id)
+	{
+		switch (id) {
+			case 0 : return &config;
+			case 1 : return &current;
+			default:
+				return NULL;
+		}
+	}
+		
+	container_id size() { return 2; }
+		
+	/**
+	 * Object definition block:
+	 *	see ProfileConfig
+	 */		
+	static Object* create(ObjectDefinition& defn) {
+		return new_object(Profile());
+	}
 };

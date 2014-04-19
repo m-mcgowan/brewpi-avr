@@ -42,7 +42,7 @@
 #include "ValueDisplay.h"
 
 #ifdef ARDUINO
-#include "BrewpiOneWire.h"
+#include "OneWireBus.h"
 #include "OneWireTempSensor.h"
 #endif
 
@@ -222,7 +222,7 @@ ObjectFactory createObjectHandlers[] = {
 	CurrentTicksValue::create,								// type 3
 	DynamicContainer::create,								// type 4
 	EepromValue::create,									// type 5
-	EXPERIMENTAL(ProfileRaw::create),						// type 6
+	Profile::create,										// type 6
 	EXPERIMENTAL(LogicActuator::create),					// type 7
 	EXPERIMENTAL(BangBangController::create),				// type 8
 	PersistChangeValue::create,								// type 9

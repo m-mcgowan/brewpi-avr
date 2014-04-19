@@ -10,12 +10,12 @@
 #include "Temperature.h"
 #include "ValueTicks.h"
 
-ticks_millis_t ProfileRaw::lastTick;
+ticks_millis_t ProfileConfig::lastTick;
 
 typedef uint16_t fixed0_16;
 typedef uint32_t fixed16_16;
 
-uint16_t ProfileRaw::calculateSetpoint(uint8_t step, uint8_t maxStep, uint16_t current) 
+uint16_t ProfileConfig::calculateSetpoint(uint8_t step, uint8_t maxStep, uint16_t current) 
 {
 	uint16_t duration = stepDuration(step);
 	uint16_t setpoint = stepSetpoint(step);
@@ -26,7 +26,7 @@ uint16_t ProfileRaw::calculateSetpoint(uint8_t step, uint8_t maxStep, uint16_t c
 	}
 	else
 	{
-		// todo - duration granularity is one minute, so this updates only on
+		// todo - duration granularity is one minute
 		
 		// fixed point 0.16
 		fixed0_16 t2 = ((fixed16_16)current << 16) / duration;
@@ -44,42 +44,41 @@ uint16_t ProfileRaw::calculateSetpoint(uint8_t step, uint8_t maxStep, uint16_t c
 		}
 #endif		
 		fixed0_16 t1 = (1UL<<16)-t2;
-		setpoint = ((fixed23_9)sp1 * t1 + (fixed23_9)sp2 * t2) >> 16;				
+		if (interpolation!=none)
+			setpoint = ((fixed23_9)sp1 * t1 + (fixed23_9)sp2 * t2) >> 16;				
+	}
+	return setpoint;
+}
+	
+profile_value_t ProfileConfig::updateSetpoint(profile_value_t setpoint)
+{	
+	ticks_millis_t currTick = ticks.millis();
+	if (currTick-lastTick>60000) {
+		lastTick = currTick;
+		
+		uint8_t step = currentStep();
+		uint8_t maxStep = stepCount()-1;		
+		uint16_t current = currentProfileTime();
+		if (current >= stepDuration(step)) {	// end of current step
+			if (step==maxStep || stepDuration(step)==0) {		// at least step
+				setpoint = stepSetpoint(step);
+			}
+			else {
+				setCurrentProfileTime(0);
+				setCurrentStep(step+1);
+				setpoint = calculateSetpoint(step, maxStep, current);
+			}
+		}
+		else {
+			setpoint = calculateSetpoint(step, maxStep, current);
+		}
 	}
 	return setpoint;
 }
 
-void ProfileRaw::update()
-{
-	if (isRunning()) {
-		ticks_millis_t currTick = ticks.millis();
-		if (currTick-lastTick>60000) {
-			lastTick = currTick;
-		
-			uint8_t step = currentStep();
-			uint8_t maxStep = stepCount()-1;
-			uint16_t setpoint;			
-			uint16_t current = currentProfileTime();
-			if (current >= stepDuration(step)) {	// end of current step
-				if (step==maxStep || stepDuration(step)==0) {		// at least step
-					setpoint = stepSetpoint(step);
-				}
-				else {
-					setCurrentProfileTime(0);
-					setCurrentStep(step+1);
-					setpoint = calculateSetpoint(step, maxStep, current);
-				}
-			}
-			else {
-				setpoint = calculateSetpoint(step, maxStep, current);
-			}
-		
-			setSetpoint(setpoint);
-		}
-	}
-}
-
-void ProfileRaw::setSetpoint(uint16_t setpoint) {	
+#if 0 
+// obsolete - for passing the value to another object
+void ProfileConfig::setSetpoint(uint16_t setpoint) {	
 	
 	EepromDataIn id_chain;
 	id_chain.reset(eeprom_offset()+4+(stepCount()<<1), MAX_CONTAINER_DEPTH);
@@ -97,3 +96,4 @@ void ProfileRaw::setSetpoint(uint16_t setpoint) {
 		}
 	}
 }
+#endif
