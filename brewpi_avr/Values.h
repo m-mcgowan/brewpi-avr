@@ -175,7 +175,7 @@ public:
 class WritableValue : public Value {
 public:	
 	virtual object_t objectType() { return otValueWrite; }		
-	virtual void writeMaskedFrom(DataIn& dataIn, DataIn& maskIn);
+	virtual void writeMaskedFrom(DataIn& dataIn, DataIn& maskIn)=0;
 	
 	static uint8_t nextMaskedByte(uint8_t current, DataIn& dataIn, DataIn& maskIn) {
 			uint8_t next = dataIn.next();
@@ -342,11 +342,15 @@ public:
 	}
 };
 
+
+class ValueSource
+{
+	bool getValue(void* value, uint8_t id=0);
+};
+
 /**
  * Definition parameters for creating a new object.
  */
-
-
 struct ObjectDefinition {
 	DataIn* in;		// stream providing definition data for this object
 	uint8_t len;		// number of bytes in the stream for this object definition

@@ -179,10 +179,7 @@ template<int SIZE> class StaticTemplateContainer : public OpenContainer
 				delete_object(_items[i]);			
 		}
 #endif		
-		
 };
-
-
 
 
 /**
@@ -207,6 +204,22 @@ class FixedContainer : public OpenContainer
 		}
 
 	public:
+		FixedContainer(container_id size, Object** items)
+		: SIZE(size), _items(items) {
+			
+			clear((uint8_t*)_items, SIZE*sizeof(Object*));
+		}
+		
+
+		#if OBJECT_VIRTUAL_DESTRUCTOR
+		// the contract says that before a container is deleted, the caller should ensure all contained objects
+		// are also deleted. (if they were added.)
+		~StaticContainer() {
+			for (int i=0; i<SIZE;i++)
+			delete_object(_items[i]);
+		}
+		#endif
+
 		prepare_t prepare() {
 			prepare_t time = 0;
 			for (int i=0; i<size(); i++ ) {
@@ -250,21 +263,5 @@ class FixedContainer : public OpenContainer
 		 */
 		container_id size() { return SIZE; }
 
-
-		FixedContainer(container_id size, Object** items)
-		: SIZE(size), _items(items) {
-		
-			clear((uint8_t*)_items, SIZE*sizeof(Object*));
-		}
-	
-
-#if OBJECT_VIRTUAL_DESTRUCTOR		
-		// the contract says that before a container is deleted, the caller should ensure all contained objects
-		// are also deleted. (if they were added.)
-		~StaticContainer() {
-			for (int i=0; i<SIZE;i++)
-				delete_object(_items[i]);			
-		}
-#endif		
 		
 };

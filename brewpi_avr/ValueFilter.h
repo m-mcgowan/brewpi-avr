@@ -3,13 +3,10 @@
 #include "Values.h"
 #include "FilterCascaded.h"
 
-class ValueSource
-{
-	bool getValue(void* value, uint8_t id);
-};
-
 
 // Todo wonder if the different values should be made available as a container.
+// Container is best if the values need to be logged, but may not be needed if the ValueSource* is itself
+// a logged value.
 class FilterValue : public Value, ValueSource
 {
 	ValueSource* source;

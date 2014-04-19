@@ -5,6 +5,7 @@
 #include "EepromAccess.h"
 #include "DataStreamEeprom.h"
 #include "SystemProfile.h"
+#include "StreamUtil.h"
 
 /**
  * Base class for a read-write value in eeprom. This class is responsible for moving the data
@@ -57,8 +58,7 @@ protected:
  * Subsequent read/write operations read and write to that data. 
  */
 class EepromValue : public EepromBaseValue
-{
-	
+{	
 	eptr_t address;
 		
 public:
@@ -110,10 +110,6 @@ class EepromBlock : public EepromBaseValue
 		uint8_t streamSize() { return _size; }
 };
 
-inline uint8_t readMaskedByte(DataIn& in, DataIn& mask)
-{	
-	return in.next() & mask.next();
-}
 
 /**
  * A value that saves the state to eeprom when the difference between the persisted value and the current
