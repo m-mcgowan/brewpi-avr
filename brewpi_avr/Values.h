@@ -117,7 +117,7 @@ public:
 	/**
 	 * Deletes the item. This assumes item was created on-demand by the item() method.
 	 */
-	virtual void returnItem(Object* item) {
+	virtual void returnItem(container_id id, Object* item) {
 		delete_object(item);
 	}
 };
