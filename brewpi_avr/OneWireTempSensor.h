@@ -25,7 +25,7 @@
 #include "FastDigitalPin.h"
 #include "DallasTemperature.h"
 #include "Ticks.h"
-#include "BrewpiOneWire.h"
+#include "OneWireBus.h"
 
 
 class DallasTemperature;
@@ -48,7 +48,7 @@ public:
 			fixed4_4 calibration = def.in->next();
 			OneWireBus* bus = cast_object_ptr(OneWireBus, lookupUserObject(*def.in));
 			if (bus)
-				result = new OneWireTempSensor(bus, address, calibration);
+				result = new OneWireTempSensor(bus->onewire(), address, calibration);
 		}
 		return result;
 	}

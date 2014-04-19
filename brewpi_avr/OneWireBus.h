@@ -10,15 +10,17 @@
 #include "OneWire.h"
 
 /**
- * A onewire bus is just an opaque object that is constructed and referenced. 
+ * An object that provides an interface to a onewire bus.
  */
-// todo - I contemplated exposing e.g. pin as a value, but this is immutable, and is available from the object construction arguments
 // mdma: I didn't push the Object functionality down into OneWire because that code comes from an external source - less intrusive to subclass.
-class OneWireBus : public Value, public OneWire
+class OneWireBus : public Value
 {
+	OneWire _onewire;
 	
 public:	
-	OneWireBus(uint8_t pin) : OneWire(pin) { }
+	OneWireBus(uint8_t pin) : _onewire(pin) { }
+	
+	OneWire* onewire() { return &_onewire; }
 	
 	static Object* create(ObjectDefinition& def) {		
 		uint8_t pin = def.in->next();
@@ -29,20 +31,16 @@ public:
 	 * Enumerates the one-wire bus and returns the devices found.
 	 */
 	void readTo(DataOut& out) {
-		reset_search();
+		_onewire.reset_search();
 		uint8_t address[8];
-		while (search(address)) {
+		while (_onewire.search(address)) {
 			// hardware device type from OneWire family ID
 			out.writeBuffer(address, 8);
-		}
-		out.write(0);
+		}		
 	}
 	
 	uint8_t streamSize() {
-		// todo - what do to when there are more than 32 devices on the bus?
-		// todo - don't really want to have to determine the stream size by enumerating devices to find out how
-		// many there are. Make 255 mean unknown size, and that the caller has to use a device-specific enumeration.		
-		return 255;
+		return 0;
 	}
 	
 };
