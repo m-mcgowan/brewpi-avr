@@ -62,7 +62,9 @@ bool DallasTemperature::initConnection(const uint8_t* deviceAddress) {
 		if (!isConnected(deviceAddress, scratchPad) || !detectedReset(scratchPad))
 			return false;		
 	}
-
+	#if REQUIRESONLY12BITCONVERSION		
+		scratchPad[CONFIGURATION] = TEMP_12_BIT;
+	#endif
 	scratchPad[HIGH_ALARM_TEMP]=1;
 	writeScratchPad(deviceAddress, scratchPad, false);	// don't save to eeprom, so that it reverts to 0 on reset
 	// from this point on, if we read a scratchpad with a 0 value in HIGH_ALARM (detectedReset() returns true)
@@ -161,13 +163,19 @@ bool DallasTemperature::isConnected(const uint8_t* deviceAddress)
 bool DallasTemperature::isConnected(const uint8_t* deviceAddress, uint8_t* scratchPad)
 {
     readScratchPad(deviceAddress, scratchPad);
-    return (_wire->crc8(scratchPad, 8) == scratchPad[SCRATCHPAD_CRC]);
+	// Also check that device is not parasite powered, if this is disabled.
+	// Thiss is to prevent sensors with a loose 5V line to be detected
+	#if REQUIRESPARASITEPOWERAVAILABLE
+		return (_wire->crc8(scratchPad, 8) == scratchPad[SCRATCHPAD_CRC]);
+	#else
+		return (_wire->crc8(scratchPad, 8) == scratchPad[SCRATCHPAD_CRC] && !readPowerSupply(deviceAddress));
+	#endif
 }
 
 void DallasTemperature::sendCommand(const uint8_t* deviceAddress, uint8_t command) {
     _wire->reset();
     _wire->select(deviceAddress);
-    _wire->write(command);	
+    _wire->write(command);
 }
 
 // read device's scratch pad
