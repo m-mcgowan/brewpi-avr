@@ -59,7 +59,8 @@ protected:
  */
 class EepromValue : public EepromBaseValue
 {	
-	eptr_t address;
+protected:    
+        eptr_t address;
 		
 public:
 

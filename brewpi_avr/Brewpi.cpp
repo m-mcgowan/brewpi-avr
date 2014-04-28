@@ -229,6 +229,7 @@ ObjectFactory createObjectHandlers[] = {
 	DISPLAY_OBJECT(DisplayValue::create),					// type A
 	DISPLAY_OBJECT(DisplayTemplate::create),				// type B
 	ARDUINO_OBJECT(DigitalPinActuator::create),				// type C
+	IndirectValue::create,									// type D
 	NULL
 	
 	// When defining a new object type, add the handler above the last NULL value (it's just there to make

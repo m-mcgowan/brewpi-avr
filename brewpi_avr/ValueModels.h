@@ -7,6 +7,7 @@
  */ 
 
 #include "Brewpi.h"
+#include "Values.h"
 
 /**
  * A streamable value whose data resizes externally.
@@ -108,33 +109,40 @@ public:
 };
 
 /**
- * A proxy value is configured with the id chain of an object, and returns that object's value.
+ * An indirect value is configured with the id chain of an object, and returns that object's value.
+ * Once created the value pointed to cannot be changed.
  * This is used in cases where you have a complex object implemented as a container, and it requires
- * values to be inserted into it, yet the value you want to insert is already instantiated elsewhere.
+ * values to be inserted into it, yet the value you want to insert is already instantiated elsewhere else.
  * It behaves something like a pointer.
  */
-class ProxyValue : EepromValue
+class IndirectValue : public EepromValue
 {
 private:
 	Value* previous;	
-	eptr_t address;
 
+        void fetchTarget() {
+                EepromDataIn data;
+		data.reset(address, eepromAccess.readByte(address-1));
+		previous = (Value*)lookupUserObject(data);            
+        }
 public:
 
-	void rehydrated(eptr_t address)
-	{
-		this->address = address;
+	object_t objectType() {
+            fetchTarget();
+		return previous==NULL ? otObject : previous->objectType();
 	}
-
+                
 	prepare_t prepare() {
-		EepromDataIn data;
-		data.reset(address, eepromAccess.readByte(address-1));
-		previous = (Value*)lookupUserObject(data);
-		return previous->prepare();
+            fetchTarget();
+                return previous==NULL ? 0 : previous->prepare();
 	}
 	
 	uint8_t streamSize() { return previous->streamSize(); }
-	void readTo(DataOut& out) { previous->readTo(out); }
-	void writeMaskedFrom(DataIn& dataIn, DataIn& maskedIn) { previous->writeMaskedFrom(dataIn, maskedIn); }
-	
+	void readTo(DataOut& out) { if (previous) previous->readTo(out); }
+	void writeMaskedFrom(DataIn& dataIn, DataIn& maskedIn) { if (previous) previous->writeMaskedFrom(dataIn, maskedIn); }
+        
+	static Object* create(ObjectDefinition& def)
+        {
+            return new_object(IndirectValue());
+        }
 };
