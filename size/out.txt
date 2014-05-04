@@ -1,0 +1,13 @@
+T realloc	408
+T DynamicContainer::freeSlot()	134
+W DynamicContainer::prepare()	114
+W DynamicContainer::add(signed char, Object*)	82
+W DynamicContainer::update()	78
+W DynamicContainer::item(signed char)	72
+W DynamicContainer::remove(signed char)	70
+V vtable for DynamicContainer	24
+W DynamicContainer::size()	22
+W DynamicContainer::next()	6
+T createRootContainer()	-6
+B rootItems	-128
+total	 876

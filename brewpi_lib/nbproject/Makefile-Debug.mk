@@ -50,6 +50,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1979302600/Sensor.o \
 	${OBJECTDIR}/_ext/1979302600/SystemProfile.o \
 	${OBJECTDIR}/_ext/1979302600/Temperature.o \
+	${OBJECTDIR}/_ext/1979302600/TemperatureFormats.o \
 	${OBJECTDIR}/_ext/1979302600/Ticks.o \
 	${OBJECTDIR}/_ext/1979302600/Values.o \
 	${OBJECTDIR}/_ext/1979302600/ValuesEeprom.o \
@@ -166,6 +167,11 @@ ${OBJECTDIR}/_ext/1979302600/Temperature.o: ../brewpi_avr/Temperature.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/Temperature.o ../brewpi_avr/Temperature.cpp
+
+${OBJECTDIR}/_ext/1979302600/TemperatureFormats.o: ../brewpi_avr/TemperatureFormats.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/TemperatureFormats.o ../brewpi_avr/TemperatureFormats.cpp
 
 ${OBJECTDIR}/_ext/1979302600/Ticks.o: ../brewpi_avr/Ticks.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
@@ -427,6 +433,19 @@ ${OBJECTDIR}/_ext/1979302600/Temperature_nomain.o: ${OBJECTDIR}/_ext/1979302600/
 	    $(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/Temperature_nomain.o ../brewpi_avr/Temperature.cpp;\
 	else  \
 	    ${CP} ${OBJECTDIR}/_ext/1979302600/Temperature.o ${OBJECTDIR}/_ext/1979302600/Temperature_nomain.o;\
+	fi
+
+${OBJECTDIR}/_ext/1979302600/TemperatureFormats_nomain.o: ${OBJECTDIR}/_ext/1979302600/TemperatureFormats.o ../brewpi_avr/TemperatureFormats.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1979302600
+	@NMOUTPUT=`${NM} ${OBJECTDIR}/_ext/1979302600/TemperatureFormats.o`; \
+	if (echo "$$NMOUTPUT" | ${GREP} '|main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T main$$') || \
+	   (echo "$$NMOUTPUT" | ${GREP} 'T _main$$'); \
+	then  \
+	    ${RM} "$@.d";\
+	    $(COMPILE.cc) -g -I../brewpi_cpp -I../brewpi_avr -I../brewpi_avr/fallback -std=c++11 -Dmain=__nomain -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1979302600/TemperatureFormats_nomain.o ../brewpi_avr/TemperatureFormats.cpp;\
+	else  \
+	    ${CP} ${OBJECTDIR}/_ext/1979302600/TemperatureFormats.o ${OBJECTDIR}/_ext/1979302600/TemperatureFormats_nomain.o;\
 	fi
 
 ${OBJECTDIR}/_ext/1979302600/Ticks_nomain.o: ${OBJECTDIR}/_ext/1979302600/Ticks.o ../brewpi_avr/Ticks.cpp 

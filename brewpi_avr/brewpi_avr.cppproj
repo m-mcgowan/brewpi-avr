@@ -308,9 +308,6 @@
     <Compile Include="Profile.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="RotaryEncoder.cpp">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="SpiLcd.cpp">
       <SubType>compile</SubType>
     </Compile>
@@ -413,7 +410,7 @@
     <Compile Include="TicksArduino.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="BrewpiOneWire.h">
+    <Compile Include="OneWireBus.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="ValueActuator.cpp">

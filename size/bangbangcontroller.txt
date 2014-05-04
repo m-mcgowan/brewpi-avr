@@ -1,0 +1,326 @@
+00013652 00000408 T realloc
+00013340 00000314 T free
+00013030 00000310 T malloc
+00011468 00000282 T OneWire::search(unsigned char*)
+00002810 00000262 W OneWireTempSensor::create(ObjectDefinition&)
+00000934 00000262 T HardwareSerial::begin(unsigned long)
+00008488 00000250 T ProfileRaw::update()
+00006718 00000244 T Comms::receive()
+00004504 00000202 T setValue(Object*, DataIn&, DataIn&, DataOut&)
+00008302 00000186 T ProfileRaw::setSetpoint(unsigned short)
+00005094 00000180 T createObjectCommandHandler(DataIn&, DataOut&)
+00010652 00000174 T SystemProfile::deleteProfile(signed char)
+00001630 00000172 t _GLOBAL__sub_I_port_to_mode_PGM
+00004296 00000166 T readValue(Object*, DataIn&, DataOut&)
+00004934 00000164 T rehydrateObject(unsigned short, PipeDataIn&, bool)
+00003508 00000150 T process()
+00001214 00000148 T __vector_16
+00006250 00000148 T TextIn::fetchNextData()
+00008160 00000148 T ProfileRaw::calculateSetpoint(unsigned char, unsigned char, unsigned short)
+00010154 00000146 T ObjectDefinitionWalker::writeNext(DataOut&)
+00005272 00000138 T removeEepromCreateCommand(BufferDataOut&)
+00010928 00000130 T OneWire::reset()
+00010530 00000130 T SystemProfile::activateProfile(signed char)
+00009130 00000126 W FixedContainer::prepare()
+00012550 00000126 T lookupOpenContainer(Object*, DataIn&, signed char&)
+00000494 00000122 T HardwareSerial::write(unsigned char)
+00006458 00000120 T HexTextToBinaryIn::fetchNextByte()
+00001406 00000118 T init
+00000816 00000118 T __vector_19
+00000686 00000116 T __vector_18
+00007230 00000116 T DallasTemperature::initConnection(unsigned char const*)
+00005494 00000114 T deleteObjectCommandHandler(DataIn&, DataOut&)
+00005800 00000112 T logValuesCallback(Object*, void*, signed char*, bool)
+00006062 00000108 W BinaryToHexTextOut::write(unsigned char)
+00012278 00000108 T walkContainer(Container*, bool (*)(Object*, void*, signed char*, bool), void*, signed char*, signed char*)
+00001524 00000106 T pinMode
+00007134 00000106 T DallasTemperature::writeScratchPad(unsigned char const*, unsigned char const*, bool)
+00009252 00000104 t _ZN15EepromBaseValue16_writeMaskedFromER6DataInS1_at.isra.5
+00010438 00000102 T SystemProfile::deactivateCurrentProfile()
+00009728 00000102 T SystemProfile::streamObjectDefinitions(EepromDataIn&)
+00012184 00000102 T walkObject(Object*, bool (*)(Object*, void*, signed char*, bool), void*, signed char*, signed char*)
+00007800 00000100 T DynamicContainer::expand(unsigned char)
+00007900 00000100 T DynamicContainer::add(signed char, Object*)
+00009642 00000100 T SystemProfile::initialize()
+00012380 00000100 T fetchContainedObject(Object*, unsigned char)
+00004842 00000094 T createObject(DataIn&, bool)
+00008736 00000092 W FixedContainer::update()
+00008852 00000090 W FixedContainer::next()
+00002160 00000090 W LogicActuator::create(ObjectDefinition&)
+00007338 00000088 T DallasTemperature::requestTemperaturesByAddress(unsigned char const*)
+00011136 00000086 T OneWire::read_bit()
+00003068 00000086 W DataIn::push(DataOut&, unsigned char)
+00011938 00000086 T OneWireTempSensor::readAndConstrainTemp()
+00005950 00000086 T handleCommand(DataIn&, DataOut&)
+00005604 00000086 T fetchNextSlot(Object*, DataIn&, DataOut&)
+00002364 00000084 W OneWireBus::readTo(DataOut&)
+00002680 00000084 W OneWireBus::create(ObjectDefinition&)
+00005410 00000084 T deleteObject(DataIn&)
+00009874 00000082 T SystemProfile::getProfileEnd(signed char, bool)
+00002580 00000082 W LogicActuator::readTo(DataOut&)
+00011056 00000080 T OneWire::write_bit(unsigned char)
+00002274 00000080 W CurrentTicksValue::readTo(DataOut&)
+00012474 00000080 T lookupObject(Object*, DataIn&)
+00010854 00000078 t _GLOBAL__sub_I_blackhole
+00004000 00000076 T logValuesCommandHandler(DataIn&, DataOut&)
+00011396 00000074 T OneWire::OneWire(unsigned char)
+00011396 00000074 T OneWire::OneWire(unsigned char)
+00010010 00000074 T SystemProfile::profileWriteRegion(EepromStreamRegion&, bool)
+00007536 00000072 T DynamicContainer::next()
+00002508 00000072 t _ZN13LogicActuator6activeEP5Value.isra.8
+00009008 00000070 W FixedContainer::add(signed char, Object*)
+00003154 00000070 W EepromValue::readTo(DataOut&)
+00006640 00000070 T printVersion()
+08389406 00000068 B tx_buffer
+08389474 00000068 B rx_buffer
+00012772 00000068 T __udivmodsi4
+00001802 00000068 W DataOut::writeBuffer(void const*, unsigned char)
+00000616 00000068 T Print::write(unsigned char const*, unsigned int)
+00007038 00000068 T DallasTemperature::readScratchPad(unsigned char const*, unsigned char*)
+00000404 00000068 T HardwareSerial::read()
+00010078 00000068 T SystemProfile::listDefinedProfiles(DataIn&, DataOut&)
+00009948 00000068 T SystemProfile::profileReadRegion(signed char, EepromStreamRegion&)
+00003696 00000068 W PipeDataIn::next()
+00007684 00000066 W DynamicContainer::iterate_objects(void*, void (*)(Object*, void*))
+00003444 00000066 T logValues(signed char*)
+00003938 00000066 T resetCommandHandler(DataIn&, DataOut&)
+00003220 00000064 W WritableValue::nextMaskedByte(unsigned char, DataIn&, DataIn&)
+00003284 00000062 t _ZN15EepromBaseValue16_writeMaskedFromER6DataInS1_at.isra.2
+00010294 00000062 T SystemProfile::listEepromInstructionsTo(signed char, DataOut&)
+00010348 00000060 T SystemProfile::compactObjectDefinitions()
+00010802 00000060 T SystemProfile::createProfile()
+00007418 00000058 T DallasTemperature::getTempRaw(unsigned char const*)
+00012908 00000056 T __prologue_saves__
+00011222 00000056 T OneWire::write(unsigned char, unsigned char)
+00006984 00000056 T DallasTemperature::sendCommand(unsigned char const*, unsigned char)
+00004200 00000056 W RegionDataIn::next()
+00009366 00000056 W EepromBlock::readTo(DataOut&)
+00009452 00000056 T deleteDynamicallyAllocatedObject(Object*, void*, signed char*, bool)
+00012964 00000054 T __epilogue_restores__
+00011322 00000054 T OneWire::select(unsigned char const*)
+00011886 00000054 T OneWireTempSensor::init()
+00012718 00000054 T ObjectDefinition::spool()
+00000350 00000054 T HardwareSerial::peek()
+00008954 00000054 W FixedContainer::remove(signed char)
+00009076 00000054 W EepromDataOut::write(unsigned char)
+00003884 00000054 T activateProfileCommandHandler(DataIn&, DataOut&)
+00012108 00000054 T constrainTemp(long, short, short)
+00011274 00000052 T OneWire::read()
+00007632 00000052 T DynamicContainer::remove(signed char)
+00000174 00000050 t printVersion()::__c
+00002762 00000050 W DynamicContainer::create(ObjectDefinition&)
+00004784 00000050 T setValueCommandHandler(DataIn&, DataOut&)
+00003386 00000050 T createRootContainer()
+00009584 00000050 W writeEepromRange(unsigned short, unsigned short, unsigned char)
+00012022 00000048 T OneWireTempSensor::read()
+00010400 00000048 T SystemProfile::closeOpenProfile()
+00011810 00000046 W OneWireTempSensor::prepare()
+00003344 00000046 W EepromValue::writeMaskedFrom(DataIn&, DataIn&)
+00005754 00000046 T writeID(signed char*, DataOut&)
+00004740 00000046 T setSystemValueCommandHandler(DataIn&, DataOut&)
+00004108 00000046 T deleteProfileCommandHandler(DataIn&, DataOut&)
+00004154 00000046 T listObjectsCommandHandler(DataIn&, DataOut&)
+00006578 00000044 W HexTextToBinaryIn::peek()
+00001988 00000044 W BasicTempSensor::update()
+00009500 00000044 T readPointer(unsigned short)
+00011736 00000042 T OneWire::crc8(unsigned char const*, unsigned char)
+00007760 00000042 W DynamicContainer::prepare()
+00012066 00000042 T constrainTemp16(long)
+00004256 00000040 W RegionDataIn::hasNext()
+00002460 00000040 W EepromDataIn::next()
+00005910 00000040 T logValuesImpl(signed char*, DataOut&)
+00009544 00000040 T writePointer(unsigned short, unsigned short)
+00007490 00000040 W do_prepare(Object*, void*)
+00008008 00000038 T main
+00003658 00000038 T createApplicationObject(ObjectDefinition&, bool)
+08388892 00000036 D handlers
+00014160 00000036 T __eeupd_byte_m328p
+00000314 00000036 T HardwareSerial::available()
+00004706 00000036 T setMaskValueCommandHandler(DataIn&, DataOut&)
+00007102 00000034 T DallasTemperature::isConnected(unsigned char const*, unsigned char*)
+00005690 00000034 T freeSlotRootCommandHandler(DataIn&, DataOut&)
+00004472 00000034 T readValueCommandHandler(DataIn&, DataOut&)
+00012688 00000034 T lookupUserOpenContainer(DataIn&, signed char&)
+00009418 00000034 W isDynamicallyAllocated(Object*)
+00005722 00000034 T freeSlotCommandHandler(DataIn&, DataOut&)
+08389372 00000034 B Serial
+00001872 00000032 W BufferDataOut::write(unsigned char)
+00004076 00000032 T createProfileCommandHandler(DataIn&, DataOut&)
+00011856 00000030 T OneWireTempSensor::requestConversion()
+00003854 00000030 T noopCommandHandler(DataIn&, DataOut&)
+08389336 00000028 V vtable for OneWireTempSensor
+08389022 00000028 V vtable for BasicTempSensor
+00006170 00000028 W BinaryToHexTextOut::close()
+00006034 00000028 W HexTextToBinaryIn::next()
+00002114 00000028 W BasicReadValue<short>::readTo(DataOut&)
+00002086 00000028 W BasicReadValue<bool>::readTo(DataOut&)
+00002248 00000028 W EepromValue::create(ObjectDefinition&)
+00012156 00000028 W isContainer(Object*)
+00014082 00000026 T memcmp
+08389050 00000026 V vtable for BasicReadValue<short>
+08389076 00000026 V vtable for BasicReadValue<bool>
+00011370 00000026 T OneWire::reset_search()
+00006616 00000026 W HexTextToBinaryIn::hasNext()
+00003816 00000026 W RegionDataIn::peek()
+00003764 00000026 W PipeDataIn::hasNext()
+00003790 00000026 W PipeDataIn::peek()
+00006950 00000026 t _GLOBAL__sub_I__ZN5Comms4initEv
+00001362 00000024 T millis
+00012840 00000024 T __umulhisi3
+08389222 00000024 V vtable for DynamicContainer
+08389312 00000024 V vtable for FixedContainer
+00007608 00000024 T DynamicContainer::item(signed char)
+00002032 00000024 W BasicTempSensor::item(signed char)
+00008828 00000024 W FixedContainer::item(signed char)
+00002658 00000024 W ProfileRaw::create(ObjectDefinition&)
+00012876 00000022 T __muluhisi3
+00000280 00000022 T __do_global_ctors
+00000242 00000022 T __do_copy_data
+00000472 00000022 T HardwareSerial::flush()
+00008080 00000022 W BufferDataIn::next()
+00008142 00000022 W ProfileRaw::stepSetpoint(unsigned char)
+00008124 00000022 W ProfileRaw::stepDuration(unsigned char)
+00012670 00000022 T lookupUserObject(DataIn&)
+00000124 00000020 T digital_pin_to_port_PGM
+00000104 00000020 T digital_pin_to_bit_mask_PGM
+00001386 00000020 T delayMicroseconds
+00008046 00000020 T __vector_default
+00006414 00000020 W TextIn::next()
+00002142 00000020 W CurrentTicksValue::create(ObjectDefinition&)
+00014126 00000018 T strlen
+00014108 00000018 T memcpy
+08388874 00000018 D createObjectHandlers
+08388950 00000018 V vtable for Value
+08389004 00000018 V vtable for CurrentTicksValue
+08388968 00000018 V vtable for LogicActuator
+08388986 00000018 V vtable for EepromValue
+08389294 00000018 V vtable for EepromBlock
+08389246 00000018 V vtable for ProfileRaw
+08389102 00000018 V vtable for OneWireBus
+00006432 00000018 W TextIn::hasNext()
+00006398 00000018 W TextIn::peek()
+00006234 00000018 T Comms::init()
+00009826 00000018 T SystemProfile::setProfileOffset(signed char, unsigned short)
+00009840 00000018 T SystemProfile::getProfileOffset(signed char)
+00001934 00000018 W EepromDataIn::hasNext()
+00009352 00000018 W EepromBlock::writeMaskedFrom(DataIn&, DataIn&)
+00000802 00000018 W serialEventRun()
+00014144 00000016 T __eerd_byte_m328p
+00000264 00000016 T __do_clear_bss
+08388934 00000016 V vtable for HardwareSerial
+00011796 00000016 W OneWireTempSensor::~OneWireTempSensor()
+00002352 00000016 W BasicTempSensor::~BasicTempSensor()
+00009854 00000016 T SystemProfile::setCurrentProfile(signed char)
+00009630 00000016 T SystemProfile::initializeEeprom()
+00007474 00000016 W do_update(Object*, void*)
+00014068 00000014 T strcpy_P
+00003434 00000014 T setup
+00007750 00000014 W DynamicContainer::update()
+00010644 00000014 T SystemProfile::activateDefaultProfile()
+00008106 00000014 W BufferDataIn::peek()
+00002448 00000014 W EepromValue::streamSize()
+00008066 00000014 T clear(unsigned char*, unsigned char)
+00004462 00000014 T readSystemValueCommandHandler(DataIn&, DataOut&)
+00006206 00000012 W CommsOut::write(unsigned char)
+00011784 00000012 W OneWireTempSensor::~OneWireTempSensor()
+00011784 00000012 W OneWireTempSensor::~OneWireTempSensor()
+00001976 00000012 W BasicTempSensor::~BasicTempSensor()
+00001976 00000012 W BasicTempSensor::~BasicTempSensor()
+00002498 00000012 W EepromDataIn::peek()
+00000154 00000010 T port_to_output_PGM
+00000164 00000010 T port_to_mode_PGM
+00000144 00000010 T port_to_input_PGM
+00012866 00000010 T __usmulhisi3_tail
+00012900 00000010 T __mulohisi3
+08389202 00000010 V vtable for CommsOut
+08389212 00000010 V vtable for CommsIn
+08389172 00000010 V vtable for TextIn
+08389192 00000010 V vtable for BinaryToHexTextOut
+08389182 00000010 V vtable for HexTextToBinaryIn
+08389274 00000010 V vtable for BlackholeDataOut
+08389284 00000010 V vtable for EepromDataOut
+08389130 00000010 V vtable for BufferDataOut
+08389150 00000010 V vtable for RegionDataIn
+08389120 00000010 V vtable for EepromDataIn
+08389264 00000010 V vtable for BufferDataIn
+08389140 00000010 V vtable for DefaultMask
+08389160 00000010 V vtable for PipeDataIn
+00006198 00000010 W CommsIn::hasNext()
+00006218 00000010 W CommsIn::peek()
+00006226 00000010 W CommsIn::next()
+00006448 00000010 T h2d(unsigned char)
+00010144 00000010 T rootContainer()
+00004832 00000010 T nullFactory(ObjectDefinition&)
+00007998 00000010 T handleReset(bool)
+00003650 00000010 T brewpiLoop()
+00013022 00000008 T __tablejump__
+00002082 00000008 W non-virtual thunk to BasicReadValue<short>::read()
+00002066 00000008 W non-virtual thunk to BasicReadValue<bool>::read()
+00006710 00000008 T Comms::resetOnCommandComplete()
+00006976 00000008 T DallasTemperature::DallasTemperature(OneWire*)
+00006976 00000008 T DallasTemperature::DallasTemperature(OneWire*)
+00002074 00000008 W BasicReadValue<short>::read()
+00008728 00000008 W EepromDataOut::close()
+00001956 00000008 W EepromValue::rehydrated(unsigned short)
+00003654 00000006 T loop
+00012896 00000006 T __mulshisi3
+00001200 00000006 T operator new(unsigned int)
+00001206 00000006 T operator delete(void*)
+00001906 00000006 W Object::prepare()
+00011778 00000006 W OneWireTempSensor::isConnected()
+00007530 00000006 W DynamicContainer::size()
+00008942 00000006 W FixedContainer::size()
+00002060 00000006 W BasicReadValue<bool>::read()
+08389566 00000006 B SystemProfile::writer
+00009868 00000006 T SystemProfile::currentProfile()
+00008948 00000006 W EepromBlock::streamSize()
+08389572 00000005 B system_id
+08389556 00000005 B SystemProfile::systemRoot
+08389368 00000004 B timer0_overflow_count
+08389364 00000004 B timer0_millis
+08388870 00000004 d next
+08389546 00000004 B hexOut
+00012864 00000004 T __usmulhisi3
+00013018 00000004 T __tablejump2__
+00001920 00000004 W Container::size()
+00001914 00000004 W Container::objectType()
+00001928 00000004 W Value::objectType()
+00001964 00000004 W CurrentTicksValue::streamSize()
+00008724 00000004 W BlackholeDataOut::write(unsigned char)
+00001952 00000004 W EepromBaseValue::objectType()
+00001196 00000004 T HardwareSerial::operator bool()
+00002070 00000004 W BasicReadValue<short>::streamSize()
+00002056 00000004 W BasicReadValue<bool>::streamSize()
+00001924 00000004 W OpenContainer::objectType()
+00001968 00000004 W LogicActuator::streamSize()
+00008102 00000004 W BufferDataIn::hasNext()
+00003850 00000004 W DefaultMask::hasNext()
+00003846 00000004 W DefaultMask::peek()
+00003842 00000004 W DefaultMask::next()
+08389552 00000004 B ProfileRaw::lastTick
+00008120 00000004 W ProfileRaw::objectType()
+00001972 00000004 W OneWireBus::streamSize()
+08389561 00000002 B systemRootItems
+08388928 00000002 D commsOut
+08388930 00000002 D commsIn
+08388932 00000002 D blackhole
+08388868 00000002 D __malloc_margin
+08388866 00000002 D __malloc_heap_start
+08388864 00000002 D __malloc_heap_end
+08389579 00000002 B __flp
+00001212 00000002 T __cxa_pure_virtual
+08389577 00000002 B __brkval
+08389550 00000002 b Comms::receive()::connections
+00001918 00000002 W Container::returnItem(Object*)
+00001870 00000002 W DataOut::close()
+00001912 00000002 W Object::update()
+00001904 00000002 W Object::rehydrated(unsigned short)
+00001932 00000002 W Value::writeMaskedFrom(DataIn&, DataIn&)
+08389170 00000002 D Comms::hexOut
+08389563 00000002 B SystemProfile::root
+00000684 00000002 W serialEvent()
+08389544 00000001 B reset
+08389545 00000001 B prevConnected
+08389543 00000001 B logValuesFlag
+08389565 00000001 B SystemProfile::current
+08389542 00000001 b timer0_fract
