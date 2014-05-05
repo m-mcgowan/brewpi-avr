@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="90">
+<configurationDescriptor version="94">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="brewpi_avr" displayName="brewpi_avr" projectFiles="true">
       <logicalFolder name="Build" displayName="Build" projectFiles="true">
@@ -70,6 +70,7 @@
       <itemPath>../brewpi_avr/TempSensorExternal.h</itemPath>
       <itemPath>../brewpi_avr/TempSensorMock.h</itemPath>
       <itemPath>../brewpi_avr/Temperature.cpp</itemPath>
+      <itemPath>../brewpi_avr/TemperatureFormats.cpp</itemPath>
       <itemPath>../brewpi_avr/TemperatureFormats.h</itemPath>
       <itemPath>../brewpi_avr/Ticks.cpp</itemPath>
       <itemPath>../brewpi_avr/Ticks.h</itemPath>
@@ -449,14 +450,6 @@
       </item>
       <item path="../brewpi_avr/TicksArduino.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../brewpi_avr/ValueActuator.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/ValueDisplay.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/ValueFilter.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/ValueModels.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../brewpi_avr/Values.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../brewpi_avr/ValuesEeprom.cpp" ex="false" tool="1" flavor2="0">
@@ -766,14 +759,6 @@
       <item path="../brewpi_avr/Ticks.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/TicksArduino.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/ValueActuator.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/ValueDisplay.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/ValueFilter.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../brewpi_avr/ValueModels.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Values.cpp" ex="false" tool="1" flavor2="0">
       </item>
