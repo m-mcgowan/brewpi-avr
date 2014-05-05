@@ -70,7 +70,7 @@ public:
 
 #ifdef ARDUINO
 
-class DigitalPinActuator : Actuator
+class DigitalPinActuator : public Actuator
 {
 private:
 	bool invert;

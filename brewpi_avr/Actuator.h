@@ -23,17 +23,29 @@
 #include "Brewpi.h"
 #include "FastDigitalPin.h"
 #include "Values.h"
+#include "StreamUtil.h"
 
 /*
  * An actuator simply turns something on or off.                        
  */
-// todo - actuators can be remodeled as a bool state-assignable value. See BasicReadWriteValue
 class Actuator : public WritableValue
 {
 	public:	
 	// todo - replace this with read()/write()
 	virtual void setActive(bool active) =0;
 	virtual bool isActive() =0;	
+	
+	void readTo(DataOut& out) {
+		out.write(isActive());
+	}
+	
+	void writeMaskedFrom(DataIn& in, DataIn& mask) {
+		uint8_t existing = isActive();
+		readPlatformEndianMaskedBytes(&existing, 1, in, mask);
+		setActive(existing);
+	}
+        
+        uint8_t streamSize() { return 1; }
 };
 
 /*

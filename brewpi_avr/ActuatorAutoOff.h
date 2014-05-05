@@ -21,7 +21,7 @@
 #pragma once
 
 #include "Actuator.h"
-#include "Ticks.h"
+#include "ValueTicks.h"
 
 class AutoOffActuator : public Actuator {
 	

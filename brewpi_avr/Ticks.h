@@ -27,6 +27,18 @@ typedef uint32_t ticks_micros_t;
 typedef uint16_t ticks_seconds_t;
 typedef uint8_t ticks_seconds_tiny_t;
 
+// return time that has passed since timeStamp, take overflow into account
+inline ticks_seconds_t timeSince(ticks_seconds_t currentTime, ticks_seconds_t previousTime){
+	if(currentTime>=previousTime){
+		return currentTime - previousTime;
+	}
+	else{
+		// overflow has occurred
+		return (currentTime + 1440) - (previousTime +1440); // add a day to both for calculation
+	}
+}
+
+
 /**
  * Ticks - interface to a millisecond timer
  *
