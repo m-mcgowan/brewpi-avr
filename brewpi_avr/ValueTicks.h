@@ -12,30 +12,39 @@
  */
 class ScaledTicksValue : public WritableValue
 {
-	ticks_millis_t start;
+	ticks_millis_t logicalStart;
+	ticks_millis_t timerStart;
 	uint16_t scale;
 	
 public:	
-	ScaledTicksValue() : start(0), scale(1) {}
+	ScaledTicksValue() : logicalStart(0), timerStart(0), scale(1) {}
 
 	ticks_millis_t millis() {
-		uint32_t real_now = baseticks.millis()-start;
-		return start + (real_now*scale);
+		uint32_t now_offset = baseticks.millis()-timerStart;
+		return logicalStart + (now_offset*scale);
+	}
+
+	ticks_millis_t millis(ticks_millis_t& currentTime) {
+		uint32_t now_offset = currentTime-timerStart;
+		return logicalStart + (now_offset*scale);
 	}
 	
 	ticks_seconds_t seconds() { return millis()/1000; }
-
 		
-	void readTo(DataOut& out) {
-		ticks_millis_t time = millis();
+	void readTo(DataOut& out) {		
+		ticks_millis_t time = baseticks.millis();
+		time = millis(time);
 		writePlatformEndianBytes(&time, sizeof(time), out);
 		writePlatformEndianBytes(&scale, sizeof(scale), out);
 	}
 	
 	void writeMaskedFrom(DataIn& in, DataIn& mask) {
 		// write the start and scale
-		readPlatformEndianMaskedBytes(&start, sizeof(start), in, mask);
-		readPlatformEndianMaskedBytes(&scale, sizeof(scale), in, mask);
+		ticks_millis_t time = baseticks.millis();		
+		logicalStart = millis(time);
+		timerStart = time;
+		readPlatformEndianMaskedBytes(&logicalStart, sizeof(logicalStart), in, mask);		
+		readPlatformEndianMaskedBytes(&scale, sizeof(scale), in, mask);		
 	}
 		
 	/**
