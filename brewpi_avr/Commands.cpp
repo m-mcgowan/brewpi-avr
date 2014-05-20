@@ -80,11 +80,19 @@ void setValueCommandHandler(DataIn& in, DataOut& out) {
 	setValue(rootContainer(), in, defaultMask, out);
 }
 
+void setMaskValueCommandHandler(DataIn& in, DataOut& out) {
+	// the mask is given as the input stream - the data are interleaved.
+	setValue(rootContainer(), in, in, out);
+}
+
 void setSystemValueCommandHandler(DataIn& in, DataOut& out) {
 	DefaultMask defaultMask;
 	setValue(SystemProfile::systemContainer(), in, defaultMask, out);
 }
 
+void setSystemMaskValueCommandHandler(DataIn& in, DataOut& out) {
+	setValue(SystemProfile::systemContainer(), in, in, out);
+}
 
 /**
  * Consumes the definition data from the stream and returns a {@code NULL} pointer.
@@ -313,10 +321,6 @@ void activateProfileCommandHandler(DataIn& in, DataOut& out) {
 	out.write(result ? 0 : -1);
 }
 
-void setMaskValueCommandHandler(DataIn& in, DataOut& out) {
-	// the mask is given as the input stream - the data are interleaved.
-	setValue(rootContainer(), in, in, out);
-}
 
 CommandHandler handlers[] = {
 	noopCommandHandler,				// 0x00
@@ -336,7 +340,8 @@ CommandHandler handlers[] = {
 	SystemProfile::listDefinedProfiles,	// 0x0E
 	readSystemValueCommandHandler,	// 0x0F
 	setSystemValueCommandHandler,	// 0x10
-	setMaskValueCommandHandler		// 0x11	
+	setMaskValueCommandHandler,		// 0x11
+	setSystemMaskValueCommandHandler// 0x12
 };
 
 /*
