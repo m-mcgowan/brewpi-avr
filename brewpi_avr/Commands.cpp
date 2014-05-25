@@ -289,8 +289,8 @@ bool logValuesCallback(Object* o, void* data, container_id* id, bool enter) {
 	return false;
 }
 
-void logValuesImpl(container_id* ids, DataOut& out) {
-	walkRoot(logValuesCallback, NULL, ids);
+void logValuesImpl(Object* target, container_id* ids, uint8_t len, DataOut& out) {
+	walkObject(target, logValuesCallback, &out, ids, ids+len);
 }
 
 void logValuesCommandHandler(DataIn& in, DataOut& out) {
@@ -303,6 +303,10 @@ void logValuesCommandHandler(DataIn& in, DataOut& out) {
 		container_id ids[MAX_CONTAINER_DEPTH];
 		walkObject(source, logValuesCallback, &out, ids, ids);
 	}
+}
+
+void logValue(Object* target, container_id* ids, DataOut& out) {
+	walkObject(target, logValuesCallback, &out, ids, ids);
 }
 
 void resetCommandHandler(DataIn& in, DataOut& out) {

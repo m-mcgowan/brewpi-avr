@@ -40,6 +40,7 @@
 #include "Profile.h"
 #include "BangBangController.h"
 #include "ValueDisplay.h"
+#include "ControlLoopContainer.h"
 
 #ifdef ARDUINO
 #include "OneWireBus.h"
@@ -58,10 +59,13 @@
 void setup(void);
 void loop (void);
 
-Container* createRootContainer()
+Container* createRootContainer(eptr_t address)
 {
-	DynamicContainer* d = new DynamicContainer();    
-    return d;
+	return new_object(ControlLoopContainer(address));
+}
+
+uint8_t rootContainerPersistentSize() {
+	return CONTROL_LOOP_ITEM_EEPROM_SIZE * CONTROL_LOOP_MAX_ITEMS;
 }
 
 
@@ -126,11 +130,14 @@ bool updateCallback(Object* o, void* data, container_id* id, bool enter) {
 /**
  * Logs all values in the system. 
  */
-void logValues(container_id* ids)
+void logValues(Object* target, container_id id)
 {
+	container_id ids[MAX_CONTAINER_DEPTH];
+	ids[0] = id;	
 	DataOut& out = Comms::dataOut();
 	out.write(CMD_LOG_VALUES_AUTO);
-	logValuesImpl(ids, out);
+	out.write(id);
+	logValuesImpl(target, ids, 1, out);
 	out.close();
 }
 
@@ -158,12 +165,6 @@ void process() {
 	if (root==root2 && root) {
         root->update();
 		
-        // todo - should brewpi always log, or only log when requested?
-        if (logValuesFlag)
-        {
-            logValuesFlag = false;
-            logValues(ids);
-        }
     }
 }
 

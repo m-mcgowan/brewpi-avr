@@ -85,7 +85,7 @@ enum Commands {
 };
 
 
-void logValuesImpl(container_id* ids, DataOut& out);
+void logValuesImpl(Object* target, container_id* ids, uint8_t len, DataOut& out);
 
 /**
  * 

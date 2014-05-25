@@ -26,9 +26,18 @@ const uint8_t SYSTEM_PROFILE_VERSION = 0x01;
 
 /**
  * Application-provided method to create a new root container for the profile. 
- * The application can create default objects in the root container. 
+ * The application is free to create default objects in the root container. 
+ * @param address - the container persistence data. The container persistence data 
+ * are in the N bytes at this address, where N is the value returned form rootContainerPersistentSize().
+ * When the root container has been populated with the profile contents, 
+ * rehydrate() is called, passing in the same address.
  */
-extern Container* createRootContainer();
+extern Container* createRootContainer(eptr_t address);
+
+/**
+ * Retrieves the number of bytes of persistent storage required by the root container.
+ */
+extern uint8_t rootContainerPersistentSize();
 
 /**
  * Application-provided function to create the object of the given type.

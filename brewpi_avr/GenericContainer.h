@@ -64,11 +64,11 @@ class DynamicContainer: public OpenContainer
                         setSize(0);
 		}
                 
-                inline void setSize(container_id size) {
+        inline void setSize(container_id size) {
 #if DYNAMIC_CONTAINER_MAINTAIN_SIZE
-                    sz = size;
+            sz = size;
 #endif                    
-                }
+        }
 			
 		Object* item(container_id id);
 		
@@ -85,9 +85,9 @@ class DynamicContainer: public OpenContainer
 			
 		inline container_id _size() {
 #if DYNAMIC_CONTAINER_MAINTAIN_SIZE			// fetch the block size that preceeds the malloc'ed pointer
-                        return sz;
+            return sz;
 #else                    
-                        return container_id(((pointer_scalar)_items[-3])/sizeof(Object*));
+            return container_id(((pointer_scalar)_items[-3])/sizeof(Object*));
 #endif                        
 		}
 
@@ -262,6 +262,8 @@ class FixedContainer : public OpenContainer
 		 * The number of items in this container.
 		 */
 		container_id size() { return SIZE; }
-
 		
 };
+
+
+

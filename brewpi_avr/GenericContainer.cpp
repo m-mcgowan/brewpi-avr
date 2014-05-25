@@ -36,10 +36,12 @@ bool DynamicContainer::add(container_id slot, Object* item) {
 
 void DynamicContainer::remove(container_id id) {
 #if DYNAMIC_CONTAINER_BOUNDS_CHECKS
-	if (id<size()) 
+	if (id<size())
 #endif	
 	{
-		delete_object(item(id));
+		Object* o = item(id);
+		if (isDynamicallyAllocated(o))
+			delete_object(o);
 		assign(id, NULL);
 	}
 }

@@ -27,8 +27,6 @@ const uint16_t SYSTEM_PROFILE_EEPROM_HEADER = 		uint16_t(SYSTEM_PROFILE_MAGIC)<<
 typedef int8_t system_profile_t;
 
 
-
-
 /**
  * Eeprom format:
  *    0x00	magic number (0x69)
@@ -40,6 +38,9 @@ typedef int8_t system_profile_t;
  *	  0x0E	start of profile storage
  *	  ....
  *	  end	
+ *
+ * The profile storage address for each profile is stored in the profile FAT. Profile N stored at FAT offset 2N. Profile -1 offset
+ * is used to store the end address of the open profile. 
  */
 
 // having time as a system service is a compromise over lose-coupling/dependency injection vs convenience
@@ -58,17 +59,24 @@ Object* systemRootItems[2];
 FixedContainer SystemProfile::systemRoot(sizeof(systemRootItems)/sizeof(systemRootItems[0]), systemRootItems);
 
 
-
 /**
  * equivalent to /dev/null. Used for discarding output.
  */
 BlackholeDataOut blackhole;
 
+/**
+ * Reads an eeprom pointer stored at a given address in eeprom.
+ */
 eptr_t readPointer(eptr_t address) {	
 	return  eptr_t(eepromAccess.readByte(address))<<8 |
                 eepromAccess.readByte(address+1);
 }
 
+/**
+ * Writes an eeprom pointer to a given address in eeprom.
+ * @param address	The address to store the pointer
+ * @param v			The eeprom pointer value to store.
+ */
 void writePointer(eptr_t address, eptr_t v) {
 	eepromAccess.writeByte(address, v>>8);
 	eepromAccess.writeByte(address+1, v&0xFF);
@@ -105,10 +113,10 @@ void SystemProfile::initialize() {
 		// reset profile store
 		writeEepromRange(SYSTEM_PROFILE_DATA_OFFSET, eepromAccess.length(), 0xFF);		
 
-		writePointer(0, SYSTEM_PROFILE_EEPROM_HEADER);          // no write the version string once the eeprom is stable and initialized.
+		writePointer(0, SYSTEM_PROFILE_EEPROM_HEADER);  // now write the version string once the eeprom is stable and initialized.
 
 #if !SYSTEM_PROFILE_ENABLE
-		activateProfile(0);		
+		activateProfile(0);
 #endif		
 	}	
 }
@@ -138,7 +146,7 @@ profile_id_t SystemProfile::createProfile() {
 	}
 	
 	if (idx!=-1) {
-                setProfileOffset(idx, end);
+		setProfileOffset(idx, end);
 	}	
 #endif
 	return idx;
@@ -169,11 +177,12 @@ bool SystemProfile::activateProfile(profile_id_t profile) {
 		}
 		setCurrentProfile(profile);								// persist the change
 		if (profile>=0) {			
-			root = createRootContainer();
+			root = createRootContainer(getProfileOffset(profile));
 			EepromDataIn eepromReader;
 			profileReadRegion(profile, eepromReader);			// get region in eeprom for the profile
 			streamObjectDefinitions(eepromReader);
-			profileWriteRegion(writer, true);		// reset to available region (allow open profile)                    
+			profileWriteRegion(writer, true);		// reset to available region (allow open profile)
+			root->rehydrated(getProfileOffset(profile));
 		}		
 		return activated;
 	}
@@ -191,7 +200,7 @@ void SystemProfile::streamObjectDefinitions(EepromDataIn& eepromReader)
 		uint8_t cmd = reader.next();
 		if (rehydrateObject(offset, reader, cmd!=CMD_CREATE_OBJECT) && cmd==CMD_CREATE_OBJECT) {
 			// todo - what to do with errors? at least log errors.
-			// if error creating object, attempt a reset. Write a reset count to eeprom to avoid endless resets.
+			// if error creating object, attempt a reset? Write a reset count to eeprom to avoid endless resets.
 		}
 	}		
 }
@@ -209,14 +218,14 @@ profile_id_t SystemProfile::deleteProfile(profile_id_t profile) {
 	}
 	
 	eptr_t start = getProfileOffset(profile);
-        if (!start || profile<0)             // profile not defined
-            return 0;
+    if (!start || profile<0)             // profile not defined
+        return 0;
         
 	eptr_t end = getProfileEnd(profile);
 	
 	setProfileOffset(profile, 0);  // mark the slot as available
         
-        // adjust all profile end points, including the end point for the open profile
+    // adjust all profile end points, including the end point for the open profile
 	for (int i=-1; i<MAX_SYSTEM_PROFILES; i++) {
 		eptr_t e = getProfileOffset(i);
 		if (e>=end) {    // profile is above the one just deleted
@@ -231,8 +240,8 @@ profile_id_t SystemProfile::deleteProfile(profile_id_t profile) {
 	}
 	writeEepromRange(start, eepromAccess.length(), 0xFF);
         
-        // update the start/end of the writable region
-        profileWriteRegion(writer, true);
+    // update the start/end of the writable region
+    profileWriteRegion(writer, true);
 	return profile;
 #else
 	return -1;	// not supported	
@@ -248,6 +257,9 @@ void SystemProfile::setProfileOffset(profile_id_t profile, eptr_t addr) {
 	writePointer(profileFAT(profile), addr);
 }
 
+/**
+ * The offset in eeprom where profile is stored. 
+ */
 eptr_t SystemProfile::getProfileOffset(profile_id_t profile) {
 	return readPointer(profileFAT(profile));
 }
@@ -286,13 +298,15 @@ void SystemProfile::deactivateCurrentProfile() {
 	closeOpenProfile();
 	
 	// delete all the objects that were dynamically allocated.
+	// Note that these objects are deleted in order of container traversal, not in order of creation.
+	// This may need to be changed. 
 	container_id id[MAX_CONTAINER_DEPTH];				// buffer for id during traversal	
 	walkRoot(deleteDynamicallyAllocatedObject, NULL, id);
 	current = -1;
 	
 	if (isDynamicallyAllocated(root))
 		delete_object(root);
-	root = NULL;	
+	root = NULL;
 }
 #endif
 
@@ -331,7 +345,7 @@ void SystemProfile::profileWriteRegion(EepromStreamRegion& region, bool includeO
  */
 void SystemProfile::profileReadRegion(profile_id_t profile, EepromStreamRegion& region) {
 	if (profile>=0 && profile<MAX_SYSTEM_PROFILES) {
-		eptr_t offset = getProfileOffset(profile);
+		eptr_t offset = getProfileOffset(profile)+rootContainerPersistentSize();
 		eptr_t end = getProfileEnd(profile, false);
 		region.reset(offset, end-offset);
 	}
@@ -427,5 +441,4 @@ void SystemProfile::listEepromInstructionsTo(profile_id_t profile, DataOut& out)
 	ObjectDefinitionWalker walker(eepromData);
 	while (walker.writeNext(out)) {}
 }
-
 
