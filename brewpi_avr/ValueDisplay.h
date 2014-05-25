@@ -58,7 +58,6 @@ uint8_t format_temp(uint8_t* data, char* _buf, uint8_t idx) {
 
 class DisplayTemplate : public RehydratedAwareObject
 {
-	eptr_t address;
 	char buf[80];		// if this becomes multi-instance make this a static pointer to dynamically allocated memory
 	
 	uint8_t formatValue(Value* value, uint8_t format, char* buf, uint8_t idx) {
@@ -73,14 +72,11 @@ class DisplayTemplate : public RehydratedAwareObject
 	}
 	
 public:
-	void rehydrated(eptr_t address) {
-		this->address = address;
-	}
 			
 	void update() {		
 		EepromDataIn in;
 		// make DataIn from eeprom region		
-		in.reset(eeprom_offset(), streamSize());
+		in.reset(eepromOffset(), streamSize());
 		
 		// read target object (from id_chain in eeprom)
 		Value* target = (Value*)lookupUserObject(in);
