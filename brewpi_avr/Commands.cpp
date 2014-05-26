@@ -126,7 +126,7 @@ uint8_t rehydrateObject(eptr_t offset, PipeDataIn& in, bool dryRun)
 	if (in.pipeOk() && lastID>=0 && newObject && target && target->add(lastID,newObject)) {		// if the lastID >=0 then it was fetched from a container				
         // skip object create command, type and id. 
         offset++; // skip creation id
-        while (int8_t(eepromAccess.readByte(offset++))<0) {}	// skip contianer
+        while (int8_t(eepromAccess.readByte(offset++))<0) {}	// skip container
 		offset+=2;												// skip object type and length
         newObject->rehydrated(offset);
         error = rehydrateNoError;

@@ -203,7 +203,7 @@ public:
 	}
 		
 	void update() {
-		for (int i=0; i<CONTROL_LOOP_MAX_ITEMS*2; i++) {
+		for (int i=0; i<container.size(); i++) {
 			Object* item = container.item(i++);
 			ControllerLoopInfo* config = (ControllerLoopInfo*)container.item(i);
 			if (config)

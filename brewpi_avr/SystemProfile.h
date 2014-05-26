@@ -71,6 +71,7 @@ class SystemProfile {
 	
 	static void setProfileOffset(profile_id_t id, eptr_t offset);
 	static eptr_t getProfileOffset(profile_id_t id);
+	static eptr_t getProfileStart(profile_id_t id);
 	static eptr_t getProfileEnd(profile_id_t id, bool includeOpen=false);
 	static void setCurrentProfile(profile_id_t id);
 	

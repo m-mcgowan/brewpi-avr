@@ -147,6 +147,7 @@ profile_id_t SystemProfile::createProfile() {
 	
 	if (idx!=-1) {
 		setProfileOffset(idx, end);
+		setOpenProfileEnd(getProfileStart(idx));
 	}	
 #endif
 	return idx;
@@ -340,12 +341,20 @@ void SystemProfile::profileWriteRegion(EepromStreamRegion& region, bool includeO
 }
 
 /**
+ * Fetches the usable first byte in the profile. The space between the profile offset and profile start
+ * are used by the root container.
+ */
+eptr_t SystemProfile::getProfileStart(profile_id_t profile) {	
+	return getProfileOffset(profile)+rootContainerPersistentSize();
+}
+
+/**
  * Sets the stream to correspond with the start and end locations for the current profile.
  * 
  */
 void SystemProfile::profileReadRegion(profile_id_t profile, EepromStreamRegion& region) {
 	if (profile>=0 && profile<MAX_SYSTEM_PROFILES) {
-		eptr_t offset = getProfileOffset(profile)+rootContainerPersistentSize();
+		eptr_t offset = getProfileStart(profile);
 		eptr_t end = getProfileEnd(profile, false);
 		region.reset(offset, end-offset);
 	}
