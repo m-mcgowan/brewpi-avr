@@ -3,7 +3,7 @@
 #include "Values.h"
 
 #define CONTROL_LOOP_MAX_ITEMS 4
-#define CONTROL_LOOP_ITEM_EEPROM_SIZE 4
+#define CONTROL_LOOP_ITEM_EEPROM_SIZE 3
 
 extern void logValues(Object* target, container_id id);
 

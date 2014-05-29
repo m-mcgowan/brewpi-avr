@@ -254,7 +254,6 @@ void Comms::resetOnCommandComplete() {
 	reset = true;
 }
 
-
 void Comms::receive() {
 	
 	static uint16_t connections = 0;

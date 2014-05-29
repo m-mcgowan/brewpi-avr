@@ -98,7 +98,8 @@ void setup()
 	SystemProfile::initialize();
 	
 	Comms::init();
-			
+    Comms::receive();           // ensure version string is sent
+    
 #if 0
 	uint8_t start = ticks.seconds();
 	while (ticks.timeSince(start)<loadProfileDelay) {

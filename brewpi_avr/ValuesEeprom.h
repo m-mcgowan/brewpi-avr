@@ -70,11 +70,11 @@ public:
 	}
 
 	void readTo(DataOut& out) {
-		_readTo(out, eeprom_offset(), EepromValue::streamSize());
+		_readTo(out, eeprom_offset(), streamSize());
 	}
 	
 	void writeMaskedFrom(DataIn& dataIn, DataIn& maskIn) {
-		_writeMaskedFrom(dataIn, maskIn, EepromValue::streamSize(), address);
+		_writeMaskedFrom(dataIn, maskIn, streamSize(), address);
 	}
 
 	eptr_t eeprom_offset() { return address; }
