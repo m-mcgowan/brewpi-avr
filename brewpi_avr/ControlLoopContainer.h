@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Values.h"
+#include "Commands.h"
 
 #define CONTROL_LOOP_MAX_ITEMS 4
 #define CONTROL_LOOP_ITEM_EEPROM_SIZE 3
 
-extern void logValues(Object* target, container_id id);
 
 class ControllerLoopInfo : public EepromValue
 {	
@@ -22,10 +22,11 @@ class ControllerLoopInfo : public EepromValue
 	 * Read state from eeprom.
 	 */
 	void load() {
-		eepromAccess.readBlock(&flags, address, 3);
+		flags = eepromAccess.readByte(address);                       
+                eepromAccess.readBlock(&period, address+1, 2);
 		nextLoopTime = ticks.millis();
 		state = 0;
-		logCount = 0;
+		logCount = logPeriod();
 	}
 
 public:
@@ -36,7 +37,7 @@ public:
 	ControllerLoopInfo(uint8_t initialize, eptr_t address) {
 		if (initialize) {
 			writePointer(address, 0);
-			writePointer(address+2, 0);
+			writePointer(address+1, 0);
 		}
 		rehydrated(address);
 	}
@@ -66,34 +67,35 @@ public:
 	}
 
 	uint8_t streamSize() { return CONTROL_LOOP_ITEM_EEPROM_SIZE; }	
-		
+			
 	void handleLoop(Object* target, container_id id) {
 		if (!isEnabled())
 			return;
 			
 		uint32_t now = ticks.millis();
 		uint32_t update = nextLoopTime;
-		if (state)
+		if (state)				// prepared
 			update += prepare;
 		if (update>now)
 			return;
 		
-		state ^= state;
+		state ^= state;		// flip the prepare flag first for safety
 		if (state) {		// prepare not called, so do that first
 			prepare = target->prepare();
-		} else { // prepare already called
+		} else {			// prepare already called, compute the next loop time
 			nextLoopTime += period;
 			target->update();
 			uint8_t log_period = logPeriod();
 			if (log_period) {			// logging enabled
 				if (!logCount) {
-					logValues(target, id);
-					this->logCount = log_period;
+					logCount = log_period;	// reset log counter
+					logValues(target, id);					
 				}
 				this->logCount--;
 			}
-		}		
+		}
 	}	
+	
 };
 
 /**

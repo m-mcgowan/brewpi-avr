@@ -79,9 +79,7 @@ class BuildInfoValues : public FactoryContainer {
 	virtual Object* item(container_id id) { return new_object(ProgmemStringValue((PSTR(BUILD_NAME)))); }
 };
 
-bool logValuesFlag = false;
-
-const uint8_t loadProfileDelay = 10;	// seconds
+const uint8_t loadProfileDelay = 5;	// seconds
 
 class GlobalSettings {
 	uint8_t settings[10];
@@ -98,7 +96,6 @@ void setup()
 	SystemProfile::initialize();
 	
 	Comms::init();
-    Comms::receive();           // ensure version string is sent
     
 #if 0
 	uint8_t start = ticks.seconds();
@@ -128,22 +125,8 @@ bool updateCallback(Object* o, void* data, container_id* id, bool enter) {
 	return false;
 }
 
-/**
- * Logs all values in the system. 
- */
-void logValues(Object* target, container_id id)
-{
-	container_id ids[MAX_CONTAINER_DEPTH];
-	ids[0] = id;	
-	DataOut& out = Comms::dataOut();
-	out.write(CMD_LOG_VALUES_AUTO);
-	out.write(id);
-	logValuesImpl(target, ids, 1, out);
-	out.close();
-}
-
-void process() {
-	container_id ids[MAX_CONTAINER_DEPTH];
+// Now that the root container manages it's own looping, we don't need this.
+void processWithDelay() {
 	
     prepare_t d = 0;
     Container* root = SystemProfile::rootContainer();
@@ -164,9 +147,18 @@ void process() {
         // root may have been changed by commands, so original prepare may not be valid
         // should watch out for newly created objects, since these will then also need preparing
 	if (root==root2 && root) {
-        root->update();
-		
+        root->update();		
     }
+}
+
+void process()
+{    
+	// shortened version of the main prepare loop for use with the ControllerLoopContainer.
+    Container* root = SystemProfile::rootContainer();
+    if (root) {
+		root->prepare();
+		root->update();
+	}
 }
 
 /*
@@ -177,8 +169,8 @@ void process() {
  */
 void brewpiLoop(void)
 {		
-	process();
 	Comms::receive();
+	process();
 }
 
 void loop() {       

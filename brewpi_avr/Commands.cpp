@@ -13,6 +13,7 @@
 #include "GenericContainer.h"
 #include "SystemProfile.h"
 #include "Comms.h"
+#include "ValueTicks.h"
 
 /**
  * A command handler function. This is the signature of commands.
@@ -289,9 +290,30 @@ bool logValuesCallback(Object* o, void* data, container_id* id, bool enter) {
 	return false;
 }
 
+
 void logValuesImpl(Object* target, container_id* ids, uint8_t len, DataOut& out) {
 	walkObject(target, logValuesCallback, &out, ids, ids+len);
 }
+
+/**
+	* Logs all values in a given top-level container.
+	*/
+void logValues(Object* target, container_id id)
+{
+	DataOut& out = Comms::dataOut();
+	out.write(CMD_LOG_VALUES_AUTO);
+	uint32_t time = ticks.millis();
+	out.writeBuffer((uint8_t*)&time, sizeof(time));
+	out.write(1);		// flag to indicate id chain follows		
+	out.write(id);		// id chain - just a single value
+	container_id ids[MAX_CONTAINER_DEPTH];
+	logValuesImpl(target, ids, 0, out);
+	out.close();	
+	Comms::flush();										// flush output
+}
+
+
+
 
 void logValuesCommandHandler(DataIn& in, DataOut& out) {
 	uint8_t flags = in.next();
@@ -360,6 +382,7 @@ void handleCommand(DataIn& dataIn, DataOut& dataOut)
 	if (cmd_id>sizeof(handlers)/sizeof(handlers[0]))	// check range
 		cmd_id = 0;
 	handlers[cmd_id](pipeIn, dataOut);					// do it!
+	Comms::flush();										// flush output
 }
 
 

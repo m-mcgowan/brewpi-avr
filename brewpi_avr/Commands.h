@@ -84,8 +84,7 @@ enum Commands {
 	CMD_LOG_VALUES_AUTO = CMD_LOG_VALUES | CMD_SPECIAL_FLAG,
 };
 
-
-void logValuesImpl(Object* target, container_id* ids, uint8_t len, DataOut& out);
+extern void logValues(Object* target, container_id id);
 
 /**
  * 

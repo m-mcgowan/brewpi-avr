@@ -71,6 +71,8 @@ public:
 CommsIn commsIn;		
 CommsOut commsOut;
 
+void Comms::flush() { commsOut.flush(); }
+
 /*
  * Filters out non-significant text - comment markers, whitespace, unrecognized characters.
  * The stream automatically closes on newline. 
