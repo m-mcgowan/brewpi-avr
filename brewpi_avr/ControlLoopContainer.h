@@ -52,6 +52,14 @@ public:
 		return flags & 0x8;
 	}
 
+	/*
+	 * Determines if this control loop should be called from an interrupt.
+	 */
+	bool isInterrupt() {
+		return flags & 0x10;
+	}
+
+
 	uint8_t logPeriod() {
 		uint8_t exponent = flags & 0x7;
 		return exponent ? 1<<(exponent-1) : 0;
@@ -68,8 +76,8 @@ public:
 
 	uint8_t streamSize() { return CONTROL_LOOP_ITEM_EEPROM_SIZE; }	
 			
-	void handleLoop(Object* target, container_id id) {
-		if (!isEnabled())
+	void handleLoop(Object* target, container_id id, bool interrupt) {
+		if (!isEnabled() || interrupt!=isInterrupt())
 			return;
 			
 		uint32_t now = ticks.millis();
@@ -205,11 +213,15 @@ public:
 	}
 		
 	void update() {
+		loop(false);
+	}
+	
+	void loop(bool interrupt) {
 		for (int i=0; i<container.size(); i++) {
 			Object* item = container.item(i++);
 			ControllerLoopInfo* config = (ControllerLoopInfo*)container.item(i);
 			if (config)
-				config->handleLoop(item, i>>1);
+				config->handleLoop(item, i>>1, interrupt);
 		}
 	}
 };
