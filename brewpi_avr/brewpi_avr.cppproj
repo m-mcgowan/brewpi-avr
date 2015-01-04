@@ -215,6 +215,9 @@
     <Compile Include="Config.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="ControlLoopContainer.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="DallasTemperature.cpp">
       <SubType>compile</SubType>
     </Compile>
@@ -231,6 +234,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="DeviceManager.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="dht.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="dht.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Display.h">
@@ -417,6 +426,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="ValueActuator.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="ValueDHT.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="ValueDisplay.h">
