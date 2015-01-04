@@ -1,35 +1,45 @@
 T realloc	-408
+W ControlLoopContainer::loop(bool)	-350
 T free	-314
 T malloc	-310
 T OneWire::search(unsigned char*)	-282
-W OneWireTempSensor::create(ObjectDefinition&)	-262
+W DisplayTemplate::update()	-276
 T HardwareSerial::begin(unsigned long)	-262
 T Comms::receive()	-244
+W OneWireTempSensor::create(ObjectDefinition&)	-232
+T dht::read(unsigned char, unsigned char)	-226
+W BangBangController2::update()	-216
 T setValue(Object*, DataIn&, DataIn&, DataOut&)	-202
 T createObjectCommandHandler(DataIn&, DataOut&)	-180
+T SystemProfile::activateProfile(signed char)	-180
 T SystemProfile::deleteProfile(signed char)	-174
 t _GLOBAL__sub_I_port_to_mode_PGM	-172
+W ControlLoopContainer::add(signed char, Object*)	-170
 T readValue(Object*, DataIn&, DataOut&)	-166
+T dht::read22(unsigned char)	-166
 T rehydrateObject(unsigned short, PipeDataIn&, bool)	-164
-T process()	-158
+T logValues(Object*, signed char)	-162
 T __vector_16	-148
 T TextIn::fetchNextData()	-148
 T OneWire::OneWire(unsigned char)	-148
 T ObjectDefinitionWalker::writeNext(DataOut&)	-146
+W ScaledTicksValue::readTo(DataOut&)	-144
 T removeEepromCreateCommand(BufferDataOut&)	-138
+t _GLOBAL__sub_I_system_id	-136
 W PersistChangeValue::writeMaskedFrom(DataIn&, DataIn&)	-136
 T readPlatformEndianMaskedBytes(void*, unsigned char, DataIn&, DataIn&)	-130
-T SystemProfile::activateProfile(signed char)	-130
 T OneWire::reset()	-130
 W FixedContainer::prepare()	-126
 T lookupOpenContainer(Object*, DataIn&, signed char&)	-126
+W ScaledTicksValue::writeMaskedFrom(DataIn&, DataIn&)	-124
+T SpiLcd::begin(unsigned char, unsigned char)	-122
 T HardwareSerial::write(unsigned char)	-122
-t _GLOBAL__sub_I_system_id	-120
 T HexTextToBinaryIn::fetchNextByte()	-120
+T DallasTemperature::initConnection(unsigned char const*)	-120
 T init	-118
 T __vector_19	-118
 T __vector_18	-116
-T DallasTemperature::initConnection(unsigned char const*)	-116
+T format_temp(unsigned char*, char*, unsigned char)	-114
 T deleteObjectCommandHandler(DataIn&, DataOut&)	-114
 T SystemProfile::initialize()	-114
 T logValuesCallback(Object*, void*, signed char*, bool)	-112
@@ -46,29 +56,47 @@ T SystemProfile::deactivateCurrentProfile()	-102
 T fetchContainedObject(Object*, unsigned char)	-100
 T DynamicContainer::expand(unsigned char)	-100
 T DynamicContainer::add(signed char, Object*)	-100
+W ControllerLoopInfo::load()	-96
+W BangBangController2::create(ObjectDefinition&)	-94
+T SystemProfile::createProfile()	-94
+T DynamicContainer::remove(signed char)	-94
 W FixedContainer::update()	-92
+W LogicActuator::create(ObjectDefinition&)	-90
 W FixedContainer::next()	-90
+T handleCommand(DataIn&, DataOut&)	-90
+T createRootContainer(unsigned short)	-90
 W DigitalPinActuator::create(ObjectDefinition&)	-88
 T DallasTemperature::requestTemperaturesByAddress(unsigned char const*)	-88
 W DataIn::push(DataOut&, unsigned char)	-86
-T handleCommand(DataIn&, DataOut&)	-86
 T fetchNextSlot(Object*, DataIn&, DataOut&)	-86
 T OneWireTempSensor::readAndConstrainTemp()	-86
 T OneWire::read_bit()	-86
 t turnOffPWM(unsigned char)	-84
 T deleteObject(DataIn&)	-84
+W ValueDHT::create(ObjectDefinition&)	-82
+W LogicActuator::readTo(DataOut&)	-82
 W DigitalPinActuator::writeMaskedFrom(DataIn&, DataIn&)	-82
 T SystemProfile::getProfileEnd(signed char, bool)	-82
+W EepromValue::readTo(DataOut&)	-80
 T lookupObject(Object*, DataIn&)	-80
 T OneWire::write_bit(unsigned char)	-80
+W IndirectValue::fetchTarget()	-78
+W DisplayValue::create(ObjectDefinition&)	-78
+T digitalRead	-78
+T convertFromInternalTempImpl(long, bool)	-78
 W OneWireBus::readTo(DataOut&)	-76
+T read2BytesFrom(Value*)	-76
 T logValuesCommandHandler(DataIn&, DataOut&)	-76
+T dht::read11(unsigned char)	-76
+T SpiLcd::send(unsigned char, unsigned char)	-76
 W OneWireBus::create(ObjectDefinition&)	-74
 T SystemProfile::profileWriteRegion(EepromStreamRegion&, bool)	-74
+t _ZN13LogicActuator6activeEP5Value.isra.14	-72
 W PersistChangeValue::readTo(DataOut&)	-72
+T micros	-72
 T DynamicContainer::next()	-72
+W IndirectValue::writeMaskedFrom(DataIn&, DataIn&)	-70
 W FixedContainer::add(signed char, Object*)	-70
-W EepromValue::readTo(DataOut&)	-70
 T printVersion()	-70
 W ScaledTicksValue::millis()	-68
 W PipeDataIn::next()	-68
@@ -83,21 +111,23 @@ B tx_buffer	-68
 B rx_buffer	-68
 W DynamicContainer::iterate_objects(void*, void (*)(Object*, void*))	-66
 T resetCommandHandler(DataIn&, DataOut&)	-66
-T logValues(signed char*)	-66
 W WritableValue::nextMaskedByte(unsigned char, DataIn&, DataIn&)	-64
-t _ZN15EepromBaseValue16_writeMaskedFromER6DataInS1_at.isra.7	-62
+T DallasTemperature::isConnected(unsigned char const*, unsigned char*)	-64
+t _ZN15EepromBaseValue16_writeMaskedFromER6DataInS1_at.isra.10	-62
+W IndirectValue::readTo(DataOut&)	-62
+W ExternalValue::writeMaskedFrom(DataIn&, DataIn&)	-62
 T SystemProfile::listEepromInstructionsTo(signed char, DataOut&)	-62
-W ScaledTicksValue::readTo(DataOut&)	-60
-T SystemProfile::createProfile()	-60
+W EepromValue::writeMaskedFrom(DataIn&, DataIn&)	-60
 T SystemProfile::compactObjectDefinitions()	-60
 T DallasTemperature::getTempRaw(unsigned char const*)	-58
 W RegionDataIn::next()	-56
 W EepromBlock::readTo(DataOut&)	-56
 T deleteDynamicallyAllocatedObject(Object*, void*, signed char*, bool)	-56
 T __prologue_saves__	-56
+T __divmodsi4	-56
 T OneWire::write(unsigned char, unsigned char)	-56
 T DallasTemperature::sendCommand(unsigned char const*, unsigned char)	-56
-W ScaledTicksValue::writeMaskedFrom(DataIn&, DataIn&)	-54
+W OneWireTempSensor::prepare()	-54
 W FixedContainer::remove(signed char)	-54
 W EepromDataOut::write(unsigned char)	-54
 T constrainTemp(long, short, short)	-54
@@ -108,81 +138,99 @@ T OneWire::select(unsigned char const*)	-54
 T ObjectDefinition::spool()	-54
 T HardwareSerial::peek()	-54
 T OneWire::read()	-52
-T DynamicContainer::remove(signed char)	-52
 t printVersion()::__c	-50
 W writeEepromRange(unsigned short, unsigned short, unsigned char)	-50
 W DynamicContainer::create(ObjectDefinition&)	-50
 W DigitalPinActuator::readTo(DataOut&)	-50
 W CurrentTicksValue::readTo(DataOut&)	-50
 T setValueCommandHandler(DataIn&, DataOut&)	-50
-T createRootContainer()	-50
+T process()	-50
+T SpiLcd::initSpi()	-50
 W readMaskedByte(DataIn&, DataIn&)	-48
 T SystemProfile::closeOpenProfile()	-48
-T OneWireTempSensor::read()	-48
-W OneWireTempSensor::prepare()	-46
-W EepromValue::writeMaskedFrom(DataIn&, DataIn&)	-46
+W Profile::create(ObjectDefinition&)	-46
+W ControlLoopContainer::remove(signed char)	-46
 T writeID(signed char*, DataOut&)	-46
 T setSystemValueCommandHandler(DataIn&, DataOut&)	-46
 T listObjectsCommandHandler(DataIn&, DataOut&)	-46
 T deleteProfileCommandHandler(DataIn&, DataOut&)	-46
+T DallasTemperature::readPowerSupply(unsigned char const*)	-46
+W IndirectValue::prepare()	-44
 W HexTextToBinaryIn::peek()	-44
-W BasicTempSensor::update()	-44
 T readPointer(unsigned short)	-44
+T SpiLcd::pulseEnable()	-44
+W IndirectValue::streamSize()	-42
+W IndirectValue::objectType()	-42
 W DynamicContainer::prepare()	-42
 T constrainTemp16(long)	-42
+T SpiLcd::init()	-42
 T OneWire::crc8(unsigned char const*, unsigned char)	-42
 W do_prepare(Object*, void*)	-40
 W RegionDataIn::hasNext()	-40
-W OneWireTempSensor::~OneWireTempSensor()	-40
 W EepromDataIn::next()	-40
-W BasicTempSensor::~BasicTempSensor()	-40
+W ControlLoopConfigContainer::item(signed char)	-40
 T writePointer(unsigned short, unsigned short)	-40
-T logValuesImpl(signed char*, DataOut&)	-40
+T fixedToTenths(long)	-40
+T createApplicationObject(ObjectDefinition&, bool)	-40
+T __udivmodhi4	-40
+T __divmodhi4	-40
+T SpiLcd::write4bits(unsigned char)	-40
+t handlers	-38
+W ValueDHT::prepare()	-38
 T main	-38
-T createApplicationObject(ObjectDefinition&, bool)	-38
 T setMaskValueCommandHandler(DataIn&, DataOut&)	-36
 T __eeupd_byte_m328p	-36
 T HardwareSerial::available()	-36
-D handlers	-36
 W isDynamicallyAllocated(Object*)	-34
+W ExternalValue::readTo(DataOut&)	-34
+W ControlLoopConfigContainer::size()	-34
 T readValueCommandHandler(DataIn&, DataOut&)	-34
 T lookupUserOpenContainer(DataIn&, signed char&)	-34
 T freeSlotRootCommandHandler(DataIn&, DataOut&)	-34
 T freeSlotCommandHandler(DataIn&, DataOut&)	-34
-T DallasTemperature::isConnected(unsigned char const*, unsigned char*)	-34
 B Serial	-34
+t createObjectHandlers	-32
 T createProfileCommandHandler(DataIn&, DataOut&)	-32
+T __eerd_block_m328p	-32
 T BufferDataOut::write(unsigned char)	-32
+W ValueDHT::item(signed char)	-30
+W DisplayTemplate::create(ObjectDefinition&)	-30
+W BangBangController2::item(signed char)	-30
+V vtable for OneWireTempSensor	-30
 T noopCommandHandler(DataIn&, DataOut&)	-30
+T logValuesImpl(Object*, signed char*, unsigned char, DataOut&)	-30
 T OneWireTempSensor::requestConversion()	-30
 W isContainer(Object*)	-28
 W PersistChangeValue::create(ObjectDefinition&)	-28
+W IndirectValue::create(ObjectDefinition&)	-28
 W HexTextToBinaryIn::next()	-28
+W DisplayValue::readTo(DataOut&)	-28
 W BinaryToHexTextOut::close()	-28
+W BasicTempSensor::update()	-28
 W BasicReadValue<short>::readTo(DataOut&)	-28
-W BasicReadValue<bool>::readTo(DataOut&)	-28
-V vtable for OneWireTempSensor	-28
-V vtable for BasicTempSensor	-28
-D createObjectHandlers	-28
+T SystemProfile::getProfileStart(signed char)	-28
 t _GLOBAL__sub_I__ZN5Comms4initEv	-26
+W ValueDHT::update()	-26
 W RegionDataIn::peek()	-26
 W PipeDataIn::peek()	-26
 W PipeDataIn::hasNext()	-26
 W PersistChangeValue::rehydrated(unsigned short)	-26
 W HexTextToBinaryIn::hasNext()	-26
-V vtable for BasicReadValue<short>	-26
-V vtable for BasicReadValue<bool>	-26
 T memcmp	-26
 T OneWire::reset_search()	-26
+W Profile::item(signed char)	-24
 W FixedContainer::item(signed char)	-24
 W EepromValue::create(ObjectDefinition&)	-24
-W BasicTempSensor::item(signed char)	-24
 V vtable for FixedContainer	-24
 V vtable for DynamicContainer	-24
+V vtable for ControlLoopContainer	-24
 T writePlatformEndianBytes(void*, unsigned char, DataOut&)	-24
 T millis	-24
+T dht::prepare(unsigned char)	-24
 T __umulhisi3	-24
+T __udivmodqi4	-24
 T DynamicContainer::item(signed char)	-24
+W ControllerLoopInfo::writeMaskedFrom(DataIn&, DataIn&)	-22
 W BufferDataIn::next()	-22
 V vtable for DigitalPinActuator	-22
 T lookupUserObject(DataIn&)	-22
@@ -191,46 +239,76 @@ T __do_global_ctors	-22
 T __do_copy_data	-22
 T HardwareSerial::flush()	-22
 W TextIn::next()	-20
+W SpiLcd::write(unsigned char)	-20
 W CurrentTicksValue::create(ObjectDefinition&)	-20
+W ControlLoopContainer::item(signed char)	-20
 T digital_pin_to_timer_PGM	-20
 T digital_pin_to_port_PGM	-20
 T digital_pin_to_bit_mask_PGM	-20
 T delayMicroseconds	-20
 T __vector_default	-20
+T OneWireTempSensor::read()	-20
 W serialEventRun()	-18
 W TextIn::peek()	-18
 W TextIn::hasNext()	-18
 W EepromDataIn::hasNext()	-18
 W EepromBlock::writeMaskedFrom(DataIn&, DataIn&)	-18
 W DigitalPinActuator::setActive(bool)	-18
+V vtable for ValueDHT	-18
+V vtable for TransientValue<unsigned short>	-18
 V vtable for ScaledTicksValue	-18
+V vtable for ProfileConfig	-18
+V vtable for Profile	-18
 V vtable for PersistChangeValue	-18
 V vtable for OneWireBus	-18
+V vtable for LogicActuator	-18
+V vtable for IndirectValue	-18
+V vtable for ExternalValue	-18
 V vtable for EepromValue	-18
 V vtable for EepromBlock	-18
+V vtable for DisplayValue	-18
 V vtable for CurrentTicksValue	-18
+V vtable for ControllerStateValue	-18
+V vtable for ControllerLoopInfo	-18
+V vtable for ControllerConfigEepromValue	-18
+V vtable for ControlLoopConfigContainer	-18
+V vtable for BangBangController2	-18
 T strlen	-18
 T memcpy	-18
 T SystemProfile::setProfileOffset(signed char, unsigned short)	-18
 T SystemProfile::getProfileOffset(signed char)	-18
+T SpiLcd::spiOut()	-18
+T SpiLcd::leftToRight()	-18
+T SpiLcd::display()	-18
 T Comms::init()	-18
 W do_update(Object*, void*)	-16
+W SpiLcd::command(unsigned char)	-16
+W ControlLoopContainer::next()	-16
 V vtable for HardwareSerial	-16
+T setSystemMaskValueCommandHandler(DataIn&, DataOut&)	-16
 T __eerd_byte_m328p	-16
 T __do_clear_bss	-16
 T SystemProfile::setCurrentProfile(signed char)	-16
 T SystemProfile::initializeEeprom()	-16
+T SpiLcd::noAutoscroll()	-16
 T DallasTemperature::DallasTemperature(OneWire*)	-16
+W TransientValue<unsigned short>::writeMaskedFrom(DataIn&, DataIn&)	-14
 W EepromValue::streamSize()	-14
 W DynamicContainer::update()	-14
+W DisplayValue::writeMaskedFrom(DataIn&, DataIn&)	-14
+W ControlLoopContainer::size()	-14
 W BufferDataIn::peek()	-14
 T strcpy_P	-14
 T setup	-14
 T readSystemValueCommandHandler(DataIn&, DataOut&)	-14
 T clear(unsigned char*, unsigned char)	-14
 T SystemProfile::activateDefaultProfile()	-14
+W TransientValue<unsigned short>::readTo(DataOut&)	-12
 W EepromDataIn::peek()	-12
+W ControllerLoopInfo::rehydrated(unsigned short)	-12
 W CommsOut::write(unsigned char)	-12
+V vtable for DisplayTemplate	-12
+B ticks	-12
 W CommsIn::peek()	-10
 W CommsIn::next()	-10
 W CommsIn::hasNext()	-10
@@ -252,24 +330,30 @@ T port_to_output_PGM	-10
 T port_to_mode_PGM	-10
 T port_to_input_PGM	-10
 T nullFactory(ObjectDefinition&)	-10
+T makeWord(unsigned char, unsigned char)	-10
 T handleReset(bool)	-10
 T h2d(unsigned char)	-10
 T brewpiLoop()	-10
-W non-virtual thunk to BasicReadValue<short>::read()	-8
-W non-virtual thunk to BasicReadValue<bool>::read()	-8
+W RehydratedAwareObject::rehydrated(unsigned short)	-8
+W Profile::rehydrated(unsigned short)	-8
 W EepromValue::rehydrated(unsigned short)	-8
 W EepromDataOut::close()	-8
-W BasicReadValue<short>::read()	-8
+W ControlLoopContainer::update()	-8
+W ControlLoopContainer::rehydrated(unsigned short)	-8
+W BangBangController2::rehydrated(unsigned short)	-8
+V vtable for SpiLcd	-8
+T non-virtual thunk to OneWireTempSensor::read()	-8
 T __tablejump__	-8
+T SpiLcd::home()	-8
+T SpiLcd::clear()	-8
 T Comms::resetOnCommandComplete()	-8
-B ticks	-8
 W OneWireTempSensor::isConnected()	-6
 W Object::prepare()	-6
 W FixedContainer::size()	-6
+W ExternalValue::streamSize()	-6
 W EepromBlock::streamSize()	-6
 W DynamicContainer::size()	-6
 W DigitalPinActuator::isActive()	-6
-W BasicReadValue<bool>::read()	-6
 T operator new(unsigned int)	-6
 T operator delete(void*)	-6
 T loop	-6
@@ -279,23 +363,31 @@ B system_id	-5
 B SystemProfile::systemRoot	-5
 d next	-4
 W WritableValue::objectType()	-4
+W ValueDHT::size()	-4
 W Value::objectType()	-4
+W TransientValue<unsigned short>::streamSize()	-4
 W ScaledTicksValue::streamSize()	-4
+W ProfileConfig::objectType()	-4
+W Profile::size()	-4
 W PersistChangeValue::streamSize()	-4
 W OpenContainer::objectType()	-4
 W OneWireBus::streamSize()	-4
+W Object::objectType()	-4
+W LogicActuator::streamSize()	-4
 W EepromBaseValue::objectType()	-4
+W DisplayValue::streamSize()	-4
 W DigitalPinActuator::streamSize()	-4
 W DefaultMask::peek()	-4
 W DefaultMask::next()	-4
 W DefaultMask::hasNext()	-4
 W CurrentTicksValue::streamSize()	-4
+W ControllerLoopInfo::streamSize()	-4
 W Container::size()	-4
 W Container::objectType()	-4
 W BufferDataIn::hasNext()	-4
 W BlackholeDataOut::write(unsigned char)	-4
 W BasicReadValue<short>::streamSize()	-4
-W BasicReadValue<bool>::streamSize()	-4
+T rootContainerPersistentSize()	-4
 T __tablejump2__	-4
 T HardwareSerial::operator bool()	-4
 B timer0_overflow_count	-4
@@ -309,7 +401,7 @@ W Object::update()	-2
 W Object::rehydrated(unsigned short)	-2
 W DataOut::close()	-2
 W Container::returnItem(Object*)	-2
-T __cxa_pure_virtual	-2
+T Comms::flush()	-2
 D commsOut	-2
 D commsIn	-2
 D blackhole	-2
@@ -321,10 +413,8 @@ B __flp	-2
 B __brkval	-2
 B SystemProfile::root	-2
 b timer0_fract	-1
+D tempFormat	-1
 B reset	-1
 B prevConnected	-1
-B logValuesFlag	-1
 B SystemProfile::current	-1
-V vtable for Value	-0
-T writeBytes(void*, unsigned char, DataOut&)	-0
-T readMaskedBytes(void*, unsigned char, DataIn&, DataIn&)	-0
+T convert(unsigned char, unsigned char)	-0
