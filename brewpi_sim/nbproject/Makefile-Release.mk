@@ -21,7 +21,7 @@ FC=gfortran
 AS=as
 
 # Macros
-CND_PLATFORM=MinGW-Windows
+CND_PLATFORM=MinGW_1-Windows
 CND_DLIB_EXT=dll
 CND_CONF=Release
 CND_DISTDIR=dist
@@ -52,13 +52,13 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=../brewpi_lib/dist/Release/MinGW-Windows/libbrewpi_lib.a
+LDLIBSOPTIONS=../brewpi_lib/dist/Release/MinGW_1-Windows/libbrewpi_lib.a
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/brewpi_sim.exe
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/brewpi_sim.exe: ../brewpi_lib/dist/Release/MinGW-Windows/libbrewpi_lib.a
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/brewpi_sim.exe: ../brewpi_lib/dist/Release/MinGW_1-Windows/libbrewpi_lib.a
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/brewpi_sim.exe: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
