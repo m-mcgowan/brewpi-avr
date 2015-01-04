@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="90">
+<configurationDescriptor version="94">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
@@ -61,7 +61,6 @@
   <confs>
     <conf name="Debug" type="3">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>default</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -76,15 +75,9 @@
         <archiverTool>
         </archiverTool>
       </compileType>
-      <item path="../googletest/src/gtest-all.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="../googletest/src/gtest-all.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../googletest/src/gtest_main.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="../googletest/src/gtest_main.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="include/gtest/gtest-death-test.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -179,7 +172,6 @@
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
-        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
         <compilerSet>default</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
@@ -200,15 +192,9 @@
         <archiverTool>
         </archiverTool>
       </compileType>
-      <item path="../googletest/src/gtest-all.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="../googletest/src/gtest-all.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../googletest/src/gtest_main.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="../googletest/src/gtest_main.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="include/gtest/gtest-death-test.h" ex="false" tool="3" flavor2="0">
       </item>

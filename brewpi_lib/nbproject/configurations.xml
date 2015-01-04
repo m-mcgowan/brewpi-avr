@@ -21,6 +21,7 @@
       <itemPath>../brewpi_avr/Commands.cpp</itemPath>
       <itemPath>../brewpi_avr/Comms.cpp</itemPath>
       <itemPath>../brewpi_avr/ConfigDefault.h</itemPath>
+      <itemPath>../brewpi_avr/ControlLoopContainer.h</itemPath>
       <itemPath>../brewpi_avr/DS2413.h</itemPath>
       <itemPath>../brewpi_avr/DallasTemperature.h</itemPath>
       <itemPath>../brewpi_avr/DataStream.cpp</itemPath>
@@ -39,6 +40,7 @@
       <itemPath>../brewpi_avr/FilterFixed.cpp</itemPath>
       <itemPath>../brewpi_avr/FilterFixed.h</itemPath>
       <itemPath>../brewpi_avr/GenericContainer.cpp</itemPath>
+      <itemPath>../brewpi_avr/GenericContainer.h</itemPath>
       <itemPath>../brewpi_avr/JsonKeys.h</itemPath>
       <itemPath>../brewpi_avr/LogMessages.h</itemPath>
       <itemPath>../brewpi_avr/Logger.h</itemPath>
@@ -75,6 +77,7 @@
       <itemPath>../brewpi_avr/Ticks.cpp</itemPath>
       <itemPath>../brewpi_avr/Ticks.h</itemPath>
       <itemPath>../brewpi_avr/TicksArduino.h</itemPath>
+      <itemPath>../brewpi_avr/ValueModels.h</itemPath>
       <itemPath>../brewpi_avr/Values.cpp</itemPath>
       <itemPath>../brewpi_avr/ValuesEeprom.cpp</itemPath>
       <itemPath>../brewpi_avr/ValuesProgmem.cpp</itemPath>
@@ -338,6 +341,11 @@
       </item>
       <item path="../brewpi_avr/ConfigDefault.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../brewpi_avr/ControlLoopContainer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../brewpi_avr/DS2413.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/DallasTemperature.h" ex="false" tool="3" flavor2="0">
@@ -373,6 +381,8 @@
       <item path="../brewpi_avr/FilterFixed.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/GenericContainer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../brewpi_avr/GenericContainer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/JsonKeys.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -449,6 +459,8 @@
       <item path="../brewpi_avr/Ticks.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/TicksArduino.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../brewpi_avr/ValueModels.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Values.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -648,6 +660,11 @@
       </item>
       <item path="../brewpi_avr/ConfigDefault.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../brewpi_avr/ControlLoopContainer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../brewpi_avr/DS2413.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/DallasTemperature.h" ex="false" tool="3" flavor2="0">
@@ -683,6 +700,8 @@
       <item path="../brewpi_avr/FilterFixed.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/GenericContainer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../brewpi_avr/GenericContainer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/JsonKeys.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -759,6 +778,8 @@
       <item path="../brewpi_avr/Ticks.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/TicksArduino.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../brewpi_avr/ValueModels.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../brewpi_avr/Values.cpp" ex="false" tool="1" flavor2="0">
       </item>
