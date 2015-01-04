@@ -88,7 +88,7 @@ public:
 class ControllerConfig
 {
 	bool enabled;
-	fixed4_4 hysteresis;		// 
+	uint8_t hysteresis;		// 
 	// etc. etc.. imagine lots of values here
 	// uint8_t minCoolTime	
 };
@@ -97,7 +97,6 @@ class ControllerConfigEepromValue : public EepromValue
 {
 	
 public:
-
 
 	uint8_t enabled() {
 		return eepromAccess.readByte(eeprom_offset());
@@ -200,6 +199,7 @@ public:
 	
 	/**
 	 * Definition block is the ControllerConfig block.
+	 * Automatically persisted to eeprom.
 	 */
 	static Object* create(ObjectDefinition& defn) {
 		return new BangBangController2();

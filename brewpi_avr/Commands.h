@@ -14,6 +14,12 @@
 typedef char* pchar;
 typedef const char* cpchar;
 
+#ifdef ARDUINO
+#define progmem_ptr(x) ((void*)pgm_read_word(x))
+#else
+#define progmem_ptr(x) x
+#endif
+
 void handleCommand(DataIn& data, DataOut& out);
 
 /**

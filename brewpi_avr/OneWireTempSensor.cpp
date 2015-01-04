@@ -86,7 +86,6 @@ temperature OneWireTempSensor::read(){
 		return TEMP_SENSOR_DISCONNECTED;
 	
 	temperature temp = readAndConstrainTemp();
-	requestConversion();
 	return temp;
 }
 

@@ -56,7 +56,8 @@ public:
 	prepare_t prepare() {
 		if (!isConnected())
 			init();
-		
+		else					
+			requestConversion();
 		return 750;			// conversion time
 	}
 

@@ -10,7 +10,7 @@
 #include "Values.h"
 
 /**
- * A streamable value whose data resizes externally.
+ * A streamable value whose data resides externally.
  */
 // TODO - factor ExternalValue, eeprom value and progmem value - all have address and size.
 class ExternalValue : public WritableValue
@@ -23,6 +23,11 @@ public:
 	ExternalValue(void* pValue, uint8_t size) {
 		_pValue = pValue;
 		_size = size;
+	}
+	
+	void set(void* pValue, uint8_t size) {
+		_pValue = pValue;
+		_size = size;		
 	}
 	
 	void readTo(DataOut& out) {
@@ -77,7 +82,8 @@ typedef Object* (*ExternalValueFunction)(container_id id);
 /**
  * Provides a container interface via values sourced externally.
  * To avoid overhead of a virtual function table and vptr which require storage for two addresses, 
- * a single function is used to retrieve.
+ * a single function is used to retrieve the external values (at index >= 0) and the number of values,
+ * with index==-1.
  */
 class ExternalValueContainer : Container {
 	
@@ -108,6 +114,7 @@ public:
 	}
 };
 
+
 /**
  * An indirect value is configured with the id chain of an object, and returns that object's value.
  * Once created the value pointed to cannot be changed.
@@ -118,31 +125,33 @@ public:
 class IndirectValue : public EepromValue
 {
 private:
-	Value* previous;	
+	Value* target;
 
-        void fetchTarget() {
-                EepromDataIn data;
+    bool fetchTarget() {
+        EepromDataIn data;
 		data.reset(address, eepromAccess.readByte(address-1));
-		previous = (Value*)lookupUserObject(data);            
-        }
+		target = (Value*)lookupUserObject(data);
+		return target;
+    }
+	
 public:
 
 	object_t objectType() {
-            fetchTarget();
-		return previous==NULL ? otObject : previous->objectType();
+        return fetchTarget() ? target->objectType() : otObject;		
 	}
                 
-	prepare_t prepare() {
-            fetchTarget();
-                return previous==NULL ? 0 : previous->prepare();
+	prepare_t prepare() {		
+        return fetchTarget() ? target->prepare() : 0;
 	}
 	
-	uint8_t streamSize() { return previous->streamSize(); }
-	void readTo(DataOut& out) { if (previous) previous->readTo(out); }
-	void writeMaskedFrom(DataIn& dataIn, DataIn& maskedIn) { if (previous) previous->writeMaskedFrom(dataIn, maskedIn); }
+	uint8_t streamSize() { return fetchTarget() ? target->streamSize() : 0; }
+	void readTo(DataOut& out) { if (fetchTarget()) target->readTo(out); }
+	void writeMaskedFrom(DataIn& dataIn, DataIn& maskedIn) { 
+		if (fetchTarget()) target->writeMaskedFrom(dataIn, maskedIn); 
+	}
         
 	static Object* create(ObjectDefinition& def)
-        {
-            return new_object(IndirectValue());
-        }
+    {
+        return new_object(IndirectValue());
+    }
 };

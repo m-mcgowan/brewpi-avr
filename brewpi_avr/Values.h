@@ -107,7 +107,7 @@ struct Container : public Object
 		
 };
 
-
+#if 0
 /**
  * A container that creates it's contained items on demand.
  */
@@ -121,6 +121,7 @@ public:
 		delete_object(item);
 	}
 };
+#endif
 
 
 /**

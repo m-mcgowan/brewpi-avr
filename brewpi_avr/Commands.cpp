@@ -348,7 +348,7 @@ void activateProfileCommandHandler(DataIn& in, DataOut& out) {
 }
 
 
-CommandHandler handlers[] = {
+const PROGMEM CommandHandler handlers[] = {
 	noopCommandHandler,				// 0x00
 	readValueCommandHandler,		// 0x01
 	setValueCommandHandler,			// 0x02
@@ -381,7 +381,8 @@ void handleCommand(DataIn& dataIn, DataOut& dataOut)
 	uint8_t cmd_id = pipeIn.next();						// command type code
 	if (cmd_id>sizeof(handlers)/sizeof(handlers[0]))	// check range
 		cmd_id = 0;
-	handlers[cmd_id](pipeIn, dataOut);					// do it!
+	CommandHandler handler = (CommandHandler)progmem_ptr(handlers+sizeof(CommandHandler)*cmd_id);
+	handler(pipeIn, dataOut);					// do it!
 	Comms::flush();										// flush output
 }
 

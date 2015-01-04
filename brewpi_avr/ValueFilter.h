@@ -32,14 +32,10 @@ public:
 		writeBytes(&value, 4, out);
 		
 	}
-	
-	void writeMaskedFrom(DataIn& in, DataIn& mask) {
 		
-	}
-
 	// read/write externally provides both the filter value and filter settings.
 	// masking is needed to avoid altering the filter value when changing settings.	
-	static Object* Create(ObjectDef	inition& def)
+	static Object* Create(ObjectDefinition& def)
 	{		
 		// 1-byte co-efficients
 		// id_chain of ValueSource to fetch input value from

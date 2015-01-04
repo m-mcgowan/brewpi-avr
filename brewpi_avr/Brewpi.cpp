@@ -45,6 +45,7 @@
 #ifdef ARDUINO
 #include "OneWireBus.h"
 #include "OneWireTempSensor.h"
+#include "ValueDHT.h"
 #endif
 
 #if BREWPI_SIMULATE && 0                // disable simulator for time being
@@ -69,27 +70,7 @@ uint8_t rootContainerPersistentSize() {
 }
 
 
-class BuildInfoValues : public FactoryContainer {
-	private:	
-	
-	public:
-	BuildInfoValues() {}
-			
-	container_id size() { return 1; }
-	virtual Object* item(container_id id) { return new_object(ProgmemStringValue((PSTR(BUILD_NAME)))); }
-};
-
 const uint8_t loadProfileDelay = 5;	// seconds
-
-class GlobalSettings {
-	uint8_t settings[10];
-		
-	Object* externalValueHandler(container_id id) {
-		if (id==-1) return (Object*)10;	// size
-		if (id>9) return NULL;
-		return new ExternalValue(settings+id, 1);
-	}
-};
 
 void setup()
 {    	
@@ -181,21 +162,25 @@ void loop() {
 	#endif
 }
 
+
+#define EXCLUDE(x) nullFactory
+#define INCLUDE(x) x
+
 /**
  * ARDUINO_OBJECT - used to declare object factories that are only suitable on 
  * an arduino-compatible device
  */
-#ifdef ARDUINO
-#define ARDUINO_OBJECT(x) x
+#if defined(ARDUINO) 
+#define ARDUINO_OBJECT(x) INCLUDE(x)
 #else
-#define ARDUINO_OBJECT(x) nullFactory
+#define ARDUINO_OBJECT(x) EXCLUDE(x)
 #endif	
 
 
-#if BREWPI_LCD && 0
-#define DISPLAY_OBJECT(x) x
+#if BREWPI_LCD
+#define DISPLAY_OBJECT(x) INCLUDE(x)
 #else
-#define DISPLAY_OBJECT(x) nullFactory
+#define DISPLAY_OBJECT(x) EXCLUDE(x)
 #endif
 
 /**
@@ -204,13 +189,14 @@ void loop() {
 #define BREWPI_EXPERIMENTAL 1
 
 #if BREWPI_EXPERIMENTAL
-#define EXPERIMENTAL(x) x
+#define EXPERIMENTAL(x) INCLUDE(x)
 #else
-#define EXPERIMENTAL(x) nullFactory
+#define EXPERIMENTAL(x) EXCLUDE(x)
 #endif
 
-ObjectFactory createObjectHandlers[] = {
+const PROGMEM ObjectFactory createObjectHandlers[] = {
 	nullFactory,                                            // type 0
+#if 0
 	ARDUINO_OBJECT(OneWireBus::create),						// type 1
 	ARDUINO_OBJECT(OneWireTempSensor::create),       		// type 2
 	CurrentTicksValue::create,								// type 3
@@ -219,11 +205,13 @@ ObjectFactory createObjectHandlers[] = {
 	Profile::create,										// type 6
 	EXPERIMENTAL(LogicActuator::create),					// type 7
 	EXPERIMENTAL(BangBangController2::create),				// type 8
-	PersistChangeValue::create,								// type 9
+	EXPERIMENTAL(PersistChangeValue::create),				// type 9
 	DISPLAY_OBJECT(DisplayValue::create),					// type A
 	DISPLAY_OBJECT(DisplayTemplate::create),				// type B
 	ARDUINO_OBJECT(DigitalPinActuator::create),				// type C
 	IndirectValue::create,									// type D
+	//ValueDHT::create,			// type E
+#endif	
 	NULL
 	
 	// When defining a new object type, add the handler above the last NULL value (it's just there to make
@@ -232,6 +220,7 @@ ObjectFactory createObjectHandlers[] = {
 	// it's critical that the create code reads len bytes from the stream so that the data is 
 	// spooled to eeprom to the persisted object definition.
 };
+
 
 /**
  * The application supplied object factory.
@@ -243,6 +232,7 @@ Object* createApplicationObject(ObjectDefinition& def, bool dryRun)
 	if (dryRun || type>=sizeof(createObjectHandlers)/sizeof(createObjectHandlers[0]))
 		type = 0;		// null object creator. Ensures stream is properly consumed even for invalid type values.
 	
-	Object* result = createObjectHandlers[type](def);	
+	ObjectFactory fn = (ObjectFactory)progmem_ptr(createObjectHandlers+sizeof(ObjectFactory)*type);
+	Object* result = fn(def);	
 	return result;
 }
